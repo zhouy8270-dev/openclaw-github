@@ -1,0 +1,140 @@
+{
+  "meta": {
+    "lastTouchedVersion": "2026.3.13",
+    "lastTouchedAt": "2026-03-21T01:21:50.178Z"
+  },
+  "wizard": {
+    "lastRunAt": "2026-03-20T13:54:12.338Z",
+    "lastRunVersion": "2026.3.13",
+    "lastRunCommand": "doctor",
+    "lastRunMode": "local"
+  },
+  "auth": {
+    "profiles": {
+      "volcengine-coding-plan:default": {
+        "provider": "volcengine-coding-plan",
+        "mode": "api_key"
+      },
+      "volcengine:default": {
+        "provider": "volcengine",
+        "mode": "api_key"
+      }
+    },
+    "order": {
+      "volcengine-coding-plan": [
+        "volcengine-coding-plan:default"
+      ]
+    }
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "volcengine-coding-plan": {
+        "baseUrl": "https://ark.cn-beijing.volces.com/api/coding/v3",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "doubao-seed-2.0-code",
+            "name": "doubao-seed-2.0-code",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 128000,
+            "maxTokens": 8192
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "volcengine-plan/ark-code-latest"
+      },
+      "models": {
+        "volcengine-coding-plan/doubao-seed-2.0-code": {
+          "alias": "doubao-seed-2.0-code"
+        },
+        "volcengine-plan/ark-code-latest": {}
+      },
+      "workspace": "C:\\Users\\Administrator\\.openclaw\\workspace",
+      "compaction": {
+        "mode": "safeguard"
+      },
+      "maxConcurrent": 4,
+      "subagents": {
+        "maxConcurrent": 8
+      }
+    }
+  },
+  "tools": {
+    "profile": "coding"
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto",
+    "restart": true,
+    "ownerDisplay": "raw"
+  },
+  "session": {
+    "dmScope": "per-channel-peer"
+  },
+  "channels": {
+    "feishu": {
+      "enabled": true,
+      "appId": "cli_a93158ac2a78dcee",
+      "appSecret": "rkC4udRyXzfwMv5Ferntne5c2jtwuYCq",
+      "domain": "feishu",
+      "dmPolicy": "open",
+      "groupPolicy": "open",
+      "allowFrom": [
+        "*"
+      ]
+    }
+  },
+  "gateway": {
+    "port": 16666,
+    "mode": "local",
+    "bind": "loopback",
+    "auth": {
+      "mode": "token",
+      "token": "76d05dfdb29d7d59533f8d84dda4e1183f296e9d8d3b8aa5"
+    },
+    "tailscale": {
+      "mode": "off",
+      "resetOnExit": false
+    }
+  },
+  "skills": {
+    "entries": {
+      "notion": {
+        "apiKey": "ntn_e22313442097r9KdhBeTAKXlM7b5CNwlHdn7h7HCcJve8U"
+      },
+      "openai-image-gen": {
+        "apiKey": "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"
+      },
+      "openai-whisper-api": {
+        "apiKey": "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"
+      }
+    }
+  },
+  "plugins": {
+    "load": {
+      "paths": [
+        "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\extensions\\feishu"
+      ]
+    },
+    "entries": {
+      "feishu": {
+        "enabled": true
+      }
+    }
+  }
+}

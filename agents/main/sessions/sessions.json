@@ -1,0 +1,813 @@
+{
+  "agent:main:main": {
+    "sessionId": "a594173a-365f-45b8-b77c-30ec666479cc",
+    "updatedAt": 1773848240170,
+    "systemSent": true,
+    "abortedLastRun": false,
+    "chatType": "direct",
+    "deliveryContext": {
+      "channel": "webchat"
+    },
+    "lastChannel": "webchat",
+    "origin": {
+      "provider": "webchat",
+      "surface": "webchat",
+      "chatType": "direct"
+    },
+    "sessionFile": "C:\\Users\\Administrator\\.openclaw\\agents\\main\\sessions\\a594173a-365f-45b8-b77c-30ec666479cc.jsonl",
+    "compactionCount": 0,
+    "skillsSnapshot": {
+      "prompt": "\n\nThe following skills provide specialized instructions for specific tasks.\nUse the read tool to load a skill's file when the task matches its description.\nWhen a skill file references a relative path, resolve it against the skill directory (parent of SKILL.md / dirname of the path) and use that absolute path in tool commands.\n\n<available_skills>\n  <skill>\n    <name>feishu-doc</name>\n    <description>Feishu document read/write operations. Activate when user mentions Feishu docs, cloud docs, or docx links.\n</description>\n    <location>~/AppData\\Roaming\\npm\\node_modules\\openclaw\\extensions\\feishu\\skills\\feishu-doc\\SKILL.md</location>\n  </skill>\n  <skill>\n    <name>feishu-drive</name>\n    <description>Feishu cloud storage file management. Activate when user mentions cloud space, folders, drive.\n</description>\n    <location>~/AppData\\Roaming\\npm\\node_modules\\openclaw\\extensions\\feishu\\skills\\feishu-drive\\SKILL.md</location>\n  </skill>\n  <skill>\n    <name>feishu-perm</name>\n    <description>Feishu permission management for documents and files. Activate when user mentions sharing, permissions, collaborators.\n</description>\n    <location>~/AppData\\Roaming\\npm\\node_modules\\openclaw\\extensions\\feishu\\skills\\feishu-perm\\SKILL.md</location>\n  </skill>\n  <skill>\n    <name>feishu-wiki</name>\n    <description>Feishu knowledge base navigation. Activate when user mentions knowledge base, wiki, or wiki links.\n</description>\n    <location>~/AppData\\Roaming\\npm\\node_modules\\openclaw\\extensions\\feishu\\skills\\feishu-wiki\\SKILL.md</location>\n  </skill>\n  <skill>\n    <name>healthcheck</name>\n    <description>Host security hardening and risk-tolerance configuration for OpenClaw deployments. Use when a user asks for security audits, firewall/SSH/update hardening, risk posture, exposure review, OpenClaw cron scheduling for periodic checks, or version status checks on a machine running OpenClaw (laptop, workstation, Pi, VPS).</description>\n    <location>~/AppData\\Roaming\\npm\\node_modules\\openclaw\\skills\\healthcheck\\SKILL.md</location>\n  </skill>\n  <skill>\n    <name>node-connect</name>\n    <description>Diagnose OpenClaw node connection and pairing failures for Android, iOS, and macOS companion apps. Use when QR/setup code/manual connect fails, local Wi-Fi works but VPS/tailnet does not, or errors mention pairing required, unauthorized, bootstrap token invalid or expired, gateway.bind, gateway.remote.url, Tailscale, or plugins.entries.device-pair.config.publicUrl.</description>\n    <location>~/AppData\\Roaming\\npm\\node_modules\\openclaw\\skills\\node-connect\\SKILL.md</location>\n  </skill>\n  <skill>\n    <name>skill-creator</name>\n    <description>Create, edit, improve, or audit AgentSkills. Use when creating a new skill from scratch or when asked to improve, review, audit, tidy up, or clean up an existing skill or SKILL.md file. Also use when editing or restructuring a skill directory (moving files to references/ or scripts/, removing stale content, validating against the AgentSkills spec). Triggers on phrases like &quot;create a skill&quot;, &quot;author a skill&quot;, &quot;tidy up a skill&quot;, &quot;improve this skill&quot;, &quot;review the skill&quot;, &quot;clean up the skill&quot;, &quot;audit the skill&quot;.</description>\n    <location>~/AppData\\Roaming\\npm\\node_modules\\openclaw\\skills\\skill-creator\\SKILL.md</location>\n  </skill>\n  <skill>\n    <name>weather</name>\n    <description>Get current weather and forecasts via wttr.in or Open-Meteo. Use when: user asks about weather, temperature, or forecasts for any location. NOT for: historical weather data, severe weather alerts, or detailed meteorological analysis. No API key needed.</description>\n    <location>~/AppData\\Roaming\\npm\\node_modules\\openclaw\\skills\\weather\\SKILL.md</location>\n  </skill>\n</available_skills>",
+      "skills": [
+        {
+          "name": "feishu-doc"
+        },
+        {
+          "name": "feishu-drive"
+        },
+        {
+          "name": "feishu-perm"
+        },
+        {
+          "name": "feishu-wiki"
+        },
+        {
+          "name": "healthcheck"
+        },
+        {
+          "name": "node-connect"
+        },
+        {
+          "name": "skill-creator"
+        },
+        {
+          "name": "weather",
+          "requiredEnv": []
+        }
+      ],
+      "resolvedSkills": [
+        {
+          "name": "feishu-doc",
+          "description": "Feishu document read/write operations. Activate when user mentions Feishu docs, cloud docs, or docx links.\n",
+          "filePath": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\extensions\\feishu\\skills\\feishu-doc\\SKILL.md",
+          "baseDir": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\extensions\\feishu\\skills\\feishu-doc",
+          "source": "openclaw-extra",
+          "disableModelInvocation": false
+        },
+        {
+          "name": "feishu-drive",
+          "description": "Feishu cloud storage file management. Activate when user mentions cloud space, folders, drive.\n",
+          "filePath": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\extensions\\feishu\\skills\\feishu-drive\\SKILL.md",
+          "baseDir": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\extensions\\feishu\\skills\\feishu-drive",
+          "source": "openclaw-extra",
+          "disableModelInvocation": false
+        },
+        {
+          "name": "feishu-perm",
+          "description": "Feishu permission management for documents and files. Activate when user mentions sharing, permissions, collaborators.\n",
+          "filePath": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\extensions\\feishu\\skills\\feishu-perm\\SKILL.md",
+          "baseDir": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\extensions\\feishu\\skills\\feishu-perm",
+          "source": "openclaw-extra",
+          "disableModelInvocation": false
+        },
+        {
+          "name": "feishu-wiki",
+          "description": "Feishu knowledge base navigation. Activate when user mentions knowledge base, wiki, or wiki links.\n",
+          "filePath": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\extensions\\feishu\\skills\\feishu-wiki\\SKILL.md",
+          "baseDir": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\extensions\\feishu\\skills\\feishu-wiki",
+          "source": "openclaw-extra",
+          "disableModelInvocation": false
+        },
+        {
+          "name": "healthcheck",
+          "description": "Host security hardening and risk-tolerance configuration for OpenClaw deployments. Use when a user asks for security audits, firewall/SSH/update hardening, risk posture, exposure review, OpenClaw cron scheduling for periodic checks, or version status checks on a machine running OpenClaw (laptop, workstation, Pi, VPS).",
+          "filePath": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\skills\\healthcheck\\SKILL.md",
+          "baseDir": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\skills\\healthcheck",
+          "source": "openclaw-bundled",
+          "disableModelInvocation": false
+        },
+        {
+          "name": "node-connect",
+          "description": "Diagnose OpenClaw node connection and pairing failures for Android, iOS, and macOS companion apps. Use when QR/setup code/manual connect fails, local Wi-Fi works but VPS/tailnet does not, or errors mention pairing required, unauthorized, bootstrap token invalid or expired, gateway.bind, gateway.remote.url, Tailscale, or plugins.entries.device-pair.config.publicUrl.",
+          "filePath": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\skills\\node-connect\\SKILL.md",
+          "baseDir": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\skills\\node-connect",
+          "source": "openclaw-bundled",
+          "disableModelInvocation": false
+        },
+        {
+          "name": "skill-creator",
+          "description": "Create, edit, improve, or audit AgentSkills. Use when creating a new skill from scratch or when asked to improve, review, audit, tidy up, or clean up an existing skill or SKILL.md file. Also use when editing or restructuring a skill directory (moving files to references/ or scripts/, removing stale content, validating against the AgentSkills spec). Triggers on phrases like \"create a skill\", \"author a skill\", \"tidy up a skill\", \"improve this skill\", \"review the skill\", \"clean up the skill\", \"audit the skill\".",
+          "filePath": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\skills\\skill-creator\\SKILL.md",
+          "baseDir": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\skills\\skill-creator",
+          "source": "openclaw-bundled",
+          "disableModelInvocation": false
+        },
+        {
+          "name": "weather",
+          "description": "Get current weather and forecasts via wttr.in or Open-Meteo. Use when: user asks about weather, temperature, or forecasts for any location. NOT for: historical weather data, severe weather alerts, or detailed meteorological analysis. No API key needed.",
+          "filePath": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\skills\\weather\\SKILL.md",
+          "baseDir": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\skills\\weather",
+          "source": "openclaw-bundled",
+          "disableModelInvocation": false
+        }
+      ],
+      "version": 0
+    },
+    "modelProvider": "volcengine-plan",
+    "model": "ark-code-latest",
+    "contextTokens": 256000,
+    "systemPromptReport": {
+      "source": "run",
+      "generatedAt": 1773848232192,
+      "sessionId": "a594173a-365f-45b8-b77c-30ec666479cc",
+      "sessionKey": "agent:main:main",
+      "provider": "volcengine-plan",
+      "model": "ark-code-latest",
+      "workspaceDir": "C:\\Users\\Administrator\\.openclaw\\workspace",
+      "bootstrapMaxChars": 20000,
+      "bootstrapTotalMaxChars": 150000,
+      "bootstrapTruncation": {
+        "warningMode": "once",
+        "warningShown": false,
+        "truncatedFiles": 0,
+        "nearLimitFiles": 0,
+        "totalNearLimit": false
+      },
+      "sandbox": {
+        "mode": "off",
+        "sandboxed": false
+      },
+      "systemPrompt": {
+        "chars": 27584,
+        "projectContextChars": 13637,
+        "nonProjectContextChars": 13947
+      },
+      "injectedWorkspaceFiles": [
+        {
+          "name": "AGENTS.md",
+          "path": "C:\\Users\\Administrator\\.openclaw\\workspace\\AGENTS.md",
+          "missing": false,
+          "rawChars": 7783,
+          "injectedChars": 7783,
+          "truncated": false
+        },
+        {
+          "name": "SOUL.md",
+          "path": "C:\\Users\\Administrator\\.openclaw\\workspace\\SOUL.md",
+          "missing": false,
+          "rawChars": 1664,
+          "injectedChars": 1664,
+          "truncated": false
+        },
+        {
+          "name": "TOOLS.md",
+          "path": "C:\\Users\\Administrator\\.openclaw\\workspace\\TOOLS.md",
+          "missing": false,
+          "rawChars": 848,
+          "injectedChars": 848,
+          "truncated": false
+        },
+        {
+          "name": "IDENTITY.md",
+          "path": "C:\\Users\\Administrator\\.openclaw\\workspace\\IDENTITY.md",
+          "missing": false,
+          "rawChars": 629,
+          "injectedChars": 629,
+          "truncated": false
+        },
+        {
+          "name": "USER.md",
+          "path": "C:\\Users\\Administrator\\.openclaw\\workspace\\USER.md",
+          "missing": false,
+          "rawChars": 478,
+          "injectedChars": 478,
+          "truncated": false
+        },
+        {
+          "name": "HEARTBEAT.md",
+          "path": "C:\\Users\\Administrator\\.openclaw\\workspace\\HEARTBEAT.md",
+          "missing": false,
+          "rawChars": 166,
+          "injectedChars": 166,
+          "truncated": false
+        },
+        {
+          "name": "BOOTSTRAP.md",
+          "path": "C:\\Users\\Administrator\\.openclaw\\workspace\\BOOTSTRAP.md",
+          "missing": false,
+          "rawChars": 1444,
+          "injectedChars": 1444,
+          "truncated": false
+        }
+      ],
+      "skills": {
+        "promptChars": 3809,
+        "entries": [
+          {
+            "name": "feishu-doc",
+            "blockChars": 299
+          },
+          {
+            "name": "feishu-drive",
+            "blockChars": 291
+          },
+          {
+            "name": "feishu-perm",
+            "blockChars": 313
+          },
+          {
+            "name": "feishu-wiki",
+            "blockChars": 293
+          },
+          {
+            "name": "healthcheck",
+            "blockChars": 495
+          },
+          {
+            "name": "node-connect",
+            "blockChars": 545
+          },
+          {
+            "name": "skill-creator",
+            "blockChars": 763
+          },
+          {
+            "name": "weather",
+            "blockChars": 420
+          }
+        ]
+      },
+      "tools": {
+        "listChars": 1921,
+        "schemaChars": 7923,
+        "entries": [
+          {
+            "name": "read",
+            "summaryChars": 298,
+            "schemaChars": 392,
+            "propertiesCount": 4
+          },
+          {
+            "name": "edit",
+            "summaryChars": 129,
+            "schemaChars": 591,
+            "propertiesCount": 6
+          },
+          {
+            "name": "write",
+            "summaryChars": 127,
+            "schemaChars": 313,
+            "propertiesCount": 3
+          },
+          {
+            "name": "exec",
+            "summaryChars": 181,
+            "schemaChars": 1086,
+            "propertiesCount": 12
+          },
+          {
+            "name": "process",
+            "summaryChars": 85,
+            "schemaChars": 961,
+            "propertiesCount": 12
+          },
+          {
+            "name": "cron",
+            "summaryChars": 2689,
+            "schemaChars": 690,
+            "propertiesCount": 13
+          },
+          {
+            "name": "sessions_list",
+            "summaryChars": 54,
+            "schemaChars": 212,
+            "propertiesCount": 4
+          },
+          {
+            "name": "sessions_history",
+            "summaryChars": 36,
+            "schemaChars": 161,
+            "propertiesCount": 3
+          },
+          {
+            "name": "sessions_send",
+            "summaryChars": 84,
+            "schemaChars": 273,
+            "propertiesCount": 5
+          },
+          {
+            "name": "sessions_yield",
+            "summaryChars": 97,
+            "schemaChars": 60,
+            "propertiesCount": 1
+          },
+          {
+            "name": "sessions_spawn",
+            "summaryChars": 198,
+            "schemaChars": 1179,
+            "propertiesCount": 17
+          },
+          {
+            "name": "subagents",
+            "summaryChars": 105,
+            "schemaChars": 191,
+            "propertiesCount": 4
+          },
+          {
+            "name": "session_status",
+            "summaryChars": 207,
+            "schemaChars": 89,
+            "propertiesCount": 2
+          },
+          {
+            "name": "web_search",
+            "summaryChars": 175,
+            "schemaChars": 1084,
+            "propertiesCount": 9
+          },
+          {
+            "name": "web_fetch",
+            "summaryChars": 129,
+            "schemaChars": 374,
+            "propertiesCount": 3
+          },
+          {
+            "name": "memory_search",
+            "summaryChars": 334,
+            "schemaChars": 139,
+            "propertiesCount": 3
+          },
+          {
+            "name": "memory_get",
+            "summaryChars": 151,
+            "schemaChars": 128,
+            "propertiesCount": 3
+          }
+        ]
+      }
+    },
+    "totalTokensFresh": false,
+    "authProfileOverride": "volcengine:default",
+    "authProfileOverrideSource": "auto",
+    "authProfileOverrideCompactionCount": 0
+  },
+  "agent:main:feishu:direct:ou_358447de297eb165371e61b510173b3d": {
+    "sessionId": "dd5a2023-ecd6-4b41-8ea8-4a62e0283a84",
+    "updatedAt": 1774063240917,
+    "systemSent": true,
+    "abortedLastRun": false,
+    "chatType": "direct",
+    "deliveryContext": {
+      "channel": "feishu",
+      "to": "user:ou_358447de297eb165371e61b510173b3d",
+      "accountId": "default"
+    },
+    "lastChannel": "feishu",
+    "lastTo": "user:ou_358447de297eb165371e61b510173b3d",
+    "lastAccountId": "default",
+    "origin": {
+      "label": "ou_358447de297eb165371e61b510173b3d",
+      "provider": "feishu",
+      "surface": "feishu",
+      "chatType": "direct",
+      "from": "feishu:ou_358447de297eb165371e61b510173b3d",
+      "to": "user:ou_358447de297eb165371e61b510173b3d",
+      "accountId": "default"
+    },
+    "sessionFile": "C:\\Users\\Administrator\\.openclaw\\agents\\main\\sessions\\dd5a2023-ecd6-4b41-8ea8-4a62e0283a84.jsonl",
+    "compactionCount": 0,
+    "skillsSnapshot": {
+      "prompt": "\n\nThe following skills provide specialized instructions for specific tasks.\nUse the read tool to load a skill's file when the task matches its description.\nWhen a skill file references a relative path, resolve it against the skill directory (parent of SKILL.md / dirname of the path) and use that absolute path in tool commands.\n\n<available_skills>\n  <skill>\n    <name>feishu-doc</name>\n    <description>Feishu document read/write operations. Activate when user mentions Feishu docs, cloud docs, or docx links.\n</description>\n    <location>~/AppData\\Roaming\\npm\\node_modules\\openclaw\\extensions\\feishu\\skills\\feishu-doc\\SKILL.md</location>\n  </skill>\n  <skill>\n    <name>feishu-drive</name>\n    <description>Feishu cloud storage file management. Activate when user mentions cloud space, folders, drive.\n</description>\n    <location>~/AppData\\Roaming\\npm\\node_modules\\openclaw\\extensions\\feishu\\skills\\feishu-drive\\SKILL.md</location>\n  </skill>\n  <skill>\n    <name>feishu-perm</name>\n    <description>Feishu permission management for documents and files. Activate when user mentions sharing, permissions, collaborators.\n</description>\n    <location>~/AppData\\Roaming\\npm\\node_modules\\openclaw\\extensions\\feishu\\skills\\feishu-perm\\SKILL.md</location>\n  </skill>\n  <skill>\n    <name>feishu-wiki</name>\n    <description>Feishu knowledge base navigation. Activate when user mentions knowledge base, wiki, or wiki links.\n</description>\n    <location>~/AppData\\Roaming\\npm\\node_modules\\openclaw\\extensions\\feishu\\skills\\feishu-wiki\\SKILL.md</location>\n  </skill>\n  <skill>\n    <name>healthcheck</name>\n    <description>Host security hardening and risk-tolerance configuration for OpenClaw deployments. Use when a user asks for security audits, firewall/SSH/update hardening, risk posture, exposure review, OpenClaw cron scheduling for periodic checks, or version status checks on a machine running OpenClaw (laptop, workstation, Pi, VPS).</description>\n    <location>~/AppData\\Roaming\\npm\\node_modules\\openclaw\\skills\\healthcheck\\SKILL.md</location>\n  </skill>\n  <skill>\n    <name>node-connect</name>\n    <description>Diagnose OpenClaw node connection and pairing failures for Android, iOS, and macOS companion apps. Use when QR/setup code/manual connect fails, local Wi-Fi works but VPS/tailnet does not, or errors mention pairing required, unauthorized, bootstrap token invalid or expired, gateway.bind, gateway.remote.url, Tailscale, or plugins.entries.device-pair.config.publicUrl.</description>\n    <location>~/AppData\\Roaming\\npm\\node_modules\\openclaw\\skills\\node-connect\\SKILL.md</location>\n  </skill>\n  <skill>\n    <name>skill-creator</name>\n    <description>Create, edit, improve, or audit AgentSkills. Use when creating a new skill from scratch or when asked to improve, review, audit, tidy up, or clean up an existing skill or SKILL.md file. Also use when editing or restructuring a skill directory (moving files to references/ or scripts/, removing stale content, validating against the AgentSkills spec). Triggers on phrases like &quot;create a skill&quot;, &quot;author a skill&quot;, &quot;tidy up a skill&quot;, &quot;improve this skill&quot;, &quot;review the skill&quot;, &quot;clean up the skill&quot;, &quot;audit the skill&quot;.</description>\n    <location>~/AppData\\Roaming\\npm\\node_modules\\openclaw\\skills\\skill-creator\\SKILL.md</location>\n  </skill>\n  <skill>\n    <name>summarize</name>\n    <description>Summarize URLs or files with the summarize CLI (web, PDFs, images, audio, YouTube).</description>\n    <location>~/.openclaw\\skills\\summarize-1.0.0\\SKILL.md</location>\n  </skill>\n  <skill>\n    <name>weather</name>\n    <description>Get current weather and forecasts via wttr.in or Open-Meteo. Use when: user asks about weather, temperature, or forecasts for any location. NOT for: historical weather data, severe weather alerts, or detailed meteorological analysis. No API key needed.</description>\n    <location>~/AppData\\Roaming\\npm\\node_modules\\openclaw\\skills\\weather\\SKILL.md</location>\n  </skill>\n  <skill>\n    <name>agent-browser</name>\n    <description>Headless browser automation CLI optimized for AI agents with accessibility tree snapshots and ref-based element selection</description>\n    <location>~/.openclaw\\skills\\agent-browser-clawdbot-0.1.0\\SKILL.md</location>\n  </skill>\n  <skill>\n    <name>Frontend Design</name>\n    <description>Frontend development with React, Next.js, Tailwind CSS. Build landing pages, dashboards, forms, components. Responsive, accessible, performant UI.</description>\n    <location>~/.openclaw\\skills\\frontend-1.0.2\\SKILL.md</location>\n  </skill>\n  <skill>\n    <name>tavily-search</name>\n    <description>Web search via Tavily API (alternative to Brave). Use when the user asks to search the web / look up sources / find links and Brave web_search is unavailable or undesired. Returns a small set of relevant results (title, url, snippet) and can optionally include short answer summaries.</description>\n    <location>~/.openclaw\\skills\\openclaw-tavily-search-0.1.0\\SKILL.md</location>\n  </skill>\n  <skill>\n    <name>self-improvement</name>\n    <description>Captures learnings, errors, and corrections to enable continuous improvement. Use when: (1) A command or operation fails unexpectedly, (2) User corrects Claude (&apos;No, that&apos;s wrong...&apos;, &apos;Actually...&apos;), (3) User requests a capability that doesn&apos;t exist, (4) An external API or tool fails, (5) Claude realizes its knowledge is outdated or incorrect, (6) A better approach is discovered for a recurring task. Also review learnings before major tasks.</description>\n    <location>~/.openclaw\\skills\\self-improving-agent-3.0.5\\SKILL.md</location>\n  </skill>\n  <skill>\n    <name>skill-vetter</name>\n    <description>Security-first skill vetting for AI agents. Use before installing any skill from ClawdHub, GitHub, or other sources. Checks for red flags, permission scope, and suspicious patterns.</description>\n    <location>~/.openclaw\\skills\\skill-vetter-1.0.0\\SKILL.md</location>\n  </skill>\n  <skill>\n    <name>using-superpowers</name>\n    <description>Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions</description>\n    <location>~/.openclaw\\skills\\using-superpowers-0.1.0\\SKILL.md</location>\n  </skill>\n</available_skills>",
+      "skills": [
+        {
+          "name": "feishu-doc"
+        },
+        {
+          "name": "feishu-drive"
+        },
+        {
+          "name": "feishu-perm"
+        },
+        {
+          "name": "feishu-wiki"
+        },
+        {
+          "name": "healthcheck"
+        },
+        {
+          "name": "node-connect"
+        },
+        {
+          "name": "skill-creator"
+        },
+        {
+          "name": "summarize"
+        },
+        {
+          "name": "weather",
+          "requiredEnv": []
+        },
+        {
+          "name": "agent-browser"
+        },
+        {
+          "name": "Frontend Design"
+        },
+        {
+          "name": "tavily-search"
+        },
+        {
+          "name": "self-improvement"
+        },
+        {
+          "name": "skill-vetter"
+        },
+        {
+          "name": "using-superpowers"
+        }
+      ],
+      "resolvedSkills": [
+        {
+          "name": "feishu-doc",
+          "description": "Feishu document read/write operations. Activate when user mentions Feishu docs, cloud docs, or docx links.\n",
+          "filePath": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\extensions\\feishu\\skills\\feishu-doc\\SKILL.md",
+          "baseDir": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\extensions\\feishu\\skills\\feishu-doc",
+          "source": "openclaw-extra",
+          "disableModelInvocation": false
+        },
+        {
+          "name": "feishu-drive",
+          "description": "Feishu cloud storage file management. Activate when user mentions cloud space, folders, drive.\n",
+          "filePath": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\extensions\\feishu\\skills\\feishu-drive\\SKILL.md",
+          "baseDir": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\extensions\\feishu\\skills\\feishu-drive",
+          "source": "openclaw-extra",
+          "disableModelInvocation": false
+        },
+        {
+          "name": "feishu-perm",
+          "description": "Feishu permission management for documents and files. Activate when user mentions sharing, permissions, collaborators.\n",
+          "filePath": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\extensions\\feishu\\skills\\feishu-perm\\SKILL.md",
+          "baseDir": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\extensions\\feishu\\skills\\feishu-perm",
+          "source": "openclaw-extra",
+          "disableModelInvocation": false
+        },
+        {
+          "name": "feishu-wiki",
+          "description": "Feishu knowledge base navigation. Activate when user mentions knowledge base, wiki, or wiki links.\n",
+          "filePath": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\extensions\\feishu\\skills\\feishu-wiki\\SKILL.md",
+          "baseDir": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\extensions\\feishu\\skills\\feishu-wiki",
+          "source": "openclaw-extra",
+          "disableModelInvocation": false
+        },
+        {
+          "name": "healthcheck",
+          "description": "Host security hardening and risk-tolerance configuration for OpenClaw deployments. Use when a user asks for security audits, firewall/SSH/update hardening, risk posture, exposure review, OpenClaw cron scheduling for periodic checks, or version status checks on a machine running OpenClaw (laptop, workstation, Pi, VPS).",
+          "filePath": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\skills\\healthcheck\\SKILL.md",
+          "baseDir": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\skills\\healthcheck",
+          "source": "openclaw-bundled",
+          "disableModelInvocation": false
+        },
+        {
+          "name": "node-connect",
+          "description": "Diagnose OpenClaw node connection and pairing failures for Android, iOS, and macOS companion apps. Use when QR/setup code/manual connect fails, local Wi-Fi works but VPS/tailnet does not, or errors mention pairing required, unauthorized, bootstrap token invalid or expired, gateway.bind, gateway.remote.url, Tailscale, or plugins.entries.device-pair.config.publicUrl.",
+          "filePath": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\skills\\node-connect\\SKILL.md",
+          "baseDir": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\skills\\node-connect",
+          "source": "openclaw-bundled",
+          "disableModelInvocation": false
+        },
+        {
+          "name": "skill-creator",
+          "description": "Create, edit, improve, or audit AgentSkills. Use when creating a new skill from scratch or when asked to improve, review, audit, tidy up, or clean up an existing skill or SKILL.md file. Also use when editing or restructuring a skill directory (moving files to references/ or scripts/, removing stale content, validating against the AgentSkills spec). Triggers on phrases like \"create a skill\", \"author a skill\", \"tidy up a skill\", \"improve this skill\", \"review the skill\", \"clean up the skill\", \"audit the skill\".",
+          "filePath": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\skills\\skill-creator\\SKILL.md",
+          "baseDir": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\skills\\skill-creator",
+          "source": "openclaw-bundled",
+          "disableModelInvocation": false
+        },
+        {
+          "name": "summarize",
+          "description": "Summarize URLs or files with the summarize CLI (web, PDFs, images, audio, YouTube).",
+          "filePath": "C:\\Users\\Administrator\\.openclaw\\skills\\summarize-1.0.0\\SKILL.md",
+          "baseDir": "C:\\Users\\Administrator\\.openclaw\\skills\\summarize-1.0.0",
+          "source": "openclaw-managed",
+          "disableModelInvocation": false
+        },
+        {
+          "name": "weather",
+          "description": "Get current weather and forecasts via wttr.in or Open-Meteo. Use when: user asks about weather, temperature, or forecasts for any location. NOT for: historical weather data, severe weather alerts, or detailed meteorological analysis. No API key needed.",
+          "filePath": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\skills\\weather\\SKILL.md",
+          "baseDir": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\node_modules\\openclaw\\skills\\weather",
+          "source": "openclaw-bundled",
+          "disableModelInvocation": false
+        },
+        {
+          "name": "agent-browser",
+          "description": "Headless browser automation CLI optimized for AI agents with accessibility tree snapshots and ref-based element selection",
+          "filePath": "C:\\Users\\Administrator\\.openclaw\\skills\\agent-browser-clawdbot-0.1.0\\SKILL.md",
+          "baseDir": "C:\\Users\\Administrator\\.openclaw\\skills\\agent-browser-clawdbot-0.1.0",
+          "source": "openclaw-managed",
+          "disableModelInvocation": false
+        },
+        {
+          "name": "Frontend Design",
+          "description": "Frontend development with React, Next.js, Tailwind CSS. Build landing pages, dashboards, forms, components. Responsive, accessible, performant UI.",
+          "filePath": "C:\\Users\\Administrator\\.openclaw\\skills\\frontend-1.0.2\\SKILL.md",
+          "baseDir": "C:\\Users\\Administrator\\.openclaw\\skills\\frontend-1.0.2",
+          "source": "openclaw-managed",
+          "disableModelInvocation": false
+        },
+        {
+          "name": "tavily-search",
+          "description": "Web search via Tavily API (alternative to Brave). Use when the user asks to search the web / look up sources / find links and Brave web_search is unavailable or undesired. Returns a small set of relevant results (title, url, snippet) and can optionally include short answer summaries.",
+          "filePath": "C:\\Users\\Administrator\\.openclaw\\skills\\openclaw-tavily-search-0.1.0\\SKILL.md",
+          "baseDir": "C:\\Users\\Administrator\\.openclaw\\skills\\openclaw-tavily-search-0.1.0",
+          "source": "openclaw-managed",
+          "disableModelInvocation": false
+        },
+        {
+          "name": "self-improvement",
+          "description": "Captures learnings, errors, and corrections to enable continuous improvement. Use when: (1) A command or operation fails unexpectedly, (2) User corrects Claude ('No, that's wrong...', 'Actually...'), (3) User requests a capability that doesn't exist, (4) An external API or tool fails, (5) Claude realizes its knowledge is outdated or incorrect, (6) A better approach is discovered for a recurring task. Also review learnings before major tasks.",
+          "filePath": "C:\\Users\\Administrator\\.openclaw\\skills\\self-improving-agent-3.0.5\\SKILL.md",
+          "baseDir": "C:\\Users\\Administrator\\.openclaw\\skills\\self-improving-agent-3.0.5",
+          "source": "openclaw-managed",
+          "disableModelInvocation": false
+        },
+        {
+          "name": "skill-vetter",
+          "description": "Security-first skill vetting for AI agents. Use before installing any skill from ClawdHub, GitHub, or other sources. Checks for red flags, permission scope, and suspicious patterns.",
+          "filePath": "C:\\Users\\Administrator\\.openclaw\\skills\\skill-vetter-1.0.0\\SKILL.md",
+          "baseDir": "C:\\Users\\Administrator\\.openclaw\\skills\\skill-vetter-1.0.0",
+          "source": "openclaw-managed",
+          "disableModelInvocation": false
+        },
+        {
+          "name": "using-superpowers",
+          "description": "Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions",
+          "filePath": "C:\\Users\\Administrator\\.openclaw\\skills\\using-superpowers-0.1.0\\SKILL.md",
+          "baseDir": "C:\\Users\\Administrator\\.openclaw\\skills\\using-superpowers-0.1.0",
+          "source": "openclaw-managed",
+          "disableModelInvocation": false
+        }
+      ],
+      "version": 0
+    },
+    "modelProvider": "volcengine-plan",
+    "model": "ark-code-latest",
+    "contextTokens": 256000,
+    "systemPromptReport": {
+      "source": "run",
+      "generatedAt": 1774063221773,
+      "sessionId": "dd5a2023-ecd6-4b41-8ea8-4a62e0283a84",
+      "sessionKey": "agent:main:feishu:direct:ou_358447de297eb165371e61b510173b3d",
+      "provider": "volcengine-plan",
+      "model": "ark-code-latest",
+      "workspaceDir": "C:\\Users\\Administrator\\.openclaw\\workspace",
+      "bootstrapMaxChars": 20000,
+      "bootstrapTotalMaxChars": 150000,
+      "bootstrapTruncation": {
+        "warningMode": "once",
+        "warningShown": false,
+        "truncatedFiles": 0,
+        "nearLimitFiles": 0,
+        "totalNearLimit": false
+      },
+      "sandbox": {
+        "mode": "off",
+        "sandboxed": false
+      },
+      "systemPrompt": {
+        "chars": 28351,
+        "projectContextChars": 12133,
+        "nonProjectContextChars": 16218
+      },
+      "injectedWorkspaceFiles": [
+        {
+          "name": "AGENTS.md",
+          "path": "C:\\Users\\Administrator\\.openclaw\\workspace\\AGENTS.md",
+          "missing": false,
+          "rawChars": 7783,
+          "injectedChars": 7783,
+          "truncated": false
+        },
+        {
+          "name": "SOUL.md",
+          "path": "C:\\Users\\Administrator\\.openclaw\\workspace\\SOUL.md",
+          "missing": false,
+          "rawChars": 1664,
+          "injectedChars": 1664,
+          "truncated": false
+        },
+        {
+          "name": "TOOLS.md",
+          "path": "C:\\Users\\Administrator\\.openclaw\\workspace\\TOOLS.md",
+          "missing": false,
+          "rawChars": 848,
+          "injectedChars": 848,
+          "truncated": false
+        },
+        {
+          "name": "IDENTITY.md",
+          "path": "C:\\Users\\Administrator\\.openclaw\\workspace\\IDENTITY.md",
+          "missing": false,
+          "rawChars": 456,
+          "injectedChars": 456,
+          "truncated": false
+        },
+        {
+          "name": "USER.md",
+          "path": "C:\\Users\\Administrator\\.openclaw\\workspace\\USER.md",
+          "missing": false,
+          "rawChars": 513,
+          "injectedChars": 513,
+          "truncated": false
+        },
+        {
+          "name": "HEARTBEAT.md",
+          "path": "C:\\Users\\Administrator\\.openclaw\\workspace\\HEARTBEAT.md",
+          "missing": false,
+          "rawChars": 166,
+          "injectedChars": 166,
+          "truncated": false
+        },
+        {
+          "name": "BOOTSTRAP.md",
+          "path": "C:\\Users\\Administrator\\.openclaw\\workspace\\BOOTSTRAP.md",
+          "missing": true,
+          "rawChars": 0,
+          "injectedChars": 78,
+          "truncated": false
+        }
+      ],
+      "skills": {
+        "promptChars": 6380,
+        "entries": [
+          {
+            "name": "feishu-doc",
+            "blockChars": 299
+          },
+          {
+            "name": "feishu-drive",
+            "blockChars": 291
+          },
+          {
+            "name": "feishu-perm",
+            "blockChars": 313
+          },
+          {
+            "name": "feishu-wiki",
+            "blockChars": 293
+          },
+          {
+            "name": "healthcheck",
+            "blockChars": 495
+          },
+          {
+            "name": "node-connect",
+            "blockChars": 545
+          },
+          {
+            "name": "skill-creator",
+            "blockChars": 763
+          },
+          {
+            "name": "summarize",
+            "blockChars": 229
+          },
+          {
+            "name": "weather",
+            "blockChars": 420
+          },
+          {
+            "name": "agent-browser",
+            "blockChars": 284
+          },
+          {
+            "name": "Frontend Design",
+            "blockChars": 297
+          },
+          {
+            "name": "tavily-search",
+            "blockChars": 447
+          },
+          {
+            "name": "self-improvement",
+            "blockChars": 639
+          },
+          {
+            "name": "skill-vetter",
+            "blockChars": 333
+          },
+          {
+            "name": "using-superpowers",
+            "blockChars": 321
+          }
+        ]
+      },
+      "tools": {
+        "listChars": 1602,
+        "schemaChars": 7233,
+        "entries": [
+          {
+            "name": "read",
+            "summaryChars": 298,
+            "schemaChars": 392,
+            "propertiesCount": 4
+          },
+          {
+            "name": "edit",
+            "summaryChars": 129,
+            "schemaChars": 591,
+            "propertiesCount": 6
+          },
+          {
+            "name": "write",
+            "summaryChars": 127,
+            "schemaChars": 313,
+            "propertiesCount": 3
+          },
+          {
+            "name": "exec",
+            "summaryChars": 181,
+            "schemaChars": 1086,
+            "propertiesCount": 12
+          },
+          {
+            "name": "process",
+            "summaryChars": 85,
+            "schemaChars": 961,
+            "propertiesCount": 12
+          },
+          {
+            "name": "sessions_list",
+            "summaryChars": 54,
+            "schemaChars": 212,
+            "propertiesCount": 4
+          },
+          {
+            "name": "sessions_history",
+            "summaryChars": 36,
+            "schemaChars": 161,
+            "propertiesCount": 3
+          },
+          {
+            "name": "sessions_send",
+            "summaryChars": 84,
+            "schemaChars": 273,
+            "propertiesCount": 5
+          },
+          {
+            "name": "sessions_yield",
+            "summaryChars": 97,
+            "schemaChars": 60,
+            "propertiesCount": 1
+          },
+          {
+            "name": "sessions_spawn",
+            "summaryChars": 198,
+            "schemaChars": 1179,
+            "propertiesCount": 17
+          },
+          {
+            "name": "subagents",
+            "summaryChars": 105,
+            "schemaChars": 191,
+            "propertiesCount": 4
+          },
+          {
+            "name": "session_status",
+            "summaryChars": 207,
+            "schemaChars": 89,
+            "propertiesCount": 2
+          },
+          {
+            "name": "web_search",
+            "summaryChars": 175,
+            "schemaChars": 1084,
+            "propertiesCount": 9
+          },
+          {
+            "name": "web_fetch",
+            "summaryChars": 129,
+            "schemaChars": 374,
+            "propertiesCount": 3
+          },
+          {
+            "name": "memory_search",
+            "summaryChars": 334,
+            "schemaChars": 139,
+            "propertiesCount": 3
+          },
+          {
+            "name": "memory_get",
+            "summaryChars": 151,
+            "schemaChars": 128,
+            "propertiesCount": 3
+          }
+        ]
+      }
+    },
+    "totalTokensFresh": false,
+    "authProfileOverride": "volcengine:default",
+    "authProfileOverrideSource": "auto",
+    "authProfileOverrideCompactionCount": 0
+  }
+}
