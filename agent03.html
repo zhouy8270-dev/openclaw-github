@@ -3,783 +3,538 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NeighborMind · 智能体03 · 策略框架生成</title>
+<title>NeighborMind · 智能体03 · 策略框架</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
-:root {
+:root{
   --bg:#f4f6fb;--white:#fff;--border:#e4e9f2;--text:#1a2235;--muted:#7a8aa0;
   --accent:#1d4ed8;--al:#eff4ff;
   --green:#059669;--gl:#ecfdf5;
   --orange:#d97706;--ol:#fffbeb;
   --red:#dc2626;--rl:#fef2f2;
   --purple:#7c3aed;--pl:#f5f3ff;
-  --shadow:0 2px 12px rgba(0,0,0,0.06);
-  --shadow-lg:0 8px 32px rgba(0,0,0,0.1);
+  --sky:#0284c7;--skyl:#f0f9ff;
+  --shadow:0 2px 12px rgba(0,0,0,0.07);
+  --shadow-lg:0 8px 32px rgba(0,0,0,0.12);
   --r:14px;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
 
 /* TOP BAR */
-.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 28px;height:54px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 24px;height:54px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
 .logo{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px;}
 .logo em{color:var(--accent);font-style:normal;}
-.sep{width:1px;height:16px;background:var(--border);}
-.page-tag{font-size:13px;font-weight:500;display:flex;align-items:center;gap:7px;}
+.page-tag{font-size:13px;font-weight:500;display:flex;align-items:center;gap:7px;margin-left:12px;padding-left:12px;border-left:1px solid var(--border);}
 .chip{font-size:11px;padding:3px 8px;border-radius:6px;font-weight:500;background:var(--al);color:var(--accent);}
 .topbar-r{display:flex;gap:8px;}
-.btn{padding:7px 16px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;font-weight:500;display:flex;align-items:center;gap:5px;transition:all 0.15s;border:none;}
+.btn{padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;font-weight:500;display:flex;align-items:center;gap:5px;transition:all 0.15s;border:none;}
 .btn-ghost{border:1px solid var(--border)!important;background:var(--white);color:var(--muted);}
 .btn-ghost:hover{color:var(--text);background:var(--bg);}
 .btn-primary{background:var(--accent);color:#fff;}
 .btn-primary:hover{opacity:0.88;}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed;}
 
-/* MAIN SPLIT */
-.body{flex:1;display:grid;grid-template-columns:340px 1fr;overflow:hidden;}
+/* LAYOUT */
+.layout{flex:1;display:grid;grid-template-columns:280px 1fr;overflow:hidden;}
 
-/* ── LEFT INPUT PANEL ── */
+/* LEFT */
 .left{background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;}
-.left-head{padding:16px 18px 0;flex-shrink:0;}
-.left-head h2{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;margin-bottom:4px;}
-.left-head p{font-size:11px;color:var(--muted);line-height:1.5;}
-.left-tabs{display:flex;padding:10px 18px 0;gap:0;border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;}
-.left-tabs::-webkit-scrollbar{display:none;}
-.ltab{padding:7px 12px;font-size:12px;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);white-space:nowrap;transition:all 0.15s;}
-.ltab:hover{color:var(--text);}
-.ltab.active{color:var(--accent);border-bottom-color:var(--accent);}
-.ltab-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-left:4px;background:var(--border);vertical-align:middle;}
-.ltab-dot.filled{background:var(--green);}
-
-.left-body{flex:1;overflow-y:auto;padding:16px 18px;}
+.left-body{flex:1;overflow-y:auto;padding:16px;}
 .left-body::-webkit-scrollbar{width:4px;}
 .left-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
-.input-section{display:none;}
-.input-section.active{display:block;}
+.left-foot{padding:14px 16px;border-top:1px solid var(--border);flex-shrink:0;}
 
-.field{margin-bottom:12px;}
-.field label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;letter-spacing:0.3px;}
-.field input,.field textarea,.field select{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:'Noto Sans SC',sans-serif;color:var(--text);outline:none;background:var(--white);transition:border-color 0.15s;line-height:1.6;}
-.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent);}
-.field textarea{resize:vertical;min-height:72px;}
-.field-hint{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.5;}
+.upload-card{border:2px dashed var(--border);border-radius:10px;padding:14px;text-align:center;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.upload-card:hover{border-color:var(--accent);background:var(--al);}
+.upload-card.over{border-color:var(--accent);background:var(--al);}
+.uc-icon{font-size:22px;}
+.uc-title{font-size:12px;font-weight:600;color:var(--text);}
+.uc-types{font-size:10px;color:var(--muted);}
+.file-tags{display:flex;flex-direction:column;gap:4px;margin-top:6px;}
+.ftag{display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:7px;background:var(--bg);border:1px solid var(--border);font-size:11px;}
+.ftag-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ftag-del{background:none;border:none;cursor:pointer;color:var(--muted);font-size:12px;}
+.field-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:12px 0 5px;}
+.field-textarea{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:'Noto Sans SC',sans-serif;resize:none;height:68px;outline:none;color:var(--text);line-height:1.6;transition:border-color 0.15s;}
+.field-textarea:focus{border-color:var(--accent);}
+.agent01-box{background:var(--gl);border:1px solid rgba(5,150,105,0.15);border-radius:10px;padding:12px;margin-top:12px;font-size:12px;line-height:1.7;color:var(--text);}
+.agent01-empty{font-style:italic;color:var(--muted);}
 
-.tag-input-wrap{display:flex;flex-wrap:wrap;gap:5px;padding:7px 9px;border:1px solid var(--border);border-radius:8px;cursor:text;min-height:36px;transition:border-color 0.15s;}
-.tag-input-wrap:focus-within{border-color:var(--accent);}
-.tag-item{background:var(--al);color:var(--accent);font-size:11px;padding:2px 8px;border-radius:5px;display:flex;align-items:center;gap:4px;}
-.tag-item button{background:none;border:none;cursor:pointer;color:var(--accent);font-size:11px;padding:0;line-height:1;}
-.tag-input-wrap input{border:none;outline:none;font-size:12px;font-family:'Noto Sans SC',sans-serif;min-width:80px;flex:1;background:none;}
-
-.upload-card{border:2px dashed var(--border);border-radius:11px;padding:18px 14px;text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:10px;}
-.upload-card:hover,.upload-card.over{border-color:var(--accent);background:var(--al);}
-.uc-icon{font-size:26px;margin-bottom:5px;}
-.uc-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;}
-.uc-types{font-size:11px;color:var(--muted);}
-.file-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
-.file-tag-item{display:flex;align-items:center;gap:5px;background:var(--al);border:1px solid rgba(29,78,216,0.15);color:var(--accent);font-size:11px;padding:3px 8px;border-radius:6px;}
-.file-tag-del{background:none;border:none;cursor:pointer;color:var(--accent);font-size:11px;padding:0;}
-.extract-box{background:var(--gl);border:1px solid rgba(5,150,105,0.15);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:12px;line-height:1.7;color:var(--text);}
-.extract-box-label{font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;display:flex;align-items:center;gap:5px;}
-.divider-or{font-size:11px;color:var(--muted);text-align:center;margin:10px 0;display:flex;align-items:center;gap:8px;}
-.divider-or::before,.divider-or::after{content:'';flex:1;height:1px;background:var(--border);}
-
-.left-foot{padding:14px 18px;border-top:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;gap:8px;}
-.info-progress{display:flex;gap:3px;}
-.ip-dot{flex:1;height:3px;border-radius:3px;background:var(--border);transition:background 0.3s;}
-.ip-dot.filled{background:var(--green);}
-.ip-lbl{font-size:10px;color:var(--muted);margin-bottom:4px;}
 .gen-btn{width:100%;padding:12px;border-radius:11px;background:linear-gradient(135deg,var(--accent),#4f46e5);color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans SC',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.15s;}
 .gen-btn:hover{opacity:0.9;transform:translateY(-1px);}
-.gen-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+.gen-btn:disabled{opacity:0.45;cursor:not-allowed;transform:none;}
+.ip-bar{display:flex;gap:3px;margin-bottom:8px;}
+.ip-seg{flex:1;height:3px;border-radius:3px;background:var(--border);transition:background 0.3s;}
+.ip-seg.on{background:var(--green);}
+.ip-lbl{font-size:10px;color:var(--muted);margin-bottom:4px;}
 
-/* ── RIGHT OUTPUT PANEL ── */
+/* RIGHT */
 .right{display:flex;flex-direction:column;overflow:hidden;}
-.right-head{background:var(--white);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-.right-head-l{display:flex;align-items:center;gap:10px;}
-.framework-status{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;}
-.right-scroll{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:14px;}
-.right-scroll::-webkit-scrollbar{width:5px;}
-.right-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:5px;}
-
-/* EMPTY */
-.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted);}
-.empty .ei{font-size:52px;opacity:0.2;}
-.empty h3{font-size:15px;font-weight:600;color:var(--text);opacity:0.4;}
-.empty p{font-size:13px;text-align:center;line-height:1.7;max-width:320px;}
-
-/* FRAMEWORK BLOCKS */
-.fw-block{background:var(--white);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;animation:up 0.4s ease forwards;opacity:0;}
-@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-
-.fw-block-head{padding:14px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);}
-.fw-level-badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.5px;flex-shrink:0;}
-.fw-block-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;flex:1;}
-.fw-block-actions{display:flex;gap:6px;flex-shrink:0;}
-.fw-action-btn{padding:5px 12px;border-radius:7px;font-size:11px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;border:1px solid var(--border);background:var(--white);color:var(--muted);transition:all 0.15s;display:flex;align-items:center;gap:4px;}
-.fw-action-btn:hover{color:var(--accent);border-color:var(--accent);background:var(--al);}
-.fw-action-btn.regen{color:var(--orange);border-color:rgba(217,119,6,0.3);}
-.fw-action-btn.regen:hover{background:var(--ol);}
-
-.fw-block-body{padding:16px 18px;}
-
-/* Content sections inside blocks */
-.fw-section{margin-bottom:14px;}
-.fw-section:last-child{margin-bottom:0;}
-.fw-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:7px;display:flex;align-items:center;gap:6px;}
-.fw-section-label span{font-weight:400;font-size:10px;text-transform:none;letter-spacing:0;}
-
-/* Editable content */
-.editable{font-size:13px;line-height:1.85;color:var(--text);outline:none;border-radius:8px;padding:8px 10px;border:1px solid transparent;transition:all 0.15s;font-family:'Noto Sans SC',sans-serif;min-height:40px;width:100%;}
-.editable:hover{border-color:var(--border);background:var(--bg);}
-.editable:focus{border-color:var(--accent);background:var(--white);}
-.editable[placeholder]:empty::before{content:attr(placeholder);color:var(--muted);font-style:italic;}
-
-/* Principle tags */
-.principle-row{display:flex;flex-wrap:wrap;gap:6px;}
-.principle-tag{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid;cursor:default;}
-
-/* System grid (mid-level) */
-.sys-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
-.sys-item{border:1px solid var(--border);border-radius:10px;padding:10px 12px;transition:all 0.15s;cursor:pointer;}
-.sys-item:hover{border-color:var(--accent);box-shadow:var(--shadow);}
-.sys-item.expanded{border-color:var(--accent);background:var(--al);}
-.sys-icon{font-size:18px;margin-bottom:4px;}
-.sys-name{font-size:12px;font-weight:600;margin-bottom:3px;}
-.sys-status{font-size:10px;color:var(--muted);}
-.sys-expand{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:none;}
-.sys-item.expanded .sys-expand{display:block;}
-.sys-expand-text{font-size:11px;line-height:1.7;color:var(--text);outline:none;width:100%;border:none;background:none;font-family:'Noto Sans SC',sans-serif;resize:none;min-height:60px;}
-.sys-expand-text:focus{background:var(--white);border-radius:6px;padding:4px;}
-
-/* Task book (micro) */
-.task-list{display:flex;flex-direction:column;gap:7px;}
-.task-item{display:flex;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:9px;align-items:flex-start;transition:border-color 0.15s;}
-.task-item:hover{border-color:#c8d4e8;}
-.task-num{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;margin-top:1px;}
-.task-body{flex:1;min-width:0;}
-.task-title{font-size:12px;font-weight:600;margin-bottom:3px;outline:none;}
-.task-title:focus{background:var(--bg);border-radius:4px;padding:2px 4px;}
-.task-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;}
-.task-tag{font-size:10px;padding:2px 7px;border-radius:5px;}
-
-/* Comment area */
-.comment-area{background:var(--bg);border-radius:10px;padding:12px 14px;margin-top:10px;}
-.comment-area-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
-.comment-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px;}
-.comment-item{display:flex;gap:8px;font-size:12px;}
-.comment-av{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;}
-.comment-bubble{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:6px 10px;flex:1;line-height:1.5;}
-.comment-bubble .ct{color:var(--text);}
-.comment-bubble .cm{font-size:10px;color:var(--muted);margin-top:2px;}
-.comment-input-row{display:flex;gap:6px;}
-.comment-inp{flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:'Noto Sans SC',sans-serif;outline:none;background:var(--white);}
-.comment-inp:focus{border-color:var(--accent);}
-.comment-send{padding:7px 12px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;}
-
-/* PROGRESS OVERLAY */
-.prog-overlay{position:absolute;inset:0;background:rgba(255,255,255,0.95);backdrop-filter:blur(4px);display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:10;}
-.prog-overlay.show{display:flex;}
-.prog-box{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:28px 32px;width:360px;box-shadow:var(--shadow-lg);}
-.prog-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
-.prog-bar{height:5px;background:var(--border);border-radius:5px;overflow:hidden;margin-bottom:14px;}
-.prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),#4f46e5);border-radius:5px;transition:width 0.5s ease;width:0%;}
-.prog-step{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;}
-
-
-/* UPLOAD CARDS */
-.upload-card{border:2px dashed var(--border);border-radius:10px;padding:16px 12px;text-align:center;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:4px;}
-.upload-card:hover,.upload-card.over{border-color:var(--accent);background:var(--al);}
-.uc-icon{font-size:24px;}
-.uc-title{font-size:13px;font-weight:600;color:var(--text);}
-.uc-sub{font-size:11px;color:var(--muted);}
-.uc-types{display:flex;gap:4px;margin-top:2px;}
-.uc-types span,.type-pill-sm{font-size:10px;background:var(--bg);border:1px solid var(--border);padding:1px 6px;border-radius:6px;color:var(--muted);}
-.file-tags{display:flex;flex-direction:column;gap:4px;margin-top:6px;}
-.ftag{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:7px;background:var(--bg);border:1px solid var(--border);font-size:11px;}
-.ftag-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.ftag-del{background:none;border:none;cursor:pointer;color:var(--muted);font-size:12px;padding:0 2px;}
-.ftag-del:hover{color:var(--red);}
-
-/* FEEDBACK AREA */
-.fb-area{margin-top:12px;border-top:1px dashed var(--border);padding-top:12px;}
-.fb-row{display:flex;gap:8px;align-items:flex-start;}
-.fb-inp{flex:1;padding:8px 11px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:'Noto Sans SC',sans-serif;outline:none;resize:none;min-height:40px;color:var(--text);transition:border-color 0.15s;line-height:1.6;}
-.fb-inp:focus{border-color:var(--accent);}
-.fb-inp::placeholder{color:var(--muted);}
-.fb-btn{padding:8px 14px;border-radius:8px;background:var(--accent);color:#fff;border:none;font-size:12px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;font-weight:500;white-space:nowrap;display:flex;align-items:center;gap:5px;transition:opacity 0.15s;flex-shrink:0;}
-.fb-btn:hover{opacity:0.88;}
-.fb-btn:disabled{opacity:0.4;cursor:not-allowed;}
-.fb-hint{font-size:10px;color:var(--muted);margin-top:5px;}
-
-/* RIGHT TABS */
-.rtab{padding:11px 20px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);font-weight:500;transition:all 0.15s;white-space:nowrap;user-select:none;}
-.rtab:hover{color:var(--text);}
-.rtab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.right-head{background:var(--white);border-bottom:1px solid var(--border);flex-shrink:0;}
+.right-title-row{padding:12px 24px;display:flex;align-items:center;justify-content:space-between;}
+.fw-status{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;}
+.tabs{display:flex;padding:0 24px;}
+.tab{padding:10px 18px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);font-weight:500;transition:all 0.15s;white-space:nowrap;user-select:none;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
 .right-scroll{flex:1;overflow-y:auto;padding:24px;}
 .right-scroll::-webkit-scrollbar{width:5px;}
 .right-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:5px;}
 
-/* ── SECTION BLOCKS (macro) ── */
-.fw-section-block{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;margin-bottom:14px;animation:up 0.35s ease forwards;opacity:0;}
-.fsb-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px;}
-.fsb-content{font-size:14px;line-height:1.8;color:var(--text);outline:none;padding:6px 8px;border-radius:8px;border:1px solid transparent;transition:all 0.15s;min-height:32px;}
-.fsb-content:hover{border-color:var(--border);background:var(--bg);}
-.fsb-content:focus{border-color:var(--accent);background:var(--white);}
-.fsb-item{font-size:13px;line-height:1.8;color:var(--text);outline:none;padding:4px 8px;border-radius:6px;border:1px solid transparent;transition:all 0.15s;margin-bottom:3px;}
-.fsb-item:hover{border-color:var(--border);background:var(--bg);}
-.fsb-item:focus{border-color:var(--accent);background:var(--white);}
+/* EMPTY */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;color:var(--muted);}
+.empty-icon{font-size:52px;opacity:0.2;}
+.empty h3{font-size:15px;font-weight:600;color:var(--text);opacity:0.4;}
+.empty p{font-size:13px;text-align:center;line-height:1.7;max-width:300px;}
 
-/* ── ITEM CHAT BOX ── */
-.item-chat{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);}
-.chat-row{display:flex;gap:8px;align-items:flex-start;}
-.chat-inp{flex:1;padding:8px 11px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:'Noto Sans SC',sans-serif;outline:none;resize:none;height:38px;color:var(--text);transition:border-color 0.15s;line-height:1.5;}
+/* PROGRESS */
+.prog-wrap{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:28px;max-width:480px;margin:60px auto;box-shadow:var(--shadow);}
+.prog-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.prog-bar{height:5px;background:var(--border);border-radius:5px;overflow:hidden;margin-bottom:14px;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),#4f46e5);border-radius:5px;transition:width 0.5s ease;width:0%;}
+.prog-step{font-size:13px;color:var(--muted);}
+
+/* ── CARD GRID (shared by macro/meso/micro) ── */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;}
+.fw-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:18px 14px;text-align:center;cursor:pointer;transition:all 0.2s;position:relative;animation:up 0.35s ease forwards;opacity:0;}
+.fw-card:hover{box-shadow:var(--shadow);transform:translateY(-2px);border-color:#c8d4e8;}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.fw-card-icon{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;font-size:26px;margin:0 auto 10px;}
+.fw-card-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:4px;}
+.fw-card-sub{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:8px;}
+.fw-card-arrow{font-size:11px;color:var(--accent);font-weight:500;}
+.fw-card-del{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;background:rgba(220,38,38,0.1);color:var(--red);border:none;cursor:pointer;font-size:13px;display:grid;place-items:center;opacity:0;transition:opacity 0.15s;}
+.fw-card:hover .fw-card-del{opacity:1;}
+.fw-card-add{border:2px dashed var(--border);background:none;cursor:pointer;}
+.fw-card-add:hover{border-color:var(--accent);background:var(--al);}
+
+/* ── MACRO SECTION BLOCKS ── */
+.mac-block{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;margin-bottom:14px;animation:up 0.35s ease forwards;opacity:0;}
+.mac-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.mac-label .mac-del{background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:0 4px;opacity:0;}
+.mac-block:hover .mac-del{opacity:1;}
+.mac-del:hover{color:var(--red);}
+.editable{font-size:13px;line-height:1.85;color:var(--text);outline:none;border-radius:8px;padding:6px 8px;border:1px solid transparent;transition:all 0.15s;min-height:36px;width:100%;}
+.editable:hover{border-color:var(--border);background:var(--bg);}
+.editable:focus{border-color:var(--accent);background:var(--white);}
+.editable[placeholder]:empty::before{content:attr(placeholder);color:var(--muted);font-style:italic;}
+.principles-row{display:flex;flex-wrap:wrap;gap:8px;}
+.principle-tag{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid;outline:none;cursor:default;}
+
+/* ── CHAT BOX ── */
+.chat-area{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);}
+.chat-row{display:flex;gap:8px;}
+.chat-inp{flex:1;padding:8px 11px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:'Noto Sans SC',sans-serif;outline:none;resize:none;height:36px;color:var(--text);transition:all 0.15s;line-height:1.5;}
 .chat-inp:focus{border-color:var(--accent);height:64px;}
 .chat-inp::placeholder{color:var(--muted);}
 .chat-btn{padding:8px 14px;border-radius:8px;background:var(--accent);color:#fff;border:none;font-size:12px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;font-weight:500;white-space:nowrap;flex-shrink:0;transition:opacity 0.15s;}
 .chat-btn:hover{opacity:0.88;}
 .chat-btn:disabled{opacity:0.4;cursor:not-allowed;}
 
-/* ── MESO SYSTEM CARDS ── */
-.sys-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:all 0.2s;text-align:center;}
-.sys-card:hover{border-color:var(--accent);box-shadow:var(--shadow);transform:translateY(-2px);}
-.sys-card-icon{font-size:28px;margin-bottom:8px;}
-.sys-card-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:4px;}
-.sys-card-cur{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:8px;}
-.sys-card-arrow{font-size:11px;color:var(--accent);font-weight:500;}
-
-/* ── MICRO TASK CARDS ── */
-.micro-task-card{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;animation:up 0.3s ease forwards;opacity:0;}
-.mtc-head{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none;transition:background 0.15s;}
-.mtc-head:hover{background:var(--bg);}
-.mtc-num{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;}
-.mtc-title{flex:1;font-size:13px;font-weight:600;}
-.mtc-type{font-size:11px;color:var(--muted);background:var(--bg);padding:2px 8px;border-radius:6px;}
-.mtc-chev{color:var(--muted);font-size:12px;transition:transform 0.2s;}
-.mtc-chev.open{transform:rotate(180deg);}
-.mtc-body{padding:16px;border-top:1px solid var(--border);}
-.mtc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
-.mtc-field{background:var(--bg);border-radius:9px;padding:10px 12px;}
-.mtc-flabel{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:5px;}
-.mtc-fval{font-size:12px;line-height:1.7;color:var(--text);outline:none;min-height:24px;}
-.mtc-fval:focus{background:var(--white);border-radius:6px;padding:2px 4px;}
-
-/* ── SYS DETAIL MODAL ── */
-.sys-modal{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);display:none;place-items:center;}
-.sys-modal.open{display:grid;}
-.sys-modal-box{background:var(--white);border-radius:20px;width:90%;max-width:760px;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow-lg);animation:mIn 0.22s ease;}
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.45);backdrop-filter:blur(5px);display:none;place-items:center;}
+.modal-overlay.open{display:grid;}
+.modal-box{background:var(--bg);border-radius:20px;width:95%;max-width:860px;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow-lg);animation:mIn 0.22s ease;}
 @keyframes mIn{from{opacity:0;transform:scale(0.96)}to{opacity:1;transform:scale(1)}}
-.sys-modal-hd{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0;}
-.sys-modal-icon{font-size:28px;}
-.sys-modal-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;flex:1;}
-.sys-modal-close{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;font-size:16px;color:var(--muted);display:grid;place-items:center;}
-.sys-modal-body{overflow-y:auto;padding:22px;flex:1;display:flex;flex-direction:column;gap:16px;}
-.sys-modal-body::-webkit-scrollbar{width:5px;}
-.sys-modal-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:5px;}
-.svg-placeholder{background:var(--bg);border:2px dashed var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--muted);cursor:pointer;transition:all 0.2s;}
-.svg-placeholder:hover{border-color:var(--accent);background:var(--al);}
+.modal-hd{background:var(--white);padding:16px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.modal-icon{font-size:26px;width:42px;height:42px;border-radius:10px;display:grid;place-items:center;}
+.modal-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;flex:1;}
+.modal-close{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;font-size:16px;color:var(--muted);display:grid;place-items:center;}
+.modal-subtabs{background:var(--white);border-bottom:1px solid var(--border);padding:0 22px;display:flex;gap:0;flex-shrink:0;}
+.subtab{padding:9px 16px;font-size:12px;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);font-weight:500;transition:all 0.15s;}
+.subtab:hover{color:var(--text);}
+.subtab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.modal-body{overflow-y:auto;padding:20px 22px;flex:1;}
+.modal-body::-webkit-scrollbar{width:5px;}
+.modal-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:5px;}
 
-/* ── MESO SYSTEM LIST ── */
-.meso-list{display:flex;flex-direction:column;gap:8px;}
-.meso-sys-row{background:var(--white);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;gap:12px;padding:14px 16px;transition:all 0.2s;animation:up 0.3s ease forwards;opacity:0;}
-.meso-sys-row:hover{border-color:#c8d4e8;box-shadow:var(--shadow);}
-.meso-sys-icon{font-size:22px;width:40px;height:40px;border-radius:10px;display:grid;place-items:center;flex-shrink:0;}
-.meso-sys-info{flex:1;min-width:0;}
-.meso-sys-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;}
-.meso-sys-desc{font-size:11px;color:var(--muted);margin-top:2px;}
-.meso-sys-actions{display:flex;gap:6px;flex-shrink:0;}
-.meso-enter-btn{padding:6px 14px;border-radius:8px;border:1px solid var(--accent);color:var(--accent);background:var(--al);font-size:12px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;font-weight:500;transition:all 0.15s;}
-.meso-enter-btn:hover{background:var(--accent);color:#fff;}
-.meso-del-btn{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--white);color:var(--muted);font-size:14px;cursor:pointer;display:grid;place-items:center;transition:all 0.15s;}
-.meso-del-btn:hover{border-color:var(--red);color:var(--red);background:var(--rl);}
-.meso-add-row{border:2px dashed var(--border);border-radius:12px;padding:14px;text-align:center;cursor:pointer;transition:all 0.2s;color:var(--muted);font-size:13px;}
-.meso-add-row:hover{border-color:var(--accent);color:var(--accent);background:var(--al);}
-
-/* ── MESO DETAIL MODAL (full redesign) ── */
-.meso-modal{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.45);backdrop-filter:blur(5px);display:none;place-items:center;}
-.meso-modal.open{display:grid;}
-.meso-modal-box{background:var(--bg);border-radius:20px;width:95%;max-width:900px;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.2);animation:mIn 0.22s ease;}
-.meso-modal-hd{background:var(--white);padding:16px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0;}
-.meso-modal-icon{font-size:26px;width:42px;height:42px;border-radius:10px;display:grid;place-items:center;}
-.meso-modal-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;flex:1;}
-.meso-modal-close{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;font-size:16px;color:var(--muted);display:grid;place-items:center;}
-
-/* Sub-tabs (for traffic) */
-.meso-subtabs{background:var(--white);border-bottom:1px solid var(--border);padding:0 22px;display:flex;gap:0;flex-shrink:0;}
-.meso-stab{padding:10px 18px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);font-weight:500;transition:all 0.15s;}
-.meso-stab:hover{color:var(--text);}
-.meso-stab.active{color:var(--accent);border-bottom-color:var(--accent);}
-
-.meso-modal-body{overflow-y:auto;padding:20px 22px;flex:1;display:flex;flex-direction:column;gap:16px;}
-.meso-modal-body::-webkit-scrollbar{width:5px;}
-.meso-modal-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:5px;}
-
-/* Map/diagram pair */
-.diagram-pair{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+/* ── DIAGRAM PAIR ── */
+.diagram-pair{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
 .diagram-pair.single{grid-template-columns:1fr;}
-.diagram-box{display:flex;flex-direction:column;gap:8px;}
-.diagram-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
-.diagram-img{background:var(--bg);border:2px dashed var(--border);border-radius:12px;aspect-ratio:4/3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;}
-.diagram-img:hover{border-color:var(--accent);background:var(--al);}
-.diagram-img img{width:100%;height:100%;object-fit:cover;border-radius:10px;}
-.diagram-img .di-placeholder{display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--muted);}
-.diagram-desc{font-size:12px;line-height:1.7;color:var(--text);padding:10px 12px;background:var(--bg);border-radius:9px;outline:none;min-height:60px;border:1px solid transparent;transition:all 0.15s;}
-.diagram-desc:hover{border-color:var(--border);background:var(--white);}
-.diagram-desc:focus{border-color:var(--accent);background:var(--white);}
-.diagram-desc[placeholder]:empty::before{content:attr(placeholder);color:var(--muted);}
+.d-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;}
+.d-img{background:var(--bg);border:2px dashed var(--border);border-radius:12px;aspect-ratio:4/3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all 0.2s;overflow:hidden;}
+.d-img:hover{border-color:var(--accent);background:var(--al);}
+.d-img img{width:100%;height:100%;object-fit:cover;border-radius:10px;}
+.d-desc{font-size:12px;line-height:1.7;color:var(--text);padding:9px 11px;background:var(--bg);border-radius:9px;outline:none;min-height:56px;border:1px solid transparent;transition:all 0.15s;}
+.d-desc:hover{border-color:var(--border);background:var(--white);}
+.d-desc:focus{border-color:var(--accent);background:var(--white);}
+.data-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.data-chip{background:var(--white);border:1px solid var(--border);border-radius:9px;padding:9px 13px;min-width:90px;}
+.dc-label{font-size:10px;color:var(--muted);font-weight:600;margin-bottom:2px;}
+.dc-val{font-size:18px;font-weight:700;font-family:'Syne',sans-serif;outline:none;}
+.dc-unit{font-size:10px;color:var(--muted);}
 
-/* Data row */
-.data-row{display:flex;gap:10px;flex-wrap:wrap;}
-.data-chip{background:var(--white);border:1px solid var(--border);border-radius:9px;padding:10px 14px;display:flex;flex-direction:column;gap:3px;min-width:100px;}
-.data-chip-label{font-size:10px;color:var(--muted);font-weight:600;}
-.data-chip-val{font-size:18px;font-weight:700;font-family:'Syne',sans-serif;outline:none;}
-.data-chip-unit{font-size:10px;color:var(--muted);}
+/* ── MICRO TASK in modal ── */
+.micro-item{background:var(--white);border:1px solid var(--border);border-radius:11px;margin-bottom:8px;overflow:hidden;}
+.micro-item-hd{padding:11px 14px;display:flex;align-items:center;gap:9px;cursor:pointer;}
+.micro-item-hd:hover{background:var(--bg);}
+.micro-num{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;}
+.micro-name{flex:1;font-size:13px;font-weight:600;outline:none;}
+.micro-name:focus{background:var(--bg);border-radius:4px;padding:1px 4px;}
+.micro-located{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:500;}
+.micro-chev{color:var(--muted);font-size:11px;transition:transform 0.2s;flex-shrink:0;}
+.micro-chev.open{transform:rotate(180deg);}
+.micro-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 3px;}
+.micro-del:hover{color:var(--red);}
+.micro-body{padding:12px 14px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.micro-field{}
+.mf-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;}
+.mf-val{font-size:12px;padding:7px 9px;background:var(--bg);border-radius:7px;outline:none;min-height:32px;line-height:1.6;border:1px solid transparent;transition:all 0.15s;}
+.mf-val:hover{border-color:var(--border);background:var(--white);}
+.mf-val:focus{border-color:var(--accent);background:var(--white);}
+.mf-val[placeholder]:empty::before{content:attr(placeholder);color:var(--muted);font-style:italic;}
+.mf-input{width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:7px;font-size:12px;font-family:'Noto Sans SC',sans-serif;outline:none;background:var(--white);}
+.mf-input:focus{border-color:var(--accent);}
+.micro-full{grid-column:1/-1;}
+
+/* ── MAP (micro) ── */
+#microMap{height:280px;border-radius:10px;overflow:hidden;border:1px solid var(--border);}
+
 .spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.25);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;}
 .spin-b{display:inline-block;width:12px;height:12px;border:2px solid rgba(29,78,216,0.15);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;}
 @keyframes sp{to{transform:rotate(360deg)}}
-
-.notif{position:fixed;bottom:20px;right:24px;background:var(--text);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;box-shadow:var(--shadow-lg);transform:translateY(16px);opacity:0;transition:all 0.25s;z-index:300;}
+.notif{position:fixed;bottom:20px;right:24px;background:var(--text);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;box-shadow:var(--shadow-lg);transform:translateY(16px);opacity:0;transition:all 0.25s;z-index:500;}
 .notif.show{transform:translateY(0);opacity:1;}
-
 input[type=file]{display:none;}
-
-@media(max-width:900px){
-  .body{grid-template-columns:1fr;}
-  .left{max-height:45vh;}
-  .sys-grid{grid-template-columns:repeat(2,1fr);}
-}
 </style>
 </head>
 <body>
 
+<!-- TOP BAR -->
 <div class="topbar">
-  <div style="display:flex;align-items:center;gap:12px;">
+  <div style="display:flex;align-items:center;">
     <div class="logo">🏘 Neighbor<em>Mind</em></div>
-    <div class="sep"></div>
-    <div class="page-tag">🧭 策略框架生成 <span class="chip">智能体 03 · 第一步</span></div>
+    <div class="page-tag">🧭 策略框架生成 <span class="chip">智能体 03</span></div>
   </div>
   <div class="topbar-r">
-    <button class="btn btn-ghost" onclick="exportPDF()">📄 导出PDF</button>
-    <button class="btn btn-ghost" id="resetBtn" onclick="resetAll()">↺ 重置</button>
+    <button class="btn btn-ghost" onclick="window.print()" id="pdfBtn" style="display:none;">📄 导出PDF</button>
+    <button class="btn btn-ghost" onclick="resetAll()">↺ 重置</button>
   </div>
 </div>
 
-<div class="body" style="position:relative;">
+<div class="layout">
 
   <!-- LEFT -->
   <div class="left">
+    <div class="left-body">
 
-    <!-- TWO COLUMN UPLOAD -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border);flex-shrink:0;">
-
-      <!-- 规划资料 -->
-      <div style="padding:20px 18px;border-right:1px solid var(--border);">
-        <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--accent);margin-bottom:4px;">🗺 规划资料</div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">总规 · 控规 · 街区更新规划</div>
-        <div class="upload-card" onclick="triggerUpload('planning')" ondragover="dzOver(event,'planning')" ondragleave="dzOut('planning')" ondrop="dzDrop(event,'planning')" id="dz-planning">
-          <div class="uc-icon">📎</div>
-          <div class="uc-title">点击或拖拽上传</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px;">PDF · DOCX · TXT</div>
+      <!-- 规划资料 & 政策资料 side by side -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:800;color:var(--accent);margin-bottom:6px;">🗺 规划资料</div>
+          <div class="upload-card" onclick="document.getElementById('fi-planning').click()" ondragover="dzOver(event,'planning')" ondragleave="dzOut('planning')" ondrop="dzDrop(event,'planning')" id="dz-planning">
+            <div class="uc-icon">📎</div>
+            <div class="uc-title" style="font-size:11px;">点击上传</div>
+            <div class="uc-types">PDF·DOCX·TXT</div>
+          </div>
+          <input type="file" id="fi-planning" accept=".pdf,.docx,.doc,.txt" multiple onchange="handleUpload('planning',this)">
+          <div class="file-tags" id="ft-planning"></div>
         </div>
-        <input type="file" id="fi-planning" accept=".pdf,.docx,.doc,.txt" multiple onchange="handleUpload('planning',this)">
-        <div class="file-tags" id="ft-planning"></div>
-        <textarea id="f-planning-txt" style="width:100%;margin-top:10px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:11px;font-family:'Noto Sans SC',sans-serif;resize:none;height:72px;outline:none;color:var(--text);" placeholder="或直接填写规划要点、用地性质、开发强度限制…" oninput="markFilled('planning')"></textarea>
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:800;color:var(--purple);margin-bottom:6px;">📜 政策资料</div>
+          <div class="upload-card" onclick="document.getElementById('fi-policy').click()" ondragover="dzOver(event,'policy')" ondragleave="dzOut('policy')" ondrop="dzDrop(event,'policy')" id="dz-policy">
+            <div class="uc-icon">📎</div>
+            <div class="uc-title" style="font-size:11px;">点击上传</div>
+            <div class="uc-types">PDF·DOCX·TXT</div>
+          </div>
+          <input type="file" id="fi-policy" accept=".pdf,.docx,.doc,.txt" multiple onchange="handleUpload('policy',this)">
+          <div class="file-tags" id="ft-policy"></div>
+        </div>
       </div>
 
-      <!-- 政策资料 -->
-      <div style="padding:20px 18px;">
-        <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--purple);margin-bottom:4px;">📜 政策资料</div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">国家/地方政策 · 专项资金文件</div>
-        <div class="upload-card" onclick="triggerUpload('policy')" ondragover="dzOver(event,'policy')" ondragleave="dzOut('policy')" ondrop="dzDrop(event,'policy')" id="dz-policy">
-          <div class="uc-icon">📎</div>
-          <div class="uc-title">点击或拖拽上传</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px;">PDF · DOCX · TXT</div>
-        </div>
-        <input type="file" id="fi-policy" accept=".pdf,.docx,.doc,.txt" multiple onchange="handleUpload('policy',this)">
-        <div class="file-tags" id="ft-policy"></div>
-        <textarea id="f-policy-txt" style="width:100%;margin-top:10px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:11px;font-family:'Noto Sans SC',sans-serif;resize:none;height:72px;outline:none;color:var(--text);" placeholder="或直接填写政策要点、可申请资金、约束条件…" oninput="markFilled('policy')"></textarea>
+      <div class="field-label">或直接填写规划要点</div>
+      <textarea class="field-textarea" id="f-planning" placeholder="总规要求、控规指标、街区更新要点…" oninput="markFilled('planning')"></textarea>
+
+      <div class="field-label">或直接填写政策要点</div>
+      <textarea class="field-textarea" id="f-policy" placeholder="相关政策、可申请资金、约束条件…" oninput="markFilled('policy')"></textarea>
+
+      <div class="field-label">从智能体01读取</div>
+      <div class="agent01-box" id="agent01Box">
+        <span class="agent01-empty" id="agent01Empty">暂未检测到智能体01数据</span>
+        <div id="agent01Content" style="display:none;"></div>
       </div>
 
     </div>
-
-    <!-- 从智能体01读取 -->
-    <div style="padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0;">
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;">从智能体01读取的基础信息</div>
-      <div id="agent01Preview" style="font-size:12px;color:var(--text);line-height:1.8;display:none;"></div>
-      <div id="agent01Empty" style="font-size:12px;color:var(--muted);font-style:italic;">暂未检测到数据，请先在智能体01填写基本信息和历史文化。</div>
-    </div>
-
     <div class="left-foot">
-      <div>
-        <div class="ip-lbl" id="fillLbl">已上传 0 / 2 类文件</div>
-        <div class="info-progress" id="infoProgress">
-          <div class="ip-dot" id="ip-planning"></div>
-          <div class="ip-dot" id="ip-policy"></div>
-        </div>
+      <div class="ip-lbl" id="ipLbl">已上传 0 / 2 类</div>
+      <div class="ip-bar">
+        <div class="ip-seg" id="ips-planning"></div>
+        <div class="ip-seg" id="ips-policy"></div>
       </div>
-      <button class="gen-btn" id="genBtn" onclick="generate()">
-        🤖 生成策略框架
-      </button>
+      <button class="gen-btn" id="genBtn" onclick="generate()">🤖 生成策略框架</button>
     </div>
   </div>
 
-    <!-- RIGHT -->
+  <!-- RIGHT -->
   <div class="right">
-
-    <!-- TAB BAR -->
-    <div class="right-head" style="padding:0;flex-direction:column;align-items:stretch;gap:0;">
-      <div style="padding:12px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);">
+    <div class="right-head">
+      <div class="right-title-row">
         <div style="display:flex;align-items:center;gap:10px;">
           <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;">策略框架</div>
-          <div class="framework-status" id="fwStatus">
+          <div class="fw-status" id="fwStatus">
             <span style="width:7px;height:7px;border-radius:50%;background:var(--border);display:inline-block;"></span>
             等待生成
           </div>
         </div>
-        <div style="display:flex;gap:8px;">
-          <button class="btn btn-ghost" id="exportBtn" onclick="exportPDF()" style="display:none;">📄 导出PDF</button>
-        </div>
+        <button class="btn btn-ghost" id="pdfBtn2" onclick="window.print()" style="display:none;">📄 导出PDF</button>
       </div>
-      <!-- TABS -->
-      <div style="display:flex;border-bottom:1px solid var(--border);padding:0 24px;background:var(--white);" id="tabBar" style="display:none;">
-        <div class="rtab active" id="tab-macro" onclick="switchRTab('macro')">🌐 宏观战略</div>
-        <div class="rtab" id="tab-meso" onclick="switchRTab('meso')">🔲 中观系统</div>
-        <div class="rtab" id="tab-micro" onclick="switchRTab('micro')">🔍 微观任务书</div>
+      <div class="tabs" id="tabBar" style="display:none;">
+        <div class="tab active" id="tab-macro" onclick="switchTab('macro')">🌐 宏观战略</div>
+        <div class="tab" id="tab-meso" onclick="switchTab('meso')">🔲 中观系统</div>
+        <div class="tab" id="tab-micro" onclick="switchTab('micro')">🔍 微观任务书</div>
       </div>
     </div>
 
-    <!-- TAB CONTENTS -->
     <div class="right-scroll" id="rightScroll">
-
-      <!-- EMPTY STATE -->
       <div class="empty" id="emptyState">
-        <div class="ei">🧭</div>
+        <div class="empty-icon">🧭</div>
         <h3>策略框架待生成</h3>
-        <p>上传规划资料和政策文件<br>或直接填写要点文字<br>点击「生成策略框架」开始</p>
+        <p>上传规划资料和政策文件，或直接填写要点，点击「生成策略框架」开始</p>
       </div>
-
-      <!-- MACRO CONTENT -->
       <div id="panel-macro" style="display:none;"></div>
-
-      <!-- MESO CONTENT -->
       <div id="panel-meso" style="display:none;"></div>
-
-      <!-- MICRO CONTENT -->
       <div id="panel-micro" style="display:none;"></div>
-
     </div>
   </div>
+</div>
 
-
-
-  <!-- PROGRESS OVERLAY -->
-  <div class="prog-overlay" id="progOverlay">
-    <div class="prog-box">
-      <div class="prog-title"><div class="spin-b" style="width:16px;height:16px;border-width:2.5px;"></div> AI 正在生成策略框架…</div>
-      <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
-      <div class="prog-step" id="progStep">读取项目信息…</div>
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div class="modal-hd">
+      <div class="modal-icon" id="modalIcon">📌</div>
+      <div class="modal-title" id="modalTitle"></div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
+    <div class="modal-subtabs" id="modalSubtabs" style="display:none;"></div>
+    <div class="modal-body" id="modalBody"></div>
   </div>
-
 </div>
 
 <div class="notif" id="notif"></div>
 
 <script>
-// ── STATE ──
-const filled = { planning:false, policy:false };
+// ══════════════════════════════
+// STATE
+// ══════════════════════════════
 let fwData = null;
-let comments = {};
-const USERS = ['我','张工','李工','王总'];
-let curUser = 0;
+let currentTab = 'macro';
+const uploadedFiles = { planning:[], policy:[] };
+const filled = { planning:false, policy:false };
 
-// ── LEFT TABS ──
-function switchLTab(sec, el) {
-  document.querySelectorAll('.ltab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  document.querySelectorAll('.input-section').forEach(s => s.classList.remove('active'));
-  document.getElementById('sec-'+sec).classList.add('active');
+// ══════════════════════════════
+// MESO CONFIGS
+// ══════════════════════════════
+const MESO_CATS = {
+  spatial:  { name:'空间结构',   icon:'🗺', color:'#1d4ed8', bg:'#eff4ff', type:'single' },
+  traffic:  { name:'交通规划',   icon:'🚗', color:'#d97706', bg:'#fffbeb', type:'subtabs',
+    subtabs:[
+      { key:'road',    label:'道路系统', icon:'🛣', type:'compare',
+        curLabel:'现状路网', planLabel:'规划路网',
+        curDesc:'现状道路问题，断头路、宽度不足…', planDesc:'规划策略，单行线安排、路网优化…',
+        data:[{label:'现状出入口',unit:'个'},{label:'规划出入口',unit:'个'}] },
+      { key:'parking', label:'停车系统', icon:'🅿', type:'compare',
+        curLabel:'现状停车', planLabel:'规划停车',
+        curDesc:'现状停车问题，违停、缺口…', planDesc:'规划策略，新增方式、布局…',
+        data:[{label:'现状车位',unit:'个'},{label:'规划车位',unit:'个'},{label:'缺口',unit:'个'}] },
+      { key:'walk',    label:'步行系统', icon:'🚶', type:'single',
+        planLabel:'慢步道系统规划图', planDesc:'慢步道规划策略，主要路径、无障碍连接…',
+        data:[{label:'慢步道总长',unit:'m'}] },
+    ]},
+  landscape:{ name:'绿化景观',   icon:'🌿', color:'#059669', bg:'#ecfdf5', type:'compare',
+    curLabel:'现状绿化布局', planLabel:'规划绿化布局',
+    curDesc:'现状绿化问题…', planDesc:'规划绿化结构…',
+    data:[{label:'现状绿化率',unit:'%'},{label:'规划绿化率',unit:'%'}] },
+  facility: { name:'公共服务设施',icon:'🏛', color:'#7c3aed', bg:'#f5f3ff', type:'compare',
+    curLabel:'现状设施分布', planLabel:'规划设施补齐',
+    curDesc:'现状设施缺失…', planDesc:'规划补齐方案…',
+    data:[{label:'现状设施点',unit:'处'},{label:'规划新增',unit:'处'}] },
+  building: { name:'建筑风貌',   icon:'🏘', color:'#dc2626', bg:'#fef2f2', type:'nomap',
+    fields:[
+      { key:'style',    label:'建筑风貌', ph:'现状风貌特征，是否需要改造…' },
+      { key:'color',    label:'色彩策略', ph:'主色调、辅助色、点缀色建议…' },
+      { key:'material', label:'材质建议', ph:'外立面材质、改造范围和方式…' },
+    ]},
+  municipal:{ name:'市政设施',   icon:'🔧', color:'#0284c7', bg:'#f0f9ff', type:'compare',
+    curLabel:'现状市政设施点位', planLabel:'规划市政设施点位',
+    curDesc:'现状点位问题，垃圾收集点位置不合理…', planDesc:'规划点位调整方案…',
+    data:[{label:'垃圾收集点',unit:'处'},{label:'变压器',unit:'台'}] },
+};
+
+const MESO_EXTRA = [
+  { key:'ecology', name:'生态系统', icon:'🌱', color:'#059669', bg:'#ecfdf5', type:'compare',
+    curLabel:'现状生态', planLabel:'规划生态',
+    curDesc:'现状生态问题…', planDesc:'生态规划策略…', data:[] },
+  { key:'economy', name:'经济运营', icon:'💰', color:'#d97706', bg:'#fffbeb', type:'nomap',
+    fields:[{key:'model',label:'运营模式',ph:'可持续运营模式设想…'},{key:'fund',label:'资金来源',ph:'资金来源分析…'}] },
+];
+
+// ══════════════════════════════
+// MICRO CATS
+// ══════════════════════════════
+const MICRO_CATS = [
+  { key:'gate',     label:'大门景观',         icon:'🚪', color:'#1d4ed8' },
+  { key:'major',    label:'大型景观',         icon:'🌳', color:'#059669' },
+  { key:'node',     label:'节点景观',         icon:'📍', color:'#d97706' },
+  { key:'road',     label:'道路景观',         icon:'🛤',  color:'#7c3aed' },
+  { key:'carpark',  label:'机动车停车景观',   icon:'🚗', color:'#dc2626' },
+  { key:'bikepark', label:'非机动车停车景观', icon:'🚲', color:'#0284c7' },
+  { key:'trash',    label:'垃圾收集点景观',   icon:'🗑',  color:'#475569' },
+];
+
+let microTasks = [];
+let mesoActiveSystems = [];
+let microMap = null;
+let markMode = false;
+let mapMarkers = [];
+
+// ══════════════════════════════
+// FILE UPLOAD
+// ══════════════════════════════
+function handleUpload(sec, input) {
+  Array.from(input.files).forEach(f => uploadedFiles[sec].push({ name:f.name, size:f.size }));
+  renderFileTags(sec);
+  markFilled(sec);
+  input.value = '';
 }
-
+function renderFileTags(sec) {
+  const el = document.getElementById('ft-'+sec);
+  if (!el) return;
+  el.innerHTML = uploadedFiles[sec].map((f,i) =>
+    `<div class="ftag"><span>📄</span><span class="ftag-name">${f.name}</span>
+     <button class="ftag-del" onclick="removeFile('${sec}',${i})">✕</button></div>`
+  ).join('');
+}
+function removeFile(sec, i) { uploadedFiles[sec].splice(i,1); renderFileTags(sec); }
+function dzOver(e,sec){ e.preventDefault(); document.getElementById('dz-'+sec)?.classList.add('over'); }
+function dzOut(sec){ document.getElementById('dz-'+sec)?.classList.remove('over'); }
+function dzDrop(e,sec){ e.preventDefault(); dzOut(sec); const dt=new DataTransfer(); Array.from(e.dataTransfer.files).forEach(f=>dt.items.add(f)); const fi=document.getElementById('fi-'+sec); fi.files=dt.files; fi.dispatchEvent(new Event('change')); }
 function markFilled(sec) {
   filled[sec] = true;
-  document.getElementById('dot-'+sec).classList.add('filled');
-  document.getElementById('ip-'+sec).classList.add('filled');
+  document.getElementById('ips-'+sec)?.classList.add('on');
   const cnt = Object.values(filled).filter(Boolean).length;
-  document.getElementById('fillLbl').textContent = `已上传 ${cnt} / 2 类文件`;
+  document.getElementById('ipLbl').textContent = `已上传 ${cnt} / 2 类`;
 }
 
-// ── FILE UPLOAD HANDLING ──
-
-function triggerUpload(sec) {
-  document.getElementById('fi-'+sec).click();
-}
-
-function dzOver(e, sec) { e.preventDefault(); document.getElementById('dz-'+sec)?.classList.add('over'); }
-function dzOut(sec) { document.getElementById('dz-'+sec)?.classList.remove('over'); }
-function dzDrop(e, sec) {
-  e.preventDefault(); dzOut(sec);
-  const files = Array.from(e.dataTransfer.files);
-  processFiles(sec, files);
-}
-
-function handleUpload(sec, input) {
-  processFiles(sec, Array.from(input.files));
-  input.value = '';
-}
-
-function processFiles(sec, files) {
-  if (!uploadedFiles[sec]) uploadedFiles[sec] = [];
-  files.forEach(f => uploadedFiles[sec].push({ name: f.name, size: f.size, url: URL.createObjectURL(f), mime: f.type, file: f }));
-  markFilled(sec);
-  renderFileTags(sec);
-  autoExtract(sec);
-}
-
-function renderFileTags(sec) {
-  const tags = document.getElementById('ft-'+sec);
-  if (!tags) return;
-  const files = uploadedFiles[sec] || [];
-  tags.innerHTML = files.map((f, i) => `
-    <div class="file-tag-item">
-      <span>${getFileIcon(f.name)}</span>
-      <span>${f.name.length > 16 ? f.name.slice(0,14)+'…' : f.name}</span>
-      <button class="file-tag-del" onclick="removeUploadedFile('${sec}',${i})">✕</button>
-    </div>`).join('');
-}
-
-function removeUploadedFile(sec, i) {
-  uploadedFiles[sec].splice(i, 1);
-  renderFileTags(sec);
-  if (!uploadedFiles[sec].length) document.getElementById('ex-'+sec).style.display = 'none';
-}
-
-async function autoExtract(sec) {
-  const files = uploadedFiles[sec] || [];
-  if (!files.length) return;
-  const exBox = document.getElementById('ex-'+sec);
-  exBox.style.display = 'block';
-  exBox.innerHTML = `<div class="extract-box-label"><span class="spin-b"></span> AI 正在提取关键信息…</div>`;
-
-  const SEC_LABELS = {
-    basic:'项目基本信息', planning:'上位规划要点', policy:'政策背景要点',
-    culture:'文化历史要点', social:'社会人口要点', client:'甲方诉求要点'
-  };
-
-  // For images, use vision API
-  const imgFile = files.find(f => f.mime && f.mime.startsWith('image/'));
+// Load agent01 data
+function loadAgent01() {
   try {
-    let result = '';
-    if (imgFile) {
-      const b64 = await toBase64(imgFile.url, imgFile.mime);
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({
-          model:'claude-sonnet-4-20250514', max_tokens:1000,
-          messages:[{role:'user', content:[
-            {type:'image', source:{type:'base64', media_type:imgFile.mime, data:b64}},
-            {type:'text', text:`请从这个文件中提取与"${SEC_LABELS[sec]}"相关的关键信息，用简洁的要点列出（每点不超过30字，最多6点），只返回要点列表，每点以"•"开头。`}
-          ]}]
-        })
-      });
-      const d = await res.json();
-      result = d.content?.[0]?.text || '';
-    } else {
-      // For non-image files, ask Claude to generate based on filename and context
-      const fileNames = files.map(f=>f.name).join('、');
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({
-          model:'claude-sonnet-4-20250514', max_tokens:1000,
-          messages:[{role:'user', content:`用户上传了以下文件用于社区微更新项目的"${SEC_LABELS[sec]}"：${fileNames}。
-请根据文件名推断可能包含的关键信息类型，并提示用户应该从这些文件中关注哪些要点，用"•"开头列出5-6条提示，每条不超过30字。`}]
-        })
-      });
-      const d = await res.json();
-      result = d.content?.[0]?.text || '';
-    }
-    exBox.innerHTML = `
-      <div class="extract-box-label">✅ AI 提取要点</div>
-      <div style="white-space:pre-line;line-height:1.8;">${result}</div>`;
-  } catch(e) {
-    exBox.innerHTML = `<div class="extract-box-label">📎 已上传 ${files.length} 个文件</div><div style="font-size:11px;color:var(--muted);">文件将在生成策略时作为背景参考</div>`;
-  }
-}
-
-function getFileIcon(name) {
-  const ext = (name||'').split('.').pop().toLowerCase();
-  return {pdf:'📄',docx:'📝',doc:'📝',xlsx:'📊',csv:'📊',mp3:'🎵',m4a:'🎵',txt:'📃',jpg:'🖼',png:'🖼',jpeg:'🖼'}[ext]||'📁';
-}
-
-async function toBase64(url, mime) {
-  const blob = await (await fetch(url)).blob();
-  return new Promise(res => { const r=new FileReader(); r.onload=()=>res(r.result.split(',')[1]); r.readAsDataURL(blob); });
-}
-
-// ── COLLECT INPUT ──
-
-// ── FILE UPLOAD (planning / policy) ──
-const uploadedFiles = { planning: [], policy: [] };
-
-function triggerUpload(sec) { document.getElementById('fi-'+sec).click(); }
-
-function handleUpload(sec, input) {
-  Array.from(input.files).forEach(f => {
-    uploadedFiles[sec].push({ name: f.name, size: f.size });
-  });
-  renderFileTags(sec);
-  markFilled(sec);
-  input.value = '';
-}
-
-function renderFileTags(sec) {
-  const container = document.getElementById('ft-'+sec);
-  if (!container) return;
-  container.innerHTML = uploadedFiles[sec].map((f, i) => `
-    <div class="ftag">
-      <span>📄</span>
-      <span class="ftag-name">${f.name}</span>
-      <span style="color:var(--muted);font-size:10px;">${(f.size/1024).toFixed(0)}KB</span>
-      <button class="ftag-del" onclick="removeFile('${sec}',${i})">✕</button>
-    </div>`).join('');
-}
-
-function removeFile(sec, i) {
-  uploadedFiles[sec].splice(i, 1);
-  renderFileTags(sec);
-}
-
-function dzOver(e, sec) { e.preventDefault(); document.getElementById('dz-'+sec)?.classList.add('over'); }
-function dzOut(sec) { document.getElementById('dz-'+sec)?.classList.remove('over'); }
-function dzDrop(e, sec) {
-  e.preventDefault(); dzOut(sec);
-  const dt = new DataTransfer();
-  Array.from(e.dataTransfer.files).forEach(f => dt.items.add(f));
-  const fi = document.getElementById('fi-'+sec);
-  fi.files = dt.files;
-  fi.dispatchEvent(new Event('change'));
-}
-
-// ── READ FROM AGENT01 (localStorage) ──
-function loadAgent01Data() {
-  try {
-    const basic = JSON.parse(localStorage.getItem('nm_basic') || 'null');
-    const culture = JSON.parse(localStorage.getItem('nm_culture') || 'null');
-    const preview = document.getElementById('agent01Preview');
-    const empty = document.getElementById('agent01Empty');
-    if (!basic && !culture) { preview.style.display='none'; empty.style.display='block'; return; }
-    empty.style.display = 'none';
-    preview.style.display = 'block';
+    const basic = JSON.parse(localStorage.getItem('nm_basic')||'null');
+    const culture = JSON.parse(localStorage.getItem('nm_culture')||'null');
+    if (!basic && !culture) return;
     let html = '';
-    if (basic) {
-      html += `<div style="margin-bottom:6px;"><b>${basic.name||'项目名称未填'}</b> · ${basic.city||''} · ${basic.year||''}</div>`;
-      if (basic.households||basic.population) html += `<div style="color:var(--muted);">👥 ${basic.households||''} ${basic.population||''} · 老龄化${basic.elderly||'-'} · 儿童${basic.children||'-'}</div>`;
-      if (basic.bg) html += `<div style="color:var(--muted);margin-top:2px;">📝 ${basic.bg.slice(0,60)}${basic.bg.length>60?'…':''}</div>`;
-    }
-    if (culture && culture.history) {
-      html += `<div style="color:var(--muted);margin-top:4px;">🏛 ${culture.history.slice(0,60)}${culture.history.length>60?'…':''}</div>`;
-    }
-    preview.innerHTML = html;
+    if (basic) html += `<b>${basic.name||''}</b> · ${basic.city||''} · ${basic.year||''}<br>${basic.households||''} ${basic.population||''} · 老龄化${basic.elderly||'-'}<br>`;
+    if (culture?.history) html += `🏛 ${culture.history.slice(0,60)}…`;
+    document.getElementById('agent01Empty').style.display = 'none';
+    document.getElementById('agent01Content').style.display = 'block';
+    document.getElementById('agent01Content').innerHTML = html;
   } catch(e) {}
 }
+loadAgent01();
 
-loadAgent01Data();
-
-function collectInput() {
-  // Load from agent01 localStorage
-  let basic = {}, culture = {};
-  try { basic = JSON.parse(localStorage.getItem('nm_basic') || '{}'); } catch(e) {}
-  try { culture = JSON.parse(localStorage.getItem('nm_culture') || '{}'); } catch(e) {}
-
-  return {
-    name: basic.name || '待命名社区',
-    city: basic.city || '', year: basic.year || '',
-    area: basic.area || '', bldg: basic.bldg || '',
-    households: basic.households || '', population: basic.population || '',
-    elderly: basic.elderly || '', children: basic.children || '',
-    budget: basic.budget || '200', period: basic.period || '2年分两期',
-    bg: basic.bg || '', needs: basic.needs || '', gov: basic.gov || '',
-    planning: [document.getElementById('f-planning-txt')?.value || ''].concat(uploadedFiles.planning.map(f=>f.name)).filter(Boolean).join('；'),
-    policy: [document.getElementById('f-policy-txt')?.value || ''].concat(uploadedFiles.policy.map(f=>f.name)).filter(Boolean).join('；'),
-    culture: [culture.history||'', culture.character||'', culture.assets||'', culture.memory||''].filter(Boolean).join('；'),
-  };
-}
-function v(id) { const el=document.getElementById(id); return el?el.value.trim():''; }
-
-// ── GENERATE ──
+// ══════════════════════════════
+// GENERATE
+// ══════════════════════════════
 async function generate() {
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true; btn.innerHTML = '<div class="spin"></div> 生成中…';
+  showProgress();
+
   const input = collectInput();
 
-  const btn = document.getElementById('genBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spin"></div> 生成中…';
-  showProg('读取项目信息…', 10);
-  document.getElementById('progOverlay').classList.add('show');
-
   try {
-    showProg('分析上位规划与政策背景…', 25);
-    await delay(500);
-    showProg('生成宏观战略定位…', 45);
-    const macro = await genMacro(input);
-    showProg('梳理中观系统框架…', 65);
-    const meso = await genMeso(input);
-    showProg('生成微观任务书要点…', 82);
-    const micro = await genMicro(input);
-    showProg('整合策略框架…', 95);
-    await delay(400);
+    setProg('生成宏观战略定位…', 20);
+    const macro = await callClaude(macroPrompt(input));
+    setProg('梳理中观系统框架…', 50);
+    const mesoRaw = await callClaude(mesoPrompt(input));
+    setProg('生成微观景观任务书…', 75);
+    const microRaw = await callClaude(microPrompt(input));
+    setProg('整合策略框架…', 95);
+    await delay(300);
 
-    fwData = { macro, meso, micro, input };
-    renderFramework(fwData);
-    document.getElementById('fwStatus').innerHTML = `<span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;"></span> 已生成 · 可编辑迭代`;
-    document.getElementById('commentBtn').style.display = 'flex';
+    // Process meso
+    mesoActiveSystems = Object.entries(MESO_CATS).map(([key,cfg]) => {
+      const data = mesoRaw[key] || {};
+      return { key, ...cfg, current: data.current||'', strategy: data.strategy||'' };
+    });
+
+    // Process micro
+    microTasks = Array.isArray(microRaw) ? microRaw.map((t,i) => ({
+      id: Date.now()+i, cat: guessMicroCat(t.category||''),
+      name: t.item || t.category || '景观节点',
+      theme: t.standard||'', func: t.note||'', notes:'', lat:null, lng:null, address:'',
+    })) : [];
+
+    fwData = { macro, input };
+    renderAll();
+
+    document.getElementById('tabBar').style.display = 'flex';
+    document.getElementById('pdfBtn').style.display = 'flex';
+    document.getElementById('pdfBtn2').style.display = 'flex';
+    document.getElementById('fwStatus').innerHTML = '<span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;"></span> 已生成 · 可编辑迭代';
 
   } catch(e) {
     console.error(e);
-    fwData = getDemoFramework(input);
-    renderFramework(fwData);
-    notify('⚠️ AI接口异常，已使用示例框架');
+    useDemoData(input);
+    renderAll();
+    document.getElementById('tabBar').style.display = 'flex';
+    document.getElementById('pdfBtn2').style.display = 'flex';
+    notify('⚠️ API未连接，已使用示例数据');
   }
 
-  document.getElementById('progOverlay').classList.remove('show');
-  btn.disabled = false;
-  btn.innerHTML = '🔄 重新生成';
-  notify('✅ 策略框架已生成，点击任意内容可直接编辑');
+  btn.disabled = false; btn.innerHTML = '🔄 重新生成';
+  document.getElementById('rightScroll').querySelector('#emptyState') && (document.getElementById('emptyState').style.display='none');
+  switchTab('macro');
 }
 
-async function genMacro(inp) {
-  const prompt = `你是资深城市社区微更新规划师。根据以下项目信息，生成宏观战略定位，只返回JSON（无其他内容）：
-{
-  "necessity": "项目必要性（3点，每点20字以内）",
-  "significance": "项目意义（3点，每点20字以内）",
-  "vision": "愿景目标（30字以内）",
-  "positioning": "项目定位（40字以内）",
-  "principles": [{"name":"原则名","desc":"原则说明（20字）","color":"hex颜色"}],
-  "objectives": ["目标1（20字）","目标2","目标3","目标4"]
-}
-项目名：${inp.name}，城市：${inp.city}，建成年代：${inp.year}，面积：${inp.area}㎡，户数：${inp.households}，人口：${inp.population}，老龄化：${inp.elderly}，儿童占比：${inp.children}，背景：${inp.bg}，上位规划：${inp.planning}，政策：${inp.policy}，文化历史：${inp.culture}，预算：${inp.budget}万`;
-  return await callClaude(prompt);
-}
-
-async function genMeso(inp) {
-  const prompt = `你是城市社区微更新规划师。根据以下项目信息，判断需要梳理哪些系统（不必全部，根据项目实际情况选3-6个最相关的），生成中观系统框架，只返回JSON对象（key为系统英文简称，无其他内容）：
-{
-  "traffic": {"name":"交通停车","icon":"🚗","current":"现状问题（20字）","strategy":"系统策略（40字）"},
-  "landscape": {"name":"景观绿化","icon":"🌿","current":"现状问题","strategy":"系统策略"}
-}
-可选系统：空间结构、交通停车、景观绿化、建筑风貌、文化活力、公共服务、市政基础、生态环境、经济运营。
-只选与项目最相关的系统，不要凑数。
-项目：${inp.name}，面积：${inp.area}㎡，户数：${inp.households}，人口：${inp.population}，老龄化：${inp.elderly}，背景：${inp.bg}，文化：${inp.culture}，上位规划：${inp.planning}，政策：${inp.policy}`;
-  return await callClaude(prompt);
+function collectInput() {
+  let basic={}, culture={};
+  try { basic=JSON.parse(localStorage.getItem('nm_basic')||'{}'); } catch(e){}
+  try { culture=JSON.parse(localStorage.getItem('nm_culture')||'{}'); } catch(e){}
+  return {
+    name: basic.name||'待命名社区', city: basic.city||'', year: basic.year||'',
+    area: basic.area||'', households: basic.households||'', population: basic.population||'',
+    elderly: basic.elderly||'', children: basic.children||'', budget: basic.budget||'200',
+    bg: basic.bg||'', needs: basic.needs||'',
+    culture: [culture.history||'',culture.character||'',culture.assets||''].filter(Boolean).join('；'),
+    planning: [document.getElementById('f-planning')?.value||'', ...uploadedFiles.planning.map(f=>f.name)].filter(Boolean).join('；'),
+    policy: [document.getElementById('f-policy')?.value||'', ...uploadedFiles.policy.map(f=>f.name)].filter(Boolean).join('；'),
+  };
 }
 
-async function genMicro(inp) {
-  const prompt = `你是资深城市社区微更新规划师。根据以下项目信息，生成微观设计任务书要点，只返回JSON数组（无其他内容）：
-[
-  {"category":"专项类别","item":"设计任务项","quantity":"数量/规模","standard":"设计标准要求","priority":"高/中/低","note":"备注"}
-]
-生成8-10项，覆盖环境、交通、设施等主要方面。
-项目：${inp.name}，预算：${inp.budget}万，面积：${inp.area}㎡，户数：${inp.households}，人口：${inp.population}，老龄化：${inp.elderly}，文化历史：${inp.culture}`;
-  return await callClaude(prompt);
+function macroPrompt(inp) {
+  return `你是城市社区微更新规划师。根据以下项目信息生成宏观战略，只返回JSON（无其他内容）：
+{"positioning":"项目定位（40字）","vision":"愿景目标（25字）",
+"necessity":["必要性1（20字）","必要性2","必要性3"],
+"significance":["意义1（20字）","意义2","意义3"],
+"principles":[{"name":"原则名","desc":"说明（15字）","color":"#hex"}]}
+项目：${inp.name}，${inp.city}，${inp.year}建成，${inp.area}㎡，${inp.households}户${inp.population}人，老龄化${inp.elderly}
+背景：${inp.bg}，文化：${inp.culture}，上位规划：${inp.planning}，政策：${inp.policy}`;
+}
+
+function mesoPrompt(inp) {
+  return `你是城市社区微更新规划师。根据以下项目信息，为以下系统生成简要分析，只返回JSON（无其他内容）：
+{"spatial":{"strategy":"空间结构策略（40字）"},"traffic":{"current":"交通现状（20字）","strategy":"交通策略（30字）"},"landscape":{"current":"绿化现状（20字）","strategy":"绿化策略（30字）"},"facility":{"current":"设施现状（20字）","strategy":"设施策略（30字）"},"building":{"strategy":"风貌策略（30字）"},"municipal":{"current":"市政现状（20字）","strategy":"市政策略（30字）"}}
+项目：${inp.name}，背景：${inp.bg}，文化：${inp.culture}，规划：${inp.planning}`;
+}
+
+function microPrompt(inp) {
+  return `你是城市社区微更新规划师。根据以下项目生成5-8个景观节点任务书，只返回JSON数组（无其他内容）：
+[{"category":"大门景观/节点景观/道路景观/停车景观/垃圾收集点景观 之一","item":"具体名称","standard":"主题定位（15字）","note":"功能说明（15字）"}]
+项目：${inp.name}，面积：${inp.area}㎡，户数：${inp.households}，背景：${inp.bg}`;
+}
+
+function guessMicroCat(cat) {
+  if (cat.includes('大门')) return 'gate';
+  if (cat.includes('大型')) return 'major';
+  if (cat.includes('道路')) return 'road';
+  if (cat.includes('停车')&&cat.includes('机动')) return 'carpark';
+  if (cat.includes('停车')) return 'bikepark';
+  if (cat.includes('垃圾')) return 'trash';
+  return 'node';
 }
 
 async function callClaude(prompt) {
@@ -788,918 +543,468 @@ async function callClaude(prompt) {
     body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{role:'user',content:prompt}] })
   });
   const d = await res.json();
-  const txt = d.content?.[0]?.text || '';
+  const txt = d.content?.[0]?.text||'';
   return JSON.parse(txt.replace(/```json|```/g,'').trim());
 }
 
-
-// ── TAB SWITCH ──
-let currentTab = 'macro';
-function switchRTab(tab) {
-  currentTab = tab;
-  document.querySelectorAll('.rtab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-'+tab)?.classList.add('active');
-  ['macro','meso','micro'].forEach(p => {
-    document.getElementById('panel-'+p).style.display = p === tab ? 'block' : 'none';
-  });
+function useDemoData(inp) {
+  fwData = { input:inp, macro:{
+    positioning:`将${inp.name}打造为安全宜居、文化传承的示范性社区微更新项目`,
+    vision:'让居民住得更安全、更舒适、更有归属感',
+    necessity:['现有设施老旧，安全隐患突出，亟需系统整治','停车矛盾尖锐，公共空间不足，居民诉求强烈','政策窗口期明确，资金来源有保障，改造条件成熟'],
+    significance:['提升居民生活品质，增强社区凝聚力','形成可复制推广的老旧社区更新模式','落实上级老旧小区改造政策，发挥示范引领作用'],
+    principles:[
+      {name:'安全优先',desc:'消除安全隐患为首要任务',color:'#dc2626'},
+      {name:'问题导向',desc:'聚焦居民核心诉求',color:'#d97706'},
+      {name:'系统思维',desc:'统筹考虑各系统协同',color:'#1d4ed8'},
+      {name:'文化传承',desc:'保留社区记忆与场所精神',color:'#7c3aed'},
+      {name:'全龄友好',desc:'兼顾老人儿童各类人群',color:'#059669'},
+    ]
+  }};
+  mesoActiveSystems = Object.entries(MESO_CATS).map(([key,cfg]) => ({
+    key, ...cfg,
+    current: {spatial:'',traffic:'停车位严重不足，道路组织混乱',landscape:'绿化带破损，景观品质低',facility:'健身设施老旧，缺少儿童场地',building:'',municipal:'照明不足，管线老化'}[key]||'',
+    strategy: {spatial:'构建"主轴-组团-节点"空间结构',traffic:'优化停车布局，推行错时停车，打通慢步道',landscape:'修复绿化带，打造入口节点景观',facility:'补充全龄化服务设施',building:'统一色彩风貌，体现地域特色',municipal:'先地下后地上，补齐照明安防'}[key]||''
+  }));
+  microTasks = [
+    {id:1,cat:'gate',name:'南门大门景观',theme:'现代简洁社区门户',func:'出入管理·形象展示',notes:'与物业管理结合',lat:null,lng:null,address:''},
+    {id:2,cat:'major',name:'中心广场景观',theme:'全龄活力社区客厅',func:'居民集会·休闲健身',notes:'保留现有大树',lat:null,lng:null,address:''},
+    {id:3,cat:'node',name:'组团入口节点1',theme:'温馨邻里角落',func:'休憩·交流',notes:'',lat:null,lng:null,address:''},
+    {id:4,cat:'carpark',name:'地面停车区景观',theme:'有序绿色停车场',func:'停车·绿化遮阴',notes:'增设充电桩',lat:null,lng:null,address:''},
+    {id:5,cat:'trash',name:'垃圾收集站景观',theme:'隐蔽清洁垃圾站',func:'垃圾分类收集',notes:'做好遮蔽和通风',lat:null,lng:null,address:''},
+  ];
 }
-// ── RENDER FRAMEWORK ──
-function renderFramework(data) {
-  const { macro, meso, micro, input } = data;
-  document.getElementById('emptyState').style.display = 'none';
 
-  const necessityItems = Array.isArray(macro.necessity) ? macro.necessity : [macro.necessity];
-  const significanceItems = Array.isArray(macro.significance) ? macro.significance : [macro.significance];
-  const principles = macro.principles || [];
+// ══════════════════════════════
+// RENDER ALL
+// ══════════════════════════════
+function renderAll() {
+  renderMacro();
+  renderMeso();
+  renderMicro();
+}
 
-  // Helper: per-item AI chat box
-  function chatBox(key, placeholder) {
-    return `<div class="item-chat" id="chat-${key}">
+// ══════════════════════════════
+// MACRO
+// ══════════════════════════════
+function renderMacro() {
+  const m = fwData?.macro;
+  if (!m) return;
+  const necessity = Array.isArray(m.necessity) ? m.necessity : [m.necessity];
+  const significance = Array.isArray(m.significance) ? m.significance : [m.significance];
+
+  document.getElementById('panel-macro').innerHTML = `
+    ${macBlock('定位','🎯','positioning', `<div class="editable" contenteditable="true" id="mac-positioning">${m.positioning||''}</div>`, '对定位有什么修改意见？')}
+    ${macBlock('愿景目标','🌟','vision', `<div class="editable" contenteditable="true" id="mac-vision" style="font-size:15px;font-weight:600;color:var(--accent);">${m.vision||''}</div>`, '对愿景有什么修改意见？')}
+    ${macBlock('项目必要性','📌','necessity', necessity.map((n,i)=>`<div class="editable" contenteditable="true" id="mac-necessity-${i}">• ${n}</div>`).join(''), '对必要性有什么修改意见？')}
+    ${macBlock('项目意义','✨','significance', significance.map((s,i)=>`<div class="editable" contenteditable="true" id="mac-significance-${i}">• ${s}</div>`).join(''), '对意义有什么修改意见？')}
+    ${macBlock('设计原则','🧭','principles', `<div class="principles-row">${(m.principles||[]).map((p,i)=>`<div class="principle-tag" contenteditable="true" id="mac-principle-${i}" style="background:${p.color}18;color:${p.color};border-color:${p.color}40;">${p.name}</div>`).join('')}</div>`, '对设计原则有什么修改意见？')}
+  `;
+}
+
+function macBlock(label, icon, key, bodyHTML, placeholder) {
+  return `<div class="mac-block" style="animation-delay:${['positioning','vision','necessity','significance','principles'].indexOf(key)*0.07}s;">
+    <div class="mac-label">${icon} ${label}
+      <button class="mac-del" onclick="this.closest('.mac-block').remove()">×</button>
+    </div>
+    ${bodyHTML}
+    <div class="chat-area">
       <div class="chat-row">
         <textarea class="chat-inp" id="ci-${key}" placeholder="${placeholder}"></textarea>
         <button class="chat-btn" onclick="refineItem('${key}')">✨ 修改</button>
       </div>
+    </div>
+  </div>`;
+}
+
+async function refineItem(key) {
+  const inp = document.getElementById('ci-'+key);
+  const btn = inp?.nextElementSibling;
+  if (!inp||!btn) return;
+  const fb = inp.value.trim();
+  if (!fb) { notify('请填写修改意见'); return; }
+  btn.disabled=true; btn.innerHTML='<div class="spin"></div>';
+  try {
+    const cur = document.querySelectorAll(`[id^="mac-${key}"]`);
+    const curText = Array.from(cur).map(e=>e.innerText).join('\n');
+    const res = await callClaude(`当前内容：「${curText}」\n修改意见：「${fb}」\n请直接输出修改后的内容，格式与原来一致，不要解释。`);
+    const text = typeof res === 'string' ? res : JSON.stringify(res);
+    if (cur.length === 1) { cur[0].innerText = text; }
+    else { const lines=text.split('\n').filter(l=>l.trim()); cur.forEach((el,i)=>{ if(lines[i]) el.innerText='• '+lines[i].replace(/^[•\-\d\.]+\s*/,''); }); }
+    inp.value=''; notify('✅ 已修改');
+  } catch(e) { notify('⚠️ 修改失败'); }
+  btn.disabled=false; btn.innerHTML='✨ 修改';
+}
+
+// ══════════════════════════════
+// MESO
+// ══════════════════════════════
+function renderMeso() {
+  const addedKeys = mesoActiveSystems.map(s=>s.key);
+  const available = MESO_EXTRA.filter(e=>!addedKeys.includes(e.key));
+
+  document.getElementById('panel-meso').innerHTML = `
+    <div class="card-grid" id="mesoGrid">
+      ${mesoActiveSystems.map((sys,i) => `
+        <div class="fw-card" style="animation-delay:${i*0.06}s;" onclick="openMesoDetail(${i})">
+          <button class="fw-card-del" onclick="event.stopPropagation();deleteMesoSys(${i})">×</button>
+          <div class="fw-card-icon" style="background:${sys.bg}">${sys.icon}</div>
+          <div class="fw-card-name" style="color:${sys.color}">${sys.name}</div>
+          <div class="fw-card-sub">${sys.current||sys.strategy||'点击查看详情'}</div>
+          <div class="fw-card-arrow">→ 查看详情</div>
+        </div>`).join('')}
+      ${available.length ? `
+        <div class="fw-card fw-card-add" onclick="showAddMeso()">
+          <div style="font-size:28px;margin-bottom:8px;">＋</div>
+          <div style="font-size:12px;color:var(--muted);">添加系统</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;">${available.map(e=>e.name).join('·')}</div>
+        </div>` : ''}
     </div>`;
+}
+
+function deleteMesoSys(i) {
+  if (!confirm(`删除「${mesoActiveSystems[i].name}」？`)) return;
+  mesoActiveSystems.splice(i,1);
+  renderMeso();
+}
+
+function showAddMeso() {
+  const added = mesoActiveSystems.map(s=>s.key);
+  const available = MESO_EXTRA.filter(e=>!added.includes(e.key));
+  if (!available.length) { notify('没有更多可添加的系统'); return; }
+  const choice = prompt(available.map((e,i)=>`${i+1}. ${e.icon} ${e.name}`).join('\n')+'\n\n输入序号：');
+  const idx = parseInt(choice)-1;
+  if (idx>=0 && idx<available.length) {
+    mesoActiveSystems.push({...available[idx], current:'', strategy:''});
+    renderMeso();
+    notify(`✅ 已添加${available[idx].name}`);
+  }
+}
+
+function openMesoDetail(i) {
+  const sys = mesoActiveSystems[i];
+  document.getElementById('modalIcon').textContent = sys.icon;
+  document.getElementById('modalIcon').style.background = sys.bg;
+  document.getElementById('modalTitle').textContent = sys.name;
+
+  const subtabsEl = document.getElementById('modalSubtabs');
+  const bodyEl = document.getElementById('modalBody');
+
+  if (sys.type === 'subtabs') {
+    subtabsEl.style.display = 'flex';
+    subtabsEl.innerHTML = sys.subtabs.map((st,si)=>
+      `<div class="subtab ${si===0?'active':''}" id="stab-${si}" onclick="switchMesoSubtab(${i},${si})">${st.icon} ${st.label}</div>`
+    ).join('');
+    renderMesoBody(sys.subtabs[0], bodyEl, sys, i, 0);
+  } else {
+    subtabsEl.style.display = 'none';
+    renderMesoBody(sys, bodyEl, sys, i, -1);
   }
 
-  // ── MACRO HTML ──
-  const macroHTML = `
-    <div class="fw-section-block">
-      <div class="fsb-label">🎯 项目定位</div>
-      <div class="fsb-content" id="item-positioning" contenteditable="true">${macro.positioning || ''}</div>
-      ${chatBox('positioning','对定位有什么修改意见？如：突出文化特色，弱化经济导向…')}
-    </div>
+  document.getElementById('modal').classList.add('open');
+}
 
-    <div class="fw-section-block">
-      <div class="fsb-label">🌟 愿景目标</div>
-      <div class="fsb-content" id="item-vision" contenteditable="true" style="font-size:15px;font-weight:600;color:var(--accent);">${macro.vision || ''}</div>
-      ${chatBox('vision','对愿景有什么修改意见？如：语言更简洁有力，突出居民感受…')}
-    </div>
+function switchMesoSubtab(sysIdx, tabIdx) {
+  document.querySelectorAll('.subtab').forEach((t,i)=>t.classList.toggle('active',i===tabIdx));
+  const sys = mesoActiveSystems[sysIdx];
+  renderMesoBody(sys.subtabs[tabIdx], document.getElementById('modalBody'), sys, sysIdx, tabIdx);
+}
 
-    <div class="fw-section-block">
-      <div class="fsb-label">📌 项目必要性</div>
-      ${necessityItems.map((n,i) => `
-        <div class="fsb-item" id="item-necessity-${i}" contenteditable="true">• ${n}</div>`).join('')}
-      ${chatBox('necessity','对必要性有什么修改意见？如：第2条太笼统，请结合本项目实际…')}
-    </div>
-
-    <div class="fw-section-block">
-      <div class="fsb-label">✨ 项目意义</div>
-      ${significanceItems.map((s,i) => `
-        <div class="fsb-item" id="item-significance-${i}" contenteditable="true">• ${s}</div>`).join('')}
-      ${chatBox('significance','对项目意义有什么修改意见？如：加一条关于示范推广的意义…')}
-    </div>
-
-    <div class="fw-section-block">
-      <div class="fsb-label">🧭 设计原则</div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-        ${principles.map((p,i) => `
-          <div class="principle-tag" id="item-principle-${i}" contenteditable="true"
-            style="background:${p.color}18;color:${p.color};border-color:${p.color}40;border:1px solid;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;outline:none;"
-            title="${p.desc}">${p.name}</div>`).join('')}
+function renderMesoBody(cfg, bodyEl, sys, sysIdx, tabIdx) {
+  const chatKey = `meso-${sysIdx}-${tabIdx}`;
+  if (cfg.type === 'nomap') {
+    bodyEl.innerHTML = (cfg.fields||[]).map(f=>`
+      <div class="mac-block">
+        <div class="mac-label">${f.label}</div>
+        <div class="editable" contenteditable="true" placeholder="${f.ph}">${sys[f.key]||''}</div>
+      </div>`).join('') + chatAreaHTML(chatKey, `对${sys.name}有什么修改意见？`);
+    return;
+  }
+  const isSingle = cfg.type === 'single';
+  bodyEl.innerHTML = `
+    <div class="diagram-pair ${isSingle?'single':''}">
+      ${!isSingle ? `<div>
+        <div class="d-label">${cfg.curLabel||'现状'}</div>
+        <div class="d-img" onclick="uploadImg(this)">
+          <div style="text-align:center;color:var(--muted);">
+            <div style="font-size:28px;margin-bottom:4px;">📷</div>
+            <div style="font-size:12px;">上传现状图</div>
+            <div style="font-size:10px;opacity:0.6;">后期接入生图</div>
+          </div>
+        </div>
+        <div class="d-desc" contenteditable="true" placeholder="${cfg.curDesc||'现状说明…'}">${sys.current||''}</div>
+      </div>` : ''}
+      <div>
+        <div class="d-label">${cfg.planLabel||'规划'}</div>
+        <div class="d-img" onclick="uploadImg(this)">
+          <div style="text-align:center;color:var(--muted);">
+            <div style="font-size:28px;margin-bottom:4px;">🗺</div>
+            <div style="font-size:12px;">上传规划图</div>
+            <div style="font-size:10px;opacity:0.6;">后期接入生图</div>
+          </div>
+        </div>
+        <div class="d-desc" contenteditable="true" placeholder="${cfg.planDesc||'规划说明…'}">${sys.strategy||''}</div>
       </div>
-      ${chatBox('principles','对设计原则有什么修改意见？如：去掉"全龄友好"，加一条"低碳节能"…')}
-    </div>`;
+    </div>
+    ${cfg.data&&cfg.data.length ? `<div class="data-chips">${cfg.data.map(d=>`
+      <div class="data-chip">
+        <div class="dc-label">${d.label}</div>
+        <div class="dc-val" contenteditable="true">-</div>
+        <div class="dc-unit">${d.unit}</div>
+      </div>`).join('')}</div>` : ''}
+    ${chatAreaHTML(chatKey, `对${sys.name}有什么修改意见？`)}`;
+}
 
-  // ── MESO HTML ──
-  // Build active systems list (deletable, with add button)
-  window._mesoSystems = Object.entries(meso || {}).map(([key, val]) => ({ key, ...val }));
+function chatAreaHTML(key, placeholder) {
+  return `<div class="chat-area">
+    <div class="chat-row">
+      <textarea class="chat-inp" id="ci-${key}" placeholder="${placeholder}"></textarea>
+      <button class="chat-btn" onclick="refineMeso('${key}')">✨ 修改</button>
+    </div>
+  </div>`;
+}
 
-  function renderMesoList() {
-    const EXTRA_SYSTEMS = [
-      { key:'ecology',  name:'生态系统',   icon:'🌱', bg:'#ecfdf5', color:'#059669', desc:'生态韧性、雨水管理、碳汇绿地' },
-      { key:'economy',  name:'经济运营',   icon:'💰', bg:'#fffbeb', color:'#d97706', desc:'可持续运营、社区商业、资金来源' },
-      { key:'custom',   name:'自定义系统', icon:'✏️', bg:'#f5f3ff', color:'#7c3aed', desc:'根据项目需要自行添加' },
-    ];
-    const SYS_CONFIG = {
-      spatial:   { bg:'#eff4ff', color:'#1d4ed8' },
-      traffic:   { bg:'#fef9ee', color:'#d97706' },
-      landscape: { bg:'#ecfdf5', color:'#059669' },
-      facility:  { bg:'#f5f3ff', color:'#7c3aed' },
-      building:  { bg:'#fef2f2', color:'#dc2626' },
-      municipal: { bg:'#f0f9ff', color:'#0284c7' },
-      ecology:   { bg:'#ecfdf5', color:'#059669' },
-      economy:   { bg:'#fffbeb', color:'#d97706' },
-    };
+async function refineMeso(key) {
+  const inp = document.getElementById('ci-'+key);
+  const btn = inp?.nextElementSibling;
+  if (!inp||!btn) return;
+  const fb = inp.value.trim();
+  if (!fb) { notify('请填写修改意见'); return; }
+  btn.disabled=true; btn.innerHTML='<div class="spin"></div>';
+  try {
+    const parts = key.split('-');
+    const sysIdx = parseInt(parts[1]);
+    const sys = mesoActiveSystems[sysIdx];
+    const res = await callClaude(`当前${sys.name}：现状「${sys.current}」，策略「${sys.strategy}」\n意见：「${fb}」\n只返回JSON：{"current":"修改后","strategy":"修改后"}`);
+    if (res.current) sys.current=res.current;
+    if (res.strategy) sys.strategy=res.strategy;
+    openMesoDetail(sysIdx);
+    notify('✅ 已修改');
+  } catch(e) { notify('⚠️ 修改失败'); }
+  btn.disabled=false; btn.innerHTML='✨ 修改';
+}
 
-    const listHTML = window._mesoSystems.map((sys, i) => {
-      const cfg = SYS_CONFIG[sys.key] || { bg:'#f1f5f9', color:'#6b7280' };
-      return `<div class="sys-card" style="animation-delay:${i*0.05}s;position:relative;" onclick="openMesoDetail(${i})">
-        <button class="meso-del-btn" onclick="event.stopPropagation();deleteMesoSys(${i})" title="删除" style="position:absolute;top:8px;right:8px;width:22px;height:22px;font-size:12px;">×</button>
-        <div class="sys-card-icon" style="background:${cfg.bg};width:52px;height:52px;border-radius:14px;display:grid;place-items:center;font-size:26px;margin:0 auto 10px;">${sys.icon || '📌'}</div>
-        <div class="sys-card-name" style="color:${cfg.color}">${sys.name}</div>
-        <div class="sys-card-cur">${sys.current || sys.strategy || ''}</div>
-        <div class="sys-card-arrow">→ 查看详情</div>
-      </div>`;
-    }).join('');
+function uploadImg(el) {
+  const inp = document.createElement('input');
+  inp.type='file'; inp.accept='image/*';
+  inp.onchange = e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    el.innerHTML = `<img src="${URL.createObjectURL(f)}">`;
+  };
+  inp.click();
+}
 
-    const addedKeys = window._mesoSystems.map(s => s.key);
-    const availableExtras = EXTRA_SYSTEMS.filter(s => !addedKeys.includes(s.key));
-    const addMenuHTML = availableExtras.length ? `
-      <div class="meso-add-row" onclick="showAddSysMenu()" id="addSysBtn" style="grid-column:1/-1;">
-        ＋ 添加系统（${availableExtras.map(s=>s.name).join('、')}）
-      </div>` : '';
-
-    return listHTML + addMenuHTML;
-  }
-
-  const mesoHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;" id="mesoList">${renderMesoList()}</div>`;
-  window._renderMesoList = renderMesoList;
-
-  // ── MICRO HTML ──
-  const MICRO_CATS = [
-    { key:'gate',     label:'大门景观',       icon:'🚪', color:'#1d4ed8' },
-    { key:'major',    label:'大型景观',       icon:'🌳', color:'#059669' },
-    { key:'node',     label:'节点景观',       icon:'📍', color:'#d97706' },
-    { key:'road',     label:'道路景观',       icon:'🛤',  color:'#7c3aed' },
-    { key:'carpark',  label:'机动车停车景观', icon:'🚗', color:'#dc2626' },
-    { key:'bikepark', label:'非机动车停车景观',icon:'🚲', color:'#0284c7' },
-    { key:'trash',    label:'垃圾收集点景观', icon:'🗑',  color:'#475569' },
-  ];
-
-  // Init micro tasks from AI output
-  if (!window._microTasks) {
-    window._microTasks = (Array.isArray(micro) ? micro : []).map((t,i) => ({
-      id: Date.now()+i,
-      cat: t.category ? (MICRO_CATS.find(c=>t.category.includes(c.label.slice(0,2)))?.key || 'node') : 'node',
-      name: t.item || t.category || '景观节点',
-      theme: t.standard || '',
-      func: t.note || '',
-      notes: '',
-      lat: null, lng: null,
-      address: '',
-    }));
-  }
-
-  const microHTML = `
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:16px;" id="microCardGrid">
-      ${MICRO_CATS.map(cat => {
-        const tasks = (window._microTasks||[]).filter(t=>t.cat===cat.key);
-        return `<div class="sys-card" style="position:relative;cursor:pointer;" onclick="openMicroCatDetail('${cat.key}')">
-          <button onclick="event.stopPropagation();addMicroTaskCat('${cat.key}')" style="position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;background:${cat.color};color:#fff;border:none;cursor:pointer;font-size:14px;line-height:1;display:grid;place-items:center;">＋</button>
-          <div style="font-size:28px;width:52px;height:52px;border-radius:14px;background:${cat.color}18;display:grid;place-items:center;margin:0 auto 10px;">${cat.icon}</div>
-          <div class="sys-card-name" style="color:${cat.color}">${cat.label}</div>
-          <div class="sys-card-cur">${tasks.length} 个点位${tasks.filter(t=>t.lat).length ? ' · ' + tasks.filter(t=>t.lat).length + '已标注' : ''}</div>
-          <div class="sys-card-arrow">→ 查看详情</div>
+// ══════════════════════════════
+// MICRO
+// ══════════════════════════════
+function renderMicro() {
+  document.getElementById('panel-micro').innerHTML = `
+    <div class="card-grid" id="microGrid" style="margin-bottom:20px;">
+      ${MICRO_CATS.map((cat,i) => {
+        const tasks = microTasks.filter(t=>t.cat===cat.key);
+        return `<div class="fw-card" style="animation-delay:${i*0.06}s;" onclick="openMicroCat('${cat.key}')">
+          <div class="fw-card-icon" style="background:${cat.color}18">${cat.icon}</div>
+          <div class="fw-card-name" style="color:${cat.color}">${cat.label}</div>
+          <div class="fw-card-sub">${tasks.length} 个点位${tasks.filter(t=>t.lat).length?' · '+tasks.filter(t=>t.lat).length+'已标注':''}</div>
+          <div class="fw-card-arrow">→ 查看 / 添加</div>
         </div>`;
       }).join('')}
     </div>
-    <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;">
       <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
         <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;">📍 点位标注地图</div>
-        <div style="display:flex;gap:6px;align-items:center;">
-          <select id="markingCat" style="padding:5px 8px;border:1px solid var(--border);border-radius:7px;font-size:11px;font-family:'Noto Sans SC',sans-serif;outline:none;">
-            ${MICRO_CATS.map(c=>'<option value="'+c.key+'">'+c.icon+' '+c.label+'</option>').join('')}
+        <div style="display:flex;gap:8px;align-items:center;">
+          <select id="markCat" style="padding:5px 8px;border:1px solid var(--border);border-radius:7px;font-size:11px;outline:none;font-family:'Noto Sans SC',sans-serif;">
+            ${MICRO_CATS.map(c=>`<option value="${c.key}">${c.icon} ${c.label}</option>`).join('')}
           </select>
           <button onclick="setMarkMode(true)" id="markBtn" style="padding:5px 14px;border-radius:7px;background:var(--accent);color:#fff;border:none;font-size:11px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;">✚ 点击标注</button>
         </div>
       </div>
-      <div id="microMap" style="height:360px;"></div>
+      <div id="microMap" style="height:300px;"></div>
     </div>`;
-
-  // Write to panels
-  document.getElementById('panel-macro').innerHTML = macroHTML;
-  document.getElementById('panel-meso').innerHTML = mesoHTML;
-  document.getElementById('panel-micro').innerHTML = microHTML;
-
-  // Store meso data for detail view
-  window._mesoData = Object.values(meso || {});
-
-  document.getElementById('emptyState').style.display = 'none';
-  document.getElementById('tabBar').style.display = 'flex';
-  document.getElementById('exportBtn').style.display = 'flex';
-  switchRTab(currentTab);
 }
 
-function toggleSys(i) {
-  const el = document.getElementById('sys-'+i);
-  el.classList.toggle('expanded');
-}
+function openMicroCat(catKey) {
+  const cat = MICRO_CATS.find(c=>c.key===catKey);
+  const tasks = microTasks.filter(t=>t.cat===catKey);
 
-// ── COMMENTS ──
-function renderComments(block) {
-  const list = comments[block] || [];
-  if (!list.length) return `<div class="comment-area" id="ca-${block}" style="display:none;">${commentInputHTML(block)}</div>`;
-  return `<div class="comment-area" id="ca-${block}">
-    <div class="comment-area-label">💬 团队讨论 <span style="font-weight:400;color:var(--muted);">(${list.length}条)</span></div>
-    <div class="comment-list">
-      ${list.map(c=>`<div class="comment-item">
-        <div class="comment-av" style="background:${c.color}">${c.user[0]}</div>
-        <div class="comment-bubble"><div class="ct">${c.text}</div><div class="cm">${c.user} · ${c.time}</div></div>
-      </div>`).join('')}
+  document.getElementById('modalIcon').textContent = cat.icon;
+  document.getElementById('modalIcon').style.background = cat.color+'18';
+  document.getElementById('modalTitle').textContent = cat.label;
+  document.getElementById('modalSubtabs').style.display = 'none';
+
+  document.getElementById('modalBody').innerHTML = `
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+      <button onclick="addMicroTask('${catKey}')"
+        style="padding:7px 16px;border-radius:8px;background:${cat.color}18;color:${cat.color};border:1px solid ${cat.color}40;font-size:12px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;font-weight:500;">
+        ＋ 添加${cat.label}
+      </button>
     </div>
-    ${commentInputHTML(block)}
-  </div>`;
+    ${tasks.length===0 ? `<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">暂无点位</div>` :
+      tasks.map((t,i) => microItemHTML(t, i, cat)).join('')}`;
+
+  document.getElementById('modal').classList.add('open');
 }
 
-function commentInputHTML(block) {
-  return `<div class="comment-input-row">
-    <input class="comment-inp" id="ci-${block}" placeholder="输入讨论意见…" onkeydown="if(event.key==='Enter')sendComment('${block}')">
-    <button class="comment-send" onclick="sendComment('${block}')">发送</button>
-  </div>`;
-}
-
-function addBlockComment(block) {
-  const ca = document.getElementById('ca-'+block);
-  if (ca) { ca.style.display='block'; ca.querySelector('.comment-inp')?.focus(); }
-}
-
-function sendComment(block) {
-  const inp = document.getElementById('ci-'+block);
-  if (!inp || !inp.value.trim()) return;
-  if (!comments[block]) comments[block] = [];
-  const colors = ['#1d4ed8','#059669','#d97706','#7c3aed'];
-  comments[block].push({
-    user: USERS[curUser], color: colors[curUser],
-    text: inp.value.trim(),
-    time: new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})
-  });
-  inp.value = '';
-  renderFramework(fwData);
-  notify('💬 评论已添加');
-}
-
-// ── REGEN BLOCK ──
-async function regenBlock(block) {
-  if (!fwData) return;
-  notify(`↺ 正在重新生成${block==='macro'?'宏观战略':block==='meso'?'系统框架':'任务书'}…`);
-  try {
-    if (block === 'macro') fwData.macro = await genMacro(fwData.input);
-    if (block === 'meso') fwData.meso = await genMeso(fwData.input);
-    if (block === 'micro') fwData.micro = await genMicro(fwData.input);
-    renderFramework(fwData);
-    notify('✅ 已重新生成，请查看更新内容');
-  } catch(e) { notify('⚠️ 重新生成失败，请稍后再试'); }
-}
-
-// ── DEMO DATA ──
-function getDemoFramework(inp) {
-  return {
-    input: inp,
-    macro: {
-      positioning: `将${inp.name}打造为以人为本、安全宜居、文化传承的示范性社区微更新项目`,
-      vision: '让居民住得更安全、更舒适、更有归属感',
-      necessity: ['现有设施老旧，安全隐患突出，亟需系统整治','停车矛盾尖锐，公共空间不足，居民诉求强烈','政策窗口期明确，资金来源有保障，改造条件成熟'],
-      significance: ['提升居民生活品质，增强社区凝聚力','形成可复制可推广的老旧社区更新模式','落实上级老旧小区改造政策，发挥示范引领作用'],
-      principles: [
-        {name:'安全优先',desc:'以消除安全隐患为首要任务',color:'#dc2626'},
-        {name:'问题导向',desc:'聚焦居民核心诉求精准施策',color:'#d97706'},
-        {name:'系统思维',desc:'统筹考虑各系统协同改造',color:'#1d4ed8'},
-        {name:'文化传承',desc:'保留社区记忆与场所精神',color:'#7c3aed'},
-        {name:'全龄友好',desc:'兼顾老人儿童等各类人群',color:'#059669'},
-        {name:'可持续运营',desc:'建立长效管理维护机制',color:'#0284c7'},
-      ],
-      objectives: ['消除安全隐患，实现照明全覆盖','优化停车管理，提升车位利用率30%','修复绿化景观，提升绿化覆盖率至35%','补充公共设施，实现全龄友好设计']
-    },
-    meso: {
-      spatial:{name:'空间结构',icon:'🗺',current:'空间组织混乱，边界不清',strategy:'建立"主轴-组团-节点"空间结构，明确各区域功能定位'},
-      traffic:{name:'交通停车',icon:'🚗',current:'停车位严重不足，违停突出',strategy:'系统梳理车行人行流线，优化停车布局，推行错时停车'},
-      landscape:{name:'景观绿化',icon:'🌿',current:'绿化破损，景观品质低',strategy:'以绿化修复为基础，打造入口节点和组团中心景观'},
-      building:{name:'建筑风貌',icon:'🏘',current:'立面老旧，风格杂乱',strategy:'统一建筑色彩与立面改造导则，体现地域文化特色'},
-      culture:{name:'文化活力',icon:'🎭',current:'缺乏文化活动场地与载体',strategy:'设置文化展示空间，策划社区活动，激活文化认同'},
-      facility:{name:'公共服务',icon:'🏛',current:'设施老旧不足，缺少儿童场地',strategy:'补充全龄化服务设施，建立15分钟生活圈'},
-      municipal:{name:'市政基础',icon:'🔧',current:'管线老化，照明盲区多',strategy:'统筹管线改造时序，优先补齐照明安防设施'},
-      ecology:{name:'生态环境',icon:'🌱',current:'硬化率高，雨水径流大',strategy:'增加透水铺装，设置雨水花园，提升生态韧性'},
-      economy:{name:'经济运营',icon:'💰',current:'缺乏物业运营收入来源',strategy:'引入社区商业微更新，探索可持续运营模式'}
-    },
-    micro: [
-      {category:'交通停车',item:'停车位改造与划线',quantity:'增加50个车位',standard:'符合GB50220标准，设置无障碍车位',priority:'高',note:'需协调物业'},
-      {category:'照明安防',item:'路灯及监控补充',quantity:'新增路灯30盏、监控12处',standard:'照度≥10lux，监控全覆盖',priority:'高',note:''},
-      {category:'景观绿化',item:'绿化带修复与提升',quantity:'修复绿化带约800㎡',standard:'植被覆盖率≥70%，选用乡土植物',priority:'中',note:''},
-      {category:'公共设施',item:'健身器材更换',quantity:'更换健身器材15套',standard:'符合GB19272标准，适老化设计',priority:'中',note:''},
-      {category:'儿童活动',item:'儿童活动场地新建',quantity:'新建儿童活动区200㎡',standard:'软质地面，安全围护，2-12岁全龄',priority:'中',note:''},
-      {category:'无障碍',item:'无障碍系统完善',quantity:'坡道12处、扶手80米',standard:'符合GB50763标准',priority:'中',note:''},
-      {category:'文化景观',item:'入口景观节点改造',quantity:'主入口及2处组团节点',standard:'体现社区文化特色，设置文化展示',priority:'低',note:''},
-      {category:'市政管线',item:'弱电管线整理',quantity:'整理线缆约500米',standard:'入地或规整捆扎，消除安全隐患',priority:'低',note:''},
-    ]
-  };
-}
-
-// ── PROGRESS ──
-function showProg(txt, pct) {
-  document.getElementById('progStep').textContent = txt;
-  document.getElementById('progFill').style.width = pct + '%';
-}
-
-// ── UTILS ──
-function resetAll() {
-  if (!confirm('确认重置所有内容？')) return;
-  document.querySelectorAll('input,textarea').forEach(el => el.value = '');
-  Object.keys(filled).forEach(k => { filled[k]=false; const d=document.getElementById('dot-'+k); if(d)d.classList.remove('filled'); const p=document.getElementById('ip-'+k); if(p)p.classList.remove('filled'); });
-  document.getElementById('fillLbl').textContent = '已填写 0 / 4 类信息';
-  document.getElementById('rightScroll').innerHTML = `<div class="empty" id="emptyState"><div class="ei">🧭</div><h3>策略框架待生成</h3><p>填写左侧信息后点击生成</p></div>`;
-  document.getElementById('fwStatus').innerHTML = `<span style="width:7px;height:7px;border-radius:50%;background:var(--border);display:inline-block;"></span> 等待生成`;
-  fwData = null; comments = {};
-  document.getElementById('genBtn').innerHTML = '🤖 生成策略框架';
-  document.getElementById('genBtn').disabled = false;
-}
-function exportPDF() { window.print(); }
-
-// ── REGEN WITH FEEDBACK ──
-async function regenWithFeedback(block) {
-  const inp = document.getElementById('fb-' + block);
-  const btn = document.getElementById('fb-btn-' + block);
-  if (!inp || !btn) return;
-  const feedback = inp.value.trim();
-  if (!feedback) { notify('请先填写修改意见'); inp.focus(); return; }
-
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spin"></div> 修改中…';
-
-  const input = fwData?.input || collectInput();
-  const current = fwData?.[block];
-
-  try {
-    let prompt = '';
-    if (block === 'macro') {
-      prompt = `你是城市社区微更新规划师。以下是当前宏观战略框架内容：
-${JSON.stringify(current, null, 2)}
-
-用户的修改意见：「${feedback}」
-
-请根据意见修改并返回完整的JSON（格式与原来相同，只返回JSON）。`;
-    } else if (block === 'meso') {
-      prompt = `你是城市社区微更新规划师。以下是当前中观系统框架：
-${JSON.stringify(current, null, 2)}
-
-用户的修改意见：「${feedback}」
-
-请根据意见修改并返回完整的JSON（格式与原来相同，只返回JSON）。`;
-    } else if (block === 'micro') {
-      prompt = `你是城市社区微更新规划师。以下是当前微观任务书：
-${JSON.stringify(current, null, 2)}
-
-用户的修改意见：「${feedback}」
-
-请根据意见修改并返回完整的JSON数组（格式与原来相同，只返回JSON数组）。`;
-    }
-
-    const res = await callClaude(prompt);
-    fwData[block] = res;
-    renderFramework(fwData);
-    notify('✅ 已根据意见修改，请查看更新内容');
-    // Restore feedback text so user can see what they wrote
-    setTimeout(() => {
-      const newInp = document.getElementById('fb-' + block);
-      if (newInp) newInp.value = feedback;
-    }, 100);
-
-  } catch(e) {
-    notify('⚠️ 修改失败，请稍后重试');
-    btn.disabled = false;
-    btn.innerHTML = '✨ AI修改';
-  }
-}
-
-
-// ── REFINE SINGLE ITEM ──
-async function refineItem(key) {
-  const inp = document.getElementById('ci-' + key);
-  const btn = inp?.nextElementSibling;
-  if (!inp || !btn) return;
-  const feedback = inp.value.trim();
-  if (!feedback) { notify('请先填写修改意见'); inp.focus(); return; }
-
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spin"></div>';
-
-  try {
-    const currentContent = key.startsWith('micro-')
-      ? document.getElementById('mtc-' + key.split('-')[1])?.innerText || ''
-      : document.getElementById('item-' + key)?.innerText || document.querySelectorAll('[id^="item-'+key+'"]')?.[0]?.innerText || '';
-
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514', max_tokens: 1000,
-        messages: [{ role: 'user', content: `你是城市社区微更新规划师。当前内容：「${currentContent}」。用户修改意见：「${feedback}」。请直接输出修改后的内容，不要任何解释，不要引号，保持原来的格式风格。` }]
-      })
-    });
-    const d = await res.json();
-    const newText = d.content?.[0]?.text?.trim() || '';
-    if (!newText) throw new Error('empty');
-
-    // Update the relevant element
-    if (key === 'positioning') document.getElementById('item-positioning').innerText = newText;
-    else if (key === 'vision') document.getElementById('item-vision').innerText = newText;
-    else if (key === 'necessity') {
-      const items = document.querySelectorAll('[id^="item-necessity-"]');
-      const lines = newText.split('\n').filter(l => l.trim());
-      items.forEach((el, i) => { if (lines[i]) el.innerText = '• ' + lines[i].replace(/^[•\-\d\.]+\s*/, ''); });
-    } else if (key === 'significance') {
-      const items = document.querySelectorAll('[id^="item-significance-"]');
-      const lines = newText.split('\n').filter(l => l.trim());
-      items.forEach((el, i) => { if (lines[i]) el.innerText = '• ' + lines[i].replace(/^[•\-\d\.]+\s*/, ''); });
-    } else if (key === 'principles') {
-      const items = document.querySelectorAll('[id^="item-principle-"]');
-      const lines = newText.split('\n').filter(l => l.trim());
-      items.forEach((el, i) => { if (lines[i]) el.innerText = lines[i].replace(/^[•\-\d\.]+\s*/, '').split(/[：:]/)[0].trim(); });
-    }
-
-    inp.value = '';
-    notify('✅ 已根据意见修改');
-  } catch(e) {
-    notify('⚠️ 修改失败，请重试');
-  }
-  btn.disabled = false;
-  btn.innerHTML = '✨ 修改';
-}
-
-// ── MESO SYSTEM DETAIL ──
-function deleteMesoSys(i) {
-  if (!confirm(`确认删除「${window._mesoSystems[i].name}」系统？`)) return;
-  window._mesoSystems.splice(i, 1);
-  document.getElementById('mesoList').innerHTML = window._renderMesoList();
-  notify('已删除');
-}
-
-function showAddSysMenu() {
-  const EXTRA = [
-    { key:'ecology', name:'生态系统', icon:'🌱', current:'', strategy:'' },
-    { key:'economy', name:'经济运营', icon:'💰', current:'', strategy:'' },
-    { key:'custom',  name:'自定义系统', icon:'✏️', current:'', strategy:'' },
-  ];
-  const added = window._mesoSystems.map(s => s.key);
-  const avail = EXTRA.filter(s => !added.includes(s.key));
-  if (!avail.length) { notify('没有更多可添加的系统'); return; }
-  const names = avail.map((s,i) => `${i+1}. ${s.icon} ${s.name}`).join('\n');
-  const choice = prompt(`选择要添加的系统（输入序号）：\n${names}`);
-  const idx = parseInt(choice) - 1;
-  if (idx >= 0 && idx < avail.length) {
-    window._mesoSystems.push(avail[idx]);
-    document.getElementById('mesoList').innerHTML = window._renderMesoList();
-    notify(`✅ 已添加${avail[idx].name}`);
-  }
-}
-
-// System detail configs
-const SYS_DETAIL_CONFIG = {
-  spatial: {
-    type: 'single', // only planning diagram
-    planLabel: '规划空间结构图',
-    planPlaceholder: '空间结构策略：主轴、组团、节点关系说明…',
-    dataFields: [],
-  },
-  traffic: {
-    type: 'subtabs',
-    subtabs: [
-      { key:'road',     label:'道路系统',   icon:'🛣',
-        type:'compare', curLabel:'现状路网', planLabel:'规划路网',
-        curPlaceholder:'现状道路问题：断头路、宽度不足、出入口冲突…',
-        planPlaceholder:'规划策略：是否设单行线、路网结构优化…',
-        dataFields:[{label:'现状出入口',unit:'个'},{label:'规划出入口',unit:'个'}] },
-      { key:'parking',  label:'停车系统',   icon:'🚗',
-        type:'compare', curLabel:'现状停车', planLabel:'规划停车',
-        curPlaceholder:'现状停车问题：违停严重、缺口数量…',
-        planPlaceholder:'规划策略：新增车位方式、布局优化…',
-        dataFields:[{label:'现状车位',unit:'个'},{label:'规划车位',unit:'个'},{label:'缺口',unit:'个'}] },
-      { key:'walking',  label:'步行系统',   icon:'🚶',
-        type:'single', planLabel:'慢步道系统规划图',
-        planPlaceholder:'慢步道规划策略：主要路径、无障碍连接…',
-        dataFields:[{label:'慢步道总长',unit:'m'}] },
-    ]
-  },
-  landscape: {
-    type: 'compare',
-    curLabel:'现状绿化布局', planLabel:'规划绿化布局',
-    curPlaceholder:'现状绿化问题：布局分散、品种单一、缺乏层次…',
-    planPlaceholder:'规划绿化结构：主要绿轴、节点绿地、组团绿地…',
-    dataFields:[{label:'现状绿化率',unit:'%'},{label:'规划绿化率',unit:'%'}],
-  },
-  facility: {
-    type: 'compare',
-    curLabel:'现状设施分布', planLabel:'规划设施补齐',
-    curPlaceholder:'现状设施问题：哪类设施缺失、覆盖不足…',
-    planPlaceholder:'规划策略：按居住区/社区标准补齐哪些设施…',
-    dataFields:[{label:'现状设施点',unit:'处'},{label:'规划新增',unit:'处'}],
-  },
-  building: {
-    type: 'nomap', // no layout, just text + images
-    fields:[
-      {key:'style', label:'建筑风貌', placeholder:'现状风貌特征描述，是否需要改造…'},
-      {key:'color', label:'色彩策略', placeholder:'主色调、辅助色、点缀色建议…'},
-      {key:'material', label:'材质建议', placeholder:'外立面材质、改造范围和方式…'},
-    ]
-  },
-  municipal: {
-    type: 'compare',
-    curLabel:'现状市政设施点位', planLabel:'规划市政设施点位',
-    curPlaceholder:'现状问题：垃圾收集点位置不合理、变压器影响景观…',
-    planPlaceholder:'规划点位调整：新增/迁移/整合方案…',
-    dataFields:[{label:'垃圾收集点',unit:'处'},{label:'变压器',unit:'台'}],
-  },
-};
-
-function openMesoDetail(i) {
-  const sys = window._mesoSystems[i];
-  if (!sys) return;
-  const cfg = SYS_DETAIL_CONFIG[sys.key] || { type:'compare', curLabel:'现状', planLabel:'规划' };
-
-  const modal = document.getElementById('mesoModal');
-  document.getElementById('mesoModalIcon').textContent = sys.icon || '📌';
-  document.getElementById('mesoModalTitle').textContent = sys.name;
-
-  const subtabsEl = document.getElementById('mesoModalSubtabs');
-  const bodyEl = document.getElementById('mesoModalBody');
-
-  if (cfg.type === 'subtabs') {
-    subtabsEl.style.display = 'flex';
-    subtabsEl.innerHTML = cfg.subtabs.map((st,si) =>
-      `<div class="meso-stab ${si===0?'active':''}" id="mstab-${si}" onclick="switchMesoSubtab(${i},${si})">${st.icon} ${st.label}</div>`
-    ).join('');
-    renderMesoSubtab(i, 0, cfg);
-  } else {
-    subtabsEl.style.display = 'none';
-    renderMesoBody(i, cfg, bodyEl);
-  }
-
-  modal.classList.add('open');
-  window._currentMesoIdx = i;
-}
-
-function switchMesoSubtab(sysIdx, tabIdx) {
-  document.querySelectorAll('.meso-stab').forEach((t,i) => t.classList.toggle('active', i===tabIdx));
-  const cfg = SYS_DETAIL_CONFIG[window._mesoSystems[sysIdx].key];
-  renderMesoSubtab(sysIdx, tabIdx, cfg);
-}
-
-function renderMesoSubtab(sysIdx, tabIdx, cfg) {
-  const st = cfg.subtabs[tabIdx];
-  const bodyEl = document.getElementById('mesoModalBody');
-  renderMesoBody(sysIdx, st, bodyEl, `subtab-${tabIdx}`);
-}
-
-function renderMesoBody(sysIdx, cfg, bodyEl, prefix='') {
-  const sys = window._mesoSystems[sysIdx];
-  const chatKey = `meso-${sysIdx}${prefix}`;
-
-  if (cfg.type === 'nomap') {
-    bodyEl.innerHTML = cfg.fields.map(f => `
-      <div class="fw-section-block">
-        <div class="fsb-label">${f.label}</div>
-        <div class="fsb-content" contenteditable="true" placeholder="${f.placeholder}">${sys[f.key] || ''}</div>
-      </div>`).join('') + chatBoxHTML(chatKey, '对建筑风貌有什么修改意见？');
-    return;
-  }
-
-  const isPlanOnly = cfg.type === 'single';
-
-  bodyEl.innerHTML = `
-    <div class="diagram-pair ${isPlanOnly ? 'single' : ''}">
-      ${!isPlanOnly ? `
-      <div class="diagram-box">
-        <div class="diagram-label">现状</div>
-        <div class="diagram-img" onclick="uploadDiagram(this)">
-          <div class="di-placeholder"><span style="font-size:28px;">📷</span><span style="font-size:12px;">上传现状图</span><span style="font-size:10px;opacity:0.6;">点击上传或后期接入生图</span></div>
-        </div>
-        <div class="diagram-desc" contenteditable="true" placeholder="${cfg.curPlaceholder||'现状说明…'}">${sys.current||''}</div>
-      </div>` : ''}
-      <div class="diagram-box">
-        <div class="diagram-label">${isPlanOnly ? cfg.planLabel||'规划图' : '规划'}</div>
-        <div class="diagram-img" onclick="uploadDiagram(this)">
-          <div class="di-placeholder"><span style="font-size:28px;">🗺</span><span style="font-size:12px;">${isPlanOnly ? '上传规划图' : '上传规划图'}</span><span style="font-size:10px;opacity:0.6;">点击上传或后期接入生图</span></div>
-        </div>
-        <div class="diagram-desc" contenteditable="true" placeholder="${cfg.planPlaceholder||'规划说明…'}">${sys.strategy||''}</div>
+function microItemHTML(t, i, cat) {
+  return `<div class="micro-item" id="mi-${t.id}">
+    <div class="micro-item-hd" onclick="toggleMicroItem('${t.id}')">
+      <div class="micro-num" style="background:${cat.color}">${i+1}</div>
+      <div class="micro-name" contenteditable="true" onclick="event.stopPropagation()">${t.name}</div>
+      ${t.lat ? `<span class="micro-located" style="background:${cat.color}15;color:${cat.color};">📍 已标注</span>` : `<span style="font-size:10px;color:var(--muted);">未标注</span>`}
+      <button class="micro-del" onclick="event.stopPropagation();deleteMicroTask('${t.id}','${cat.key}')">×</button>
+      <span class="micro-chev" id="mchev-${t.id}">▼</span>
+    </div>
+    <div class="micro-body" id="mbody-${t.id}" style="display:none;">
+      <div class="micro-field">
+        <div class="mf-label">主题</div>
+        <div class="mf-val" contenteditable="true" placeholder="主题定位…" oninput="updateMicro('${t.id}','theme',this.innerText)">${t.theme}</div>
+      </div>
+      <div class="micro-field">
+        <div class="mf-label">功能</div>
+        <div class="mf-val" contenteditable="true" placeholder="主要功能…" oninput="updateMicro('${t.id}','func',this.innerText)">${t.func}</div>
+      </div>
+      <div class="micro-field micro-full">
+        <div class="mf-label">注意事项</div>
+        <div class="mf-val" contenteditable="true" placeholder="设计约束、注意事项…" oninput="updateMicro('${t.id}','notes',this.innerText)">${t.notes}</div>
+      </div>
+      <div class="micro-field micro-full">
+        <div class="mf-label">位置描述</div>
+        <input class="mf-input" type="text" value="${t.address}" placeholder="如：南侧主入口大门处" oninput="updateMicro('${t.id}','address',this.value)">
       </div>
     </div>
-    ${cfg.dataFields && cfg.dataFields.length ? `
-    <div>
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;">关键数据</div>
-      <div class="data-row">
-        ${cfg.dataFields.map(d => `
-          <div class="data-chip">
-            <div class="data-chip-label">${d.label}</div>
-            <div class="data-chip-val" contenteditable="true">-</div>
-            <div class="data-chip-unit">${d.unit}</div>
-          </div>`).join('')}
-      </div>
-    </div>` : ''}
-    ${chatBoxHTML(chatKey, `对${sys.name}有什么修改意见？`)}`;
-}
-
-function chatBoxHTML(key, placeholder) {
-  return `<div class="item-chat">
-    <div class="chat-row">
-      <textarea class="chat-inp" id="ci-${key}" placeholder="${placeholder}"></textarea>
-      <button class="chat-btn" onclick="refineMesoItem('${key}')">✨ 修改</button>
-    </div>
   </div>`;
 }
 
-async function refineMesoItem(key) {
-  const inp = document.getElementById('ci-' + key);
-  const btn = inp?.nextElementSibling;
-  if (!inp||!btn) return;
-  const feedback = inp.value.trim();
-  if (!feedback) { notify('请填写修改意见'); return; }
-  btn.disabled = true; btn.innerHTML = '<div class="spin"></div>';
-  try {
-    const sysIdx = parseInt(key.split('-')[1]);
-    const sys = window._mesoSystems[sysIdx];
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000,
-        messages:[{role:'user',content:`你是城市社区微更新规划师。当前${sys.name}系统：现状「${sys.current||''}」，策略「${sys.strategy||''}」。用户意见：「${feedback}」。只返回JSON：{"current":"修改后现状描述","strategy":"修改后策略描述"}`}]
-      })
-    });
-    const d = await res.json();
-    const p = JSON.parse((d.content?.[0]?.text||'{}').replace(/\`\`\`json|\`\`\`/g,'').trim());
-    if (p.current) window._mesoSystems[sysIdx].current = p.current;
-    if (p.strategy) window._mesoSystems[sysIdx].strategy = p.strategy;
-    openMesoDetail(sysIdx);
-    notify('✅ 已修改');
-  } catch(e) { notify('⚠️ 修改失败'); }
-  btn.disabled = false; btn.innerHTML = '✨ 修改';
+function toggleMicroItem(id) {
+  const body = document.getElementById('mbody-'+id);
+  const chev = document.getElementById('mchev-'+id);
+  if (!body) return;
+  const open = body.style.display!=='none';
+  body.style.display = open?'none':'grid';
+  if (chev) chev.classList.toggle('open',!open);
 }
 
-function uploadDiagram(el) {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'image/*';
-  input.onchange = e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    el.innerHTML = `<img src="${url}">`;
-  };
-  input.click();
+function addMicroTask(catKey) {
+  const cat = MICRO_CATS.find(c=>c.key===catKey);
+  const num = microTasks.filter(t=>t.cat===catKey).length+1;
+  const t = {id:Date.now(),cat:catKey,name:`${cat.label}${num}`,theme:'',func:'',notes:'',lat:null,lng:null,address:''};
+  microTasks.push(t);
+  openMicroCat(catKey);
+  renderMicro();
+  notify(`✅ 已添加${cat.label}${num}`);
 }
 
+function deleteMicroTask(id, catKey) {
+  microTasks = microTasks.filter(t=>String(t.id)!==String(id));
+  const m = mapMarkers.find(m=>String(m.id)===String(id));
+  if (m) { microMap?.removeLayer(m.marker); mapMarkers=mapMarkers.filter(x=>String(x.id)!==String(id)); }
+  openMicroCat(catKey);
+  renderMicro();
+}
 
+function updateMicro(id, field, val) {
+  const t = microTasks.find(t=>String(t.id)===String(id));
+  if (t) t[field]=val;
+}
 
-
-
-// ── MICRO MAP & TASKS ──
-let _microMap = null;
-let _markMode = false;
-let _markers = [];
-
-const MICRO_CATS = [
-  { key:'gate',     label:'大门景观',        icon:'🚪', color:'#1d4ed8' },
-  { key:'major',    label:'大型景观',        icon:'🌳', color:'#059669' },
-  { key:'node',     label:'节点景观',        icon:'📍', color:'#d97706' },
-  { key:'road',     label:'道路景观',        icon:'🛤',  color:'#7c3aed' },
-  { key:'carpark',  label:'机动车停车景观',  icon:'🚗', color:'#dc2626' },
-  { key:'bikepark', label:'非机动车停车景观', icon:'🚲', color:'#0284c7' },
-  { key:'trash',    label:'垃圾收集点景观',  icon:'🗑',  color:'#475569' },
-];
-
+// ══════════════════════════════
+// MAP
+// ══════════════════════════════
 function initMicroMap() {
-  if (_microMap) return;
-  const mapEl = document.getElementById('microMap');
-  if (!mapEl || typeof L === 'undefined') return;
-
-  _microMap = L.map('microMap', { zoomControl: true }).setView([39.9042, 116.4074], 16);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap', maxZoom: 19
-  }).addTo(_microMap);
-
-  _microMap.on('click', e => {
-    if (!_markMode) return;
-    const cat = document.getElementById('markingCat')?.value || 'node';
-    const catCfg = MICRO_CATS.find(c => c.key === cat);
-    const name = prompt(`标注名称（如：1号大门）：`, catCfg?.label + (window._microTasks.filter(t=>t.cat===cat).length+1));
+  if (microMap) { microMap.invalidateSize(); return; }
+  const el = document.getElementById('microMap');
+  if (!el||typeof L==='undefined') return;
+  microMap = L.map('microMap').setView([39.9042,116.4074],16);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM',maxZoom:19}).addTo(microMap);
+  microMap.on('click', e => {
+    if (!markMode) return;
+    const catKey = document.getElementById('markCat')?.value||'node';
+    const cat = MICRO_CATS.find(c=>c.key===catKey);
+    const num = microTasks.filter(t=>t.cat===catKey).length+1;
+    const name = prompt(`标注名称：`,`${cat.label}${num}`);
     if (!name) return;
-
-    const task = {
-      id: Date.now(),
-      cat, name,
-      theme: '', func: '', notes: '',
-      lat: e.latlng.lat, lng: e.latlng.lng,
-      address: `${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`,
-    };
-    window._microTasks.push(task);
-    addMapMarker(task);
-    renderMicroTasks();
+    const t = {id:Date.now(),cat:catKey,name,theme:'',func:'',notes:'',lat:e.latlng.lat,lng:e.latlng.lng,address:`${e.latlng.lat.toFixed(5)},${e.latlng.lng.toFixed(5)}`};
+    microTasks.push(t);
+    addMapPin(t);
+    renderMicro();
     setMarkMode(false);
-    notify('✅ 已添加：' + name);
+    notify('✅ 已标注：'+name);
   });
-
-  // Add existing tasks to map
-  (window._microTasks||[]).forEach(t => { if(t.lat) addMapMarker(t); });
+  microTasks.filter(t=>t.lat).forEach(t=>addMapPin(t));
 }
 
-function addMapMarker(task) {
-  const catCfg = MICRO_CATS.find(c => c.key === task.cat);
-  const color = catCfg?.color || '#6b7280';
+function addMapPin(t) {
+  const cat = MICRO_CATS.find(c=>c.key===t.cat);
   const icon = L.divIcon({
-    html: `<div style="background:${color};color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,0.3);border:2px solid #fff;">${catCfg?.icon||'📍'}</div>`,
-    className: '', iconSize:[28,28], iconAnchor:[14,14]
+    html:`<div style="background:${cat?.color||'#666'};color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,0.3);border:2px solid #fff;">${cat?.icon||'📍'}</div>`,
+    className:'',iconSize:[28,28],iconAnchor:[14,14]
   });
-  const marker = L.marker([task.lat, task.lng], { icon })
-    .addTo(_microMap)
-    .bindPopup(`<b>${task.name}</b><br>${catCfg?.label||''}`);
-  _markers.push({ id: task.id, marker });
+  const marker = L.marker([t.lat,t.lng],{icon}).addTo(microMap).bindPopup(`<b>${t.name}</b>`);
+  mapMarkers.push({id:t.id,marker});
 }
 
 function setMarkMode(on) {
-  _markMode = on;
-  const btn = document.getElementById('markBtn');
-  if (btn) {
-    btn.textContent = on ? '🎯 点击地图标注…' : '✚ 点击标注';
-    btn.style.background = on ? '#dc2626' : 'var(--accent)';
-  }
-  if (_microMap) _microMap.getContainer().style.cursor = on ? 'crosshair' : '';
+  markMode=on;
+  const btn=document.getElementById('markBtn');
+  if (btn) { btn.textContent=on?'🎯 点击地图标注…':'✚ 点击标注'; btn.style.background=on?'#dc2626':'var(--accent)'; }
+  if (microMap) microMap.getContainer().style.cursor=on?'crosshair':'';
 }
 
-function renderMicroTasks() {
-  const panel = document.getElementById('microTaskPanel');
-  const count = document.getElementById('microCount');
-  if (!panel) return;
-  const tasks = window._microTasks || [];
-  if (count) count.textContent = tasks.length + ' 个点位';
+// ══════════════════════════════
+// TAB / MODAL / MISC
+// ══════════════════════════════
+function switchTab(tab) {
+  currentTab=tab;
+  ['macro','meso','micro'].forEach(t=>{
+    document.getElementById('tab-'+t)?.classList.toggle('active',t===tab);
+    document.getElementById('panel-'+t).style.display=t===tab?'block':'none';
+  });
+  if (tab==='micro') setTimeout(()=>{ initMicroMap(); if(microMap)microMap.invalidateSize(); },150);
+}
 
-  // Group by category
-  const groups = {};
-  MICRO_CATS.forEach(c => { groups[c.key] = []; });
-  tasks.forEach(t => { if (!groups[t.cat]) groups[t.cat]=[]; groups[t.cat].push(t); });
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
 
-  panel.innerHTML = MICRO_CATS.filter(c => groups[c.key]?.length > 0).map(cat => `
-    <div style="margin-bottom:14px;">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:${cat.color};margin-bottom:6px;display:flex;align-items:center;gap:5px;">
-        ${cat.icon} ${cat.label} <span style="font-weight:400;color:var(--muted);">(${groups[cat.key].length})</span>
-      </div>
-      ${groups[cat.key].map((t,i) => `
-        <div style="background:var(--white);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;overflow:hidden;">
-          <div style="padding:10px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;" onclick="toggleMicroTask('${t.id}')">
-            <div style="width:22px;height:22px;border-radius:50%;background:${cat.color};color:#fff;display:grid;place-items:center;font-size:10px;font-weight:700;flex-shrink:0;">${i+1}</div>
-            <div style="flex:1;font-size:12px;font-weight:600;">${t.name}</div>
-            ${t.lat ? `<span style="font-size:10px;color:${cat.color};">📍 已标注</span>` : `<span style="font-size:10px;color:var(--muted);">未标注</span>`}
-            <button onclick="event.stopPropagation();deleteMicroTask('${t.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0 2px;">×</button>
-            <span style="color:var(--muted);font-size:10px;" id="mchev-${t.id}">▼</span>
-          </div>
-          <div id="mbody-${t.id}" style="display:none;padding:0 12px 12px;border-top:1px solid var(--border);">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
-              <div>
-                <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">主题</div>
-                <div contenteditable="true" style="font-size:12px;padding:7px 9px;background:var(--bg);border-radius:7px;outline:none;min-height:32px;line-height:1.6;" placeholder="主题定位…">${t.theme||''}</div>
-              </div>
-              <div>
-                <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">功能</div>
-                <div contenteditable="true" style="font-size:12px;padding:7px 9px;background:var(--bg);border-radius:7px;outline:none;min-height:32px;line-height:1.6;" placeholder="主要功能…">${t.func||''}</div>
-              </div>
-              <div style="grid-column:1/-1;">
-                <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">注意事项</div>
-                <div contenteditable="true" style="font-size:12px;padding:7px 9px;background:var(--bg);border-radius:7px;outline:none;min-height:40px;line-height:1.6;" placeholder="设计注意事项、约束条件…">${t.notes||''}</div>
-              </div>
-              ${t.lat ? `<div style="grid-column:1/-1;font-size:11px;color:var(--muted);">📍 ${t.address||'已标注坐标'}</div>` : `
-              <div style="grid-column:1/-1;">
-                <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">或文字描述位置</div>
-                <input type="text" placeholder="如：南侧主入口大门处" style="width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:7px;font-size:12px;font-family:'Noto Sans SC',sans-serif;outline:none;">
-              </div>`}
-            </div>
-          </div>
-        </div>`).join('')}
-      <button onclick="addMicroTaskCat('${cat.key}')" style="width:100%;padding:7px;border:1px dashed var(--border);border-radius:8px;background:none;font-size:11px;color:var(--muted);cursor:pointer;font-family:'Noto Sans SC',sans-serif;transition:all 0.15s;" onmouseover="this.style.borderColor='${cat.color}';this.style.color='${cat.color}'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">＋ 添加${cat.label}</button>
-    </div>`).join('') +
-    (tasks.length === 0 ? '<div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;">在地图上点击标注，或点击下方分类添加点位</div>' : '') +
-    `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:6px;">
-      ${MICRO_CATS.map(c => `<button onclick="addMicroTaskCat('${c.key}')" style="padding:5px 10px;border:1px solid var(--border);border-radius:20px;font-size:11px;cursor:pointer;background:var(--white);font-family:'Noto Sans SC',sans-serif;">${c.icon} ${c.label}</button>`).join('')}
+function showProgress() {
+  document.getElementById('emptyState').style.display='none';
+  ['macro','meso','micro'].forEach(t=>{ document.getElementById('panel-'+t).style.display='none'; });
+  document.getElementById('rightScroll').innerHTML = `
+    <div class="prog-wrap">
+      <div class="prog-title"><div class="spin-b" style="width:16px;height:16px;border-width:2.5px;"></div> AI 正在生成策略框架…</div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+      <div class="prog-step" id="progStep">初始化…</div>
     </div>`;
 }
 
-function toggleMicroTask(id) {
-  const body = document.getElementById('mbody-' + id);
-  const chev = document.getElementById('mchev-' + id);
-  if (!body) return;
-  const open = body.style.display !== 'none';
-  body.style.display = open ? 'none' : 'block';
-  if (chev) chev.textContent = open ? '▼' : '▲';
+function setProg(txt, pct) {
+  const f=document.getElementById('progFill'); if(f) f.style.width=pct+'%';
+  const s=document.getElementById('progStep'); if(s) s.textContent=txt;
 }
 
-
-// ── MICRO CATEGORY DETAIL ──
-function openMicroCatDetail(catKey) {
-  const catCfg = MICRO_CATS.find(c => c.key === catKey);
-  if (!catCfg) return;
-  const tasks = (window._microTasks||[]).filter(t => t.cat === catKey);
-
-  const modal = document.getElementById('mesoModal');
-  document.getElementById('mesoModalIcon').textContent = catCfg.icon;
-  document.getElementById('mesoModalTitle').textContent = catCfg.label;
-  document.getElementById('mesoModalSubtabs').style.display = 'none';
-
-  document.getElementById('mesoModalBody').innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <div style="font-size:13px;color:var(--muted);">共 ${tasks.length} 个点位</div>
-      <button onclick="addMicroTaskCat('${catKey}');document.getElementById('mesoModal').classList.remove('open')"
-        style="padding:6px 14px;border-radius:8px;background:${catCfg.color}18;color:${catCfg.color};border:1px solid ${catCfg.color}40;font-size:12px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;">
-        ＋ 添加${catCfg.label}
-      </button>
-    </div>
-    ${tasks.length === 0 ? `<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">暂无点位，点击上方按钮添加</div>` :
-      tasks.map((t,i) => `
-        <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;">
-          <div style="padding:12px 14px;display:flex;align-items:center;gap:10px;background:var(--white);border-bottom:1px solid var(--border);">
-            <div style="width:26px;height:26px;border-radius:50%;background:${catCfg.color};color:#fff;display:grid;place-items:center;font-size:11px;font-weight:700;flex-shrink:0;">${i+1}</div>
-            <div contenteditable="true" style="flex:1;font-size:13px;font-weight:600;outline:none;">${t.name}</div>
-            ${t.lat ? `<span style="font-size:10px;color:${catCfg.color};background:${catCfg.color}15;padding:2px 8px;border-radius:10px;">📍 已标注</span>` : `<span style="font-size:10px;color:var(--muted);">未标注</span>`}
-            <button onclick="deleteMicroTask('${t.id}');openMicroCatDetail('${catKey}')"
-              style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 4px;">×</button>
-          </div>
-          <div style="padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <div>
-              <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">主题</div>
-              <div contenteditable="true" style="font-size:12px;padding:8px 10px;background:var(--white);border:1px solid var(--border);border-radius:8px;outline:none;min-height:36px;line-height:1.6;"
-                oninput="updateMicroTask('${t.id}','theme',this.innerText)">${t.theme||''}</div>
-            </div>
-            <div>
-              <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">功能</div>
-              <div contenteditable="true" style="font-size:12px;padding:8px 10px;background:var(--white);border:1px solid var(--border);border-radius:8px;outline:none;min-height:36px;line-height:1.6;"
-                oninput="updateMicroTask('${t.id}','func',this.innerText)">${t.func||''}</div>
-            </div>
-            <div style="grid-column:1/-1;">
-              <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">注意事项</div>
-              <div contenteditable="true" style="font-size:12px;padding:8px 10px;background:var(--white);border:1px solid var(--border);border-radius:8px;outline:none;min-height:48px;line-height:1.6;"
-                oninput="updateMicroTask('${t.id}','notes',this.innerText)">${t.notes||''}</div>
-            </div>
-            <div style="grid-column:1/-1;">
-              <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">位置</div>
-              <input type="text" value="${t.address||''}" placeholder="如：南侧主入口处"
-                oninput="updateMicroTask('${t.id}','address',this.value)"
-                style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:'Noto Sans SC',sans-serif;outline:none;">
-            </div>
-          </div>
-        </div>`).join('')}`;
-
-  modal.classList.add('open');
+function restorePanels() {
+  const scroll = document.getElementById('rightScroll');
+  scroll.innerHTML = `
+    <div id="emptyState" class="empty" style="display:none;"></div>
+    <div id="panel-macro" style="display:none;"></div>
+    <div id="panel-meso" style="display:none;"></div>
+    <div id="panel-micro" style="display:none;"></div>`;
 }
 
-function updateMicroTask(id, field, val) {
-  const t = (window._microTasks||[]).find(t => String(t.id) === String(id));
-  if (t) t[field] = val;
+function resetAll() {
+  if (!confirm('确认重置所有内容？')) return;
+  fwData=null; mesoActiveSystems=[]; microTasks=[]; microMap=null; mapMarkers=[];
+  document.getElementById('tabBar').style.display='none';
+  document.getElementById('pdfBtn2').style.display='none';
+  document.getElementById('fwStatus').innerHTML='<span style="width:7px;height:7px;border-radius:50%;background:var(--border);display:inline-block;"></span> 等待生成';
+  restorePanels();
+  document.getElementById('emptyState').style.display='flex';
+  document.getElementById('genBtn').innerHTML='🤖 生成策略框架';
+  document.getElementById('genBtn').disabled=false;
 }
 
-// Re-render micro card grid counts after map marking
-const _origRenderMicroTasks = renderMicroTasks;
-function renderMicroTasks() {
-  _origRenderMicroTasks && _origRenderMicroTasks();
-  // Update card grid counts
-  const grid = document.getElementById('microCardGrid');
-  if (!grid) return;
-  MICRO_CATS.forEach(cat => {
-    const tasks = (window._microTasks||[]).filter(t=>t.cat===cat.key);
-    const cards = grid.querySelectorAll('.sys-card');
-    cards.forEach(card => {
-      const nameEl = card.querySelector('.sys-card-name');
-      if (nameEl && nameEl.textContent === cat.label) {
-        const cur = card.querySelector('.sys-card-cur');
-        if (cur) cur.textContent = tasks.length + ' 个点位' + (tasks.filter(t=>t.lat).length ? ' · ' + tasks.filter(t=>t.lat).length + '已标注' : '');
-      }
-    });
-  });
-}
-
-function deleteMicroTask(id) {
-  window._microTasks = window._microTasks.filter(t => String(t.id) !== String(id));
-  const m = _markers.find(m => String(m.id) === String(id));
-  if (m) { _microMap?.removeLayer(m.marker); _markers = _markers.filter(x => String(x.id) !== String(id)); }
-  renderMicroTasks();
-}
-
-function addMicroTaskCat(cat) {
-  const catCfg = MICRO_CATS.find(c => c.key === cat);
-  const num = (window._microTasks||[]).filter(t=>t.cat===cat).length + 1;
-  const task = { id:Date.now(), cat, name:`${catCfg.label}${num}`, theme:'', func:'', notes:'', lat:null, lng:null, address:'' };
-  if (!window._microTasks) window._microTasks = [];
-  window._microTasks.push(task);
-  renderMicroTasks();
-  // Switch to mark mode for this category
-  const sel = document.getElementById('markingCat');
-  if (sel) sel.value = cat;
-  setMarkMode(true);
-  notify(`✅ 已添加${catCfg.label}${num}，请在地图上点击标注位置`);
-}
-
-// Init map when micro tab is shown
-const _origSwitchRTab = switchRTab;
-function switchRTab(tab) {
-  _origSwitchRTab(tab);
-  if (tab === 'micro') {
-    setTimeout(() => {
-      initMicroMap();
-      renderMicroTasks();
-      if (_microMap) _microMap.invalidateSize();
-    }, 100);
-  }
-}
-
-function delay(ms) { return new Promise(r=>setTimeout(r,ms)); }
-function notify(msg) { const el=document.getElementById('notif'); el.textContent=msg; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2800); }
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+function notify(msg){const el=document.getElementById('notif');el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2800);}
 </script>
-
-<!-- MESO DETAIL MODAL -->
-<div class="meso-modal" id="mesoModal" onclick="if(event.target===this)this.classList.remove('open')">
-  <div class="meso-modal-box">
-    <div class="meso-modal-hd">
-      <div class="meso-modal-icon" id="mesoModalIcon">📌</div>
-      <div class="meso-modal-title" id="mesoModalTitle"></div>
-      <button class="meso-modal-close" onclick="document.getElementById('mesoModal').classList.remove('open')">✕</button>
-    </div>
-    <div id="mesoModalSubtabs" class="meso-subtabs" style="display:none;"></div>
-    <div class="meso-modal-body" id="mesoModalBody"></div>
-  </div>
-</div>
-
 </body>
 </html>
