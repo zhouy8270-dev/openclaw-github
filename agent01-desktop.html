@@ -425,13 +425,18 @@ function renderCard(src, idx) {
     const r = d.result;
     rightHtml = `
       <div class="ap-tags">${r.tags.map(t=>`<span class="aptag" style="background:${cfg.bg};color:${cfg.color}">${t}</span>`).join('')}</div>
-      <div class="ap-points">
-        ${r.points.slice(0,3).map(p=>`
+      <div class="ap-points" id="ap-points-${src}" style="max-height:120px;overflow:hidden;transition:max-height 0.35s ease;">
+        ${r.points.map(p=>`
           <div class="ap-point">
             <div class="ap-point-dot" style="background:${cfg.color}"></div>
             <span>${p}</span>
           </div>`).join('')}
       </div>
+      ${r.points.length > 3 ? `
+        <button onclick="togglePoints('${src}')" id="ap-toggle-${src}"
+          style="margin-top:6px;background:none;border:none;font-size:11px;color:${cfg.color};cursor:pointer;padding:2px 0;font-family:'Noto Sans SC',sans-serif;">
+          ▾ 展开全部 ${r.points.length} 条
+        </button>` : ''}
       <div class="ap-summary">${r.summary}</div>`;
   } else if (d.status === 'analyzing') {
     rightHtml = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;color:var(--muted);padding:20px 0;">
@@ -668,6 +673,15 @@ function fmtSize(b){ return b<1024?b+'B':b<1048576?(b/1024).toFixed(1)+'KB':(b/1
 function delay(ms){ return new Promise(r=>setTimeout(r,ms)); }
 async function toBase64(url,mime){ const b=await(await fetch(url)).blob(); return new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result.split(',')[1]); r.readAsDataURL(b); }); }
 function notify(msg){ const el=document.getElementById('notif'); el.textContent=msg; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2800); }
+
+function togglePoints(src) {
+  const el = document.getElementById('ap-points-'+src);
+  const btn = document.getElementById('ap-toggle-'+src);
+  if (!el || !btn) return;
+  const isOpen = el.style.maxHeight === 'none';
+  el.style.maxHeight = isOpen ? '120px' : 'none';
+  btn.textContent = isOpen ? `▾ 展开全部` : `▴ 收起`;
+}
 
 // Init
 renderAll();
