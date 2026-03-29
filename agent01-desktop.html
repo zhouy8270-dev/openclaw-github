@@ -159,6 +159,26 @@ body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text
 .spin-c{display:inline-block;width:11px;height:11px;border:2px solid rgba(29,78,216,0.15);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;}
 @keyframes sp{to{transform:rotate(360deg)}}
 
+
+/* FORM CARDS */
+.form-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;animation:up 0.3s ease forwards;opacity:0;}
+.form-card-head{padding:14px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;}
+.form-card-icon{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:20px;flex-shrink:0;}
+.form-card-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;flex:1;}
+.form-card-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.form-card-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;flex-shrink:0;}
+.form-card-body{padding:18px 20px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.form-field{display:flex;flex-direction:column;gap:5px;}
+.form-field.full{grid-column:1/-1;}
+.form-field label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
+.form-field input,.form-field textarea,.form-field select{padding:8px 11px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:'Noto Sans SC',sans-serif;color:var(--text);outline:none;background:var(--white);transition:border-color 0.15s;width:100%;}
+.form-field input:focus,.form-field textarea:focus{border-color:var(--accent);}
+.form-field textarea{resize:vertical;min-height:64px;line-height:1.6;}
+.form-save-btn{margin-top:14px;padding:9px;border-radius:9px;width:100%;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans SC',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.15s;}
+.form-saved{font-size:11px;color:var(--c2);display:flex;align-items:center;gap:4px;margin-top:8px;justify-content:center;}
+
 .notif{position:fixed;bottom:20px;right:24px;background:var(--text);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;box-shadow:var(--shadow-lg);transform:translateY(16px);opacity:0;transition:all 0.25s;z-index:200;}
 .notif.show{transform:translateY(0);opacity:1;}
 
@@ -193,12 +213,23 @@ input[type=file]{display:none;}
 
   <!-- SIDEBAR -->
   <div class="sidebar">
-    <div class="sb-label">数据来源</div>
+    <div class="sb-label">第一阶段 · 基础信息</div>
     <button class="sb-btn active" onclick="scrollTo('all',this)">
       <div class="sb-icon" style="background:#f1f5f9;">📂</div>
       <div class="sb-name">全部</div>
       <div class="sb-cnt" id="sb-all">0</div>
     </button>
+    <button class="sb-btn" onclick="scrollTo('basic',this)">
+      <div class="sb-icon" style="background:#ecfdf5;">📋</div>
+      <div class="sb-name">基本信息</div>
+      <div class="sb-cnt" id="sb-basic" style="color:var(--c2);font-size:10px;">必填</div>
+    </button>
+    <button class="sb-btn" onclick="scrollTo('culture',this)">
+      <div class="sb-icon" style="background:#f5f3ff;">🏛</div>
+      <div class="sb-name">历史文化</div>
+      <div class="sb-cnt" id="sb-culture" style="color:var(--c5);font-size:10px;">必填</div>
+    </button>
+    <div class="sb-label">数据采集</div>
     <button class="sb-btn" onclick="scrollTo('survey',this)">
       <div class="sb-icon" style="background:var(--c1l);">📊</div>
       <div class="sb-name">问卷数据</div>
@@ -244,9 +275,9 @@ input[type=file]{display:none;}
 
     <div style="margin-top:auto;padding:11px;background:var(--al);border-radius:10px;font-size:12px;color:var(--accent);line-height:1.8;border:1px solid rgba(29,78,216,0.1);">
       <b>使用流程：</b><br>
-      ① 各类上传 → 单独分析<br>
-      ② 顶部「汇总」合并结果<br>
-      ③ 进入智能体02诊断
+      ① 填写基本信息 + 历史文化<br>
+      ② 上传各类素材 → 单独分析<br>
+      ③ 汇总 → 进入智能体02
     </div>
   </div>
 
@@ -258,6 +289,72 @@ input[type=file]{display:none;}
         <input type="text" placeholder="搜索文件名、标签…" id="searchInput" oninput="renderAll()">
       </div>
       <button class="btn btn-outline" onclick="analyzeAllCards()">⚡ 全部单独分析</button>
+    </div>
+
+    <!-- BASIC INFO CARD -->
+    <div class="form-card" id="card-basic" style="animation-delay:0s;">
+      <div class="form-card-head" onclick="toggleFormCard('basic')">
+        <div class="form-card-icon" style="background:#ecfdf5;">📋</div>
+        <div>
+          <div class="form-card-title" style="color:#059669;">基本信息</div>
+          <div class="form-card-sub">项目名称、规模、人口户数等基础数据</div>
+        </div>
+        <span class="form-card-badge" style="background:#ecfdf5;color:#059669;" id="basic-badge">● 第一阶段必填</span>
+        <span id="basic-chevron" style="color:var(--muted);font-size:12px;margin-left:4px;">▼</span>
+      </div>
+      <div class="form-card-body" id="basic-body">
+        <div class="form-grid">
+          <div class="form-field full"><label>项目名称 *</label><input type="text" id="bi-name" placeholder="如：朝阳区劲松一区微更新项目" oninput="markBasic()"></div>
+          <div class="form-field"><label>所在城市/区</label><input type="text" id="bi-city" placeholder="如：北京市朝阳区" oninput="markBasic()"></div>
+          <div class="form-field"><label>建成年代</label><input type="text" id="bi-year" placeholder="如：1980年代" oninput="markBasic()"></div>
+          <div class="form-field"><label>用地面积（㎡）</label><input type="number" id="bi-area" placeholder="如：15000" oninput="markBasic()"></div>
+          <div class="form-field"><label>建筑面积（㎡）</label><input type="number" id="bi-bldg" placeholder="如：45000" oninput="markBasic()"></div>
+          <div class="form-field"><label>总户数</label><input type="text" id="bi-households" placeholder="如：800户" oninput="markBasic()"></div>
+          <div class="form-field"><label>总人口</label><input type="text" id="bi-population" placeholder="如：2200人" oninput="markBasic()"></div>
+          <div class="form-field"><label>老龄化比例</label><input type="text" id="bi-elderly" placeholder="如：45%" oninput="markBasic()"></div>
+          <div class="form-field"><label>儿童比例</label><input type="text" id="bi-children" placeholder="如：15%" oninput="markBasic()"></div>
+          <div class="form-field"><label>总预算（万元）</label><input type="number" id="bi-budget" placeholder="如：300" oninput="markBasic()"></div>
+          <div class="form-field"><label>改造周期</label>
+            <select id="bi-period" oninput="markBasic()">
+              <option>1年内完成</option><option selected>2年分两期</option><option>3年分三期</option>
+            </select>
+          </div>
+          <div class="form-field full"><label>项目背景简述</label><textarea id="bi-bg" placeholder="项目来源、主要问题、改造契机…" oninput="markBasic()"></textarea></div>
+          <div class="form-field full"><label>居民核心诉求（问卷/访谈结论）</label><textarea id="bi-needs" placeholder="居民最迫切的需求，从问卷或访谈中提炼…" oninput="markBasic()"></textarea></div>
+          <div class="form-field full"><label>社区治理情况</label><input type="text" id="bi-gov" placeholder="业委会、物业、居委会、志愿者组织等情况" oninput="markBasic()"></div>
+        </div>
+        <button class="form-save-btn" style="background:var(--c2);color:#fff;" onclick="saveBasic()">💾 保存基本信息</button>
+        <div class="form-saved" id="basic-saved" style="display:none;">✅ 已保存，将传入智能体03策略生成</div>
+      </div>
+    </div>
+
+    <!-- CULTURE CARD -->
+    <div class="form-card" id="card-culture" style="animation-delay:0.05s;">
+      <div class="form-card-head" onclick="toggleFormCard('culture')">
+        <div class="form-card-icon" style="background:#f5f3ff;">🏛</div>
+        <div>
+          <div class="form-card-title" style="color:#7c3aed;">历史文化</div>
+          <div class="form-card-sub">历史沿革、文化特色、社区记忆与场所精神</div>
+        </div>
+        <span class="form-card-badge" style="background:#f5f3ff;color:#7c3aed;" id="culture-badge">● 第一阶段必填</span>
+        <span id="culture-chevron" style="color:var(--muted);font-size:12px;margin-left:4px;">▼</span>
+      </div>
+      <div class="form-card-body" id="culture-body">
+        <div class="form-grid">
+          <div class="form-field full"><label>历史沿革</label><textarea id="cu-history" placeholder="建设历史、单位大院背景、重要历史节点…" oninput="markCulture()"></textarea></div>
+          <div class="form-field full"><label>地域文化特色</label><textarea id="cu-character" placeholder="地方文化、民俗特色、历史街区特征…" oninput="markCulture()"></textarea></div>
+          <div class="form-field full"><label>现有文化资产</label><textarea id="cu-assets" placeholder="老树、历史建筑、壁画、雕塑、传统活动…" oninput="markCulture()"></textarea></div>
+          <div class="form-field full"><label>社区记忆与认同感</label><textarea id="cu-memory" placeholder="居民共同记忆、有价值的场所节点、场所精神…" oninput="markCulture()"></textarea></div>
+        </div>
+        <button class="form-save-btn" style="background:var(--c5);color:#fff;" onclick="saveCulture()">💾 保存历史文化信息</button>
+        <div class="form-saved" id="culture-saved" style="display:none;">✅ 已保存，将传入智能体03策略生成</div>
+      </div>
+    </div>
+
+    <div style="font-size:11px;color:var(--muted);padding:4px 2px 8px;display:flex;align-items:center;gap:6px;">
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+      数据采集
+      <div style="flex:1;height:1px;background:var(--border);"></div>
     </div>
 
     <div class="cards-scroll" id="cardsScroll"></div>
@@ -685,6 +782,97 @@ function togglePoints(src) {
 
 // Init
 renderAll();
+
+// ── FORM CARD TOGGLE ──
+const formCardOpen = { basic: true, culture: true };
+function toggleFormCard(key) {
+  formCardOpen[key] = !formCardOpen[key];
+  const body = document.getElementById(key+'-body');
+  const chev = document.getElementById(key+'-chevron');
+  if (body) body.style.display = formCardOpen[key] ? 'block' : 'none';
+  if (chev) chev.textContent = formCardOpen[key] ? '▼' : '▶';
+}
+
+// ── BASIC INFO ──
+function markBasic() {
+  const badge = document.getElementById('basic-badge');
+  if (badge) { badge.textContent = '● 填写中'; badge.style.background='var(--ol)'; badge.style.color='var(--c4)'; }
+}
+function saveBasic() {
+  const data = {
+    name: document.getElementById('bi-name')?.value,
+    city: document.getElementById('bi-city')?.value,
+    year: document.getElementById('bi-year')?.value,
+    area: document.getElementById('bi-area')?.value,
+    bldg: document.getElementById('bi-bldg')?.value,
+    households: document.getElementById('bi-households')?.value,
+    population: document.getElementById('bi-population')?.value,
+    elderly: document.getElementById('bi-elderly')?.value,
+    children: document.getElementById('bi-children')?.value,
+    budget: document.getElementById('bi-budget')?.value,
+    period: document.getElementById('bi-period')?.value,
+    bg: document.getElementById('bi-bg')?.value,
+    needs: document.getElementById('bi-needs')?.value,
+    gov: document.getElementById('bi-gov')?.value,
+  };
+  localStorage.setItem('nm_basic', JSON.stringify(data));
+  const badge = document.getElementById('basic-badge');
+  if (badge) { badge.textContent = '✅ 已保存'; badge.style.background='var(--c2l)'; badge.style.color='var(--c2)'; }
+  document.getElementById('basic-saved').style.display = 'flex';
+  document.getElementById('sb-basic').textContent = '✅';
+  notify('✅ 基本信息已保存');
+}
+
+// ── CULTURE INFO ──
+function markCulture() {
+  const badge = document.getElementById('culture-badge');
+  if (badge) { badge.textContent = '● 填写中'; badge.style.background='var(--ol)'; badge.style.color='var(--c4)'; }
+}
+function saveCulture() {
+  const data = {
+    history: document.getElementById('cu-history')?.value,
+    character: document.getElementById('cu-character')?.value,
+    assets: document.getElementById('cu-assets')?.value,
+    memory: document.getElementById('cu-memory')?.value,
+  };
+  localStorage.setItem('nm_culture', JSON.stringify(data));
+  const badge = document.getElementById('culture-badge');
+  if (badge) { badge.textContent = '✅ 已保存'; badge.style.background='var(--gl)'; badge.style.color='var(--c2)'; }
+  document.getElementById('culture-saved').style.display = 'flex';
+  document.getElementById('sb-culture').textContent = '✅';
+  notify('✅ 历史文化信息已保存');
+}
+
+// ── LOAD SAVED DATA ON INIT ──
+function loadSavedFormData() {
+  try {
+    const basic = JSON.parse(localStorage.getItem('nm_basic') || 'null');
+    if (basic) {
+      Object.keys(basic).forEach(k => {
+        const el = document.getElementById('bi-'+k);
+        if (el && basic[k]) el.value = basic[k];
+      });
+      const badge = document.getElementById('basic-badge');
+      if (badge) { badge.textContent = '✅ 已保存'; badge.style.background='var(--c2l)'; badge.style.color='var(--c2)'; }
+      document.getElementById('basic-saved').style.display = 'flex';
+      document.getElementById('sb-basic').textContent = '✅';
+    }
+    const culture = JSON.parse(localStorage.getItem('nm_culture') || 'null');
+    if (culture) {
+      Object.keys(culture).forEach(k => {
+        const el = document.getElementById('cu-'+k);
+        if (el && culture[k]) el.value = culture[k];
+      });
+      const badge = document.getElementById('culture-badge');
+      if (badge) { badge.textContent = '✅ 已保存'; badge.style.background='var(--gl)'; badge.style.color='var(--c2)'; }
+      document.getElementById('culture-saved').style.display = 'flex';
+      document.getElementById('sb-culture').textContent = '✅';
+    }
+  } catch(e) {}
+}
+
+loadSavedFormData();
+
 </script>
 </body>
 </html>
