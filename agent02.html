@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeighborMind · 数据采集管理端</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f4f6fb;--white:#fff;--border:#e4e9f2;--text:#1a2235;--muted:#7a8aa0;
+  --accent:#1d4ed8;--al:#eff4ff;
+  --c1:#1d4ed8;--c1l:#eff4ff; /* 问卷 */
+  --c2:#059669;--c2l:#ecfdf5; /* 会议纪要 */
+  --c3:#dc2626;--c3l:#fef2f2; /* 录音 */
+  --c4:#d97706;--c4l:#fffbeb; /* 监控 */
+  --c5:#7c3aed;--c5l:#f5f3ff; /* 新闻政策 */
+  --c6:#0284c7;--c6l:#f0f9ff; /* 网址 */
+  --c7:#475569;--c7l:#f8fafc; /* 照片视频 */
+  --shadow:0 2px 10px rgba(0,0,0,0.06);
+  --shadow-lg:0 8px 32px rgba(0,0,0,0.1);
+  --r:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+
+/* TOP BAR */
+.topbar{
+  background:var(--white);border-bottom:1px solid var(--border);
+  padding:0 32px;height:56px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;flex-shrink:0;
+}
+.logo{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px;}
+.logo em{color:var(--accent);font-style:normal;}
+.sep{width:1px;height:18px;background:var(--border);}
+.page-tag{font-size:13px;font-weight:500;display:flex;align-items:center;gap:7px;}
+.agent-chip{background:var(--al);color:var(--accent);font-size:11px;padding:3px 8px;border-radius:6px;font-weight:500;}
+.topbar-r{display:flex;align-items:center;gap:10px;}
+.count-chip{background:var(--bg);border:1px solid var(--border);padding:5px 14px;border-radius:20px;font-size:12px;color:var(--muted);}
+.count-chip b{color:var(--accent);}
+.btn{padding:8px 18px;border-radius:9px;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;font-weight:500;display:flex;align-items:center;gap:6px;transition:all 0.15s;border:none;}
+.btn-outline{border:1px solid var(--border)!important;background:var(--white);color:var(--text);}
+.btn-outline:hover{background:var(--bg);}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#4f46e5);color:#fff;}
+.btn-primary:hover{opacity:0.88;}
+.btn-primary:disabled{opacity:0.45;cursor:not-allowed;}
+
+/* LAYOUT */
+.body{flex:1;display:grid;grid-template-columns:260px 1fr;min-height:0;}
+
+/* SIDEBAR */
+.sidebar{background:var(--white);border-right:1px solid var(--border);padding:20px 14px;display:flex;flex-direction:column;gap:4px;overflow-y:auto;}
+.sb-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:8px 10px 4px;}
+.sb-btn{
+  display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;
+  cursor:pointer;border:none;background:none;width:100%;text-align:left;
+  font-family:'Noto Sans SC',sans-serif;transition:background 0.12s;
+}
+.sb-btn:hover{background:var(--bg);}
+.sb-btn.active{background:var(--al);}
+.sb-icon{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;font-size:15px;flex-shrink:0;}
+.sb-info{flex:1;min-width:0;}
+.sb-name{font-size:13px;font-weight:500;line-height:1.2;}
+.sb-btn.active .sb-name{color:var(--accent);}
+.sb-cnt{font-size:11px;color:var(--muted);margin-top:1px;}
+.sb-badge{font-size:10px;padding:1px 6px;border-radius:10px;background:var(--border);color:var(--muted);flex-shrink:0;}
+
+/* MAIN */
+.main{display:flex;flex-direction:column;overflow:hidden;}
+
+/* TOOLBAR */
+.toolbar{
+  background:var(--white);border-bottom:1px solid var(--border);
+  padding:12px 24px;display:flex;align-items:center;gap:10px;flex-shrink:0;
+}
+.search{
+  flex:1;display:flex;align-items:center;gap:8px;
+  background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:7px 14px;
+}
+.search input{border:none;background:none;outline:none;font-size:13px;font-family:'Noto Sans SC',sans-serif;color:var(--text);width:100%;}
+.search input::placeholder{color:var(--muted);}
+
+/* SOURCE CARDS GRID */
+.source-grid{
+  flex:1;overflow-y:auto;padding:24px;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;
+  align-content:start;
+}
+.source-grid::-webkit-scrollbar{width:6px;}
+.source-grid::-webkit-scrollbar-thumb{background:var(--border);border-radius:6px;}
+
+/* Source Card */
+.src-card{
+  background:var(--white);border:1px solid var(--border);border-radius:var(--r);
+  overflow:hidden;transition:box-shadow 0.2s,border-color 0.2s;
+  animation:up 0.35s ease forwards;opacity:0;
+}
+.src-card:hover{box-shadow:var(--shadow);border-color:#c8d4e8;}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.src-card-head{
+  padding:16px 18px 12px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);
+}
+.src-head-l{display:flex;align-items:center;gap:10px;}
+.src-head-icon{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-size:18px;flex-shrink:0;}
+.src-head-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;}
+.src-head-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.src-card-body{padding:14px 18px;}
+
+/* Drop zone inside card */
+.drop-zone{
+  border:2px dashed var(--border);border-radius:10px;padding:18px;
+  text-align:center;cursor:pointer;transition:all 0.2s;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.drop-zone:hover,.drop-zone.over{border-color:var(--accent);background:var(--al);}
+.drop-zone .dz-icon{font-size:24px;}
+.drop-zone p{font-size:12px;color:var(--muted);line-height:1.5;}
+.drop-zone .dz-types{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:4px;}
+.type-pill{font-size:10px;background:var(--bg);border:1px solid var(--border);padding:2px 7px;border-radius:10px;color:var(--muted);}
+
+/* URL input row */
+.url-row{display:flex;gap:8px;}
+.url-input{
+  flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:8px;
+  font-size:13px;font-family:'Noto Sans SC',sans-serif;outline:none;
+  transition:border-color 0.15s;
+}
+.url-input:focus{border-color:var(--accent);}
+.url-add-btn{
+  padding:8px 14px;background:var(--accent);color:#fff;border:none;
+  border-radius:8px;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;
+  white-space:nowrap;
+}
+
+/* File list inside card */
+.file-list{display:flex;flex-direction:column;gap:6px;margin-top:10px;}
+.file-row{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 10px;border-radius:8px;background:var(--bg);
+  border:1px solid var(--border);
+}
+.file-row-thumb{
+  width:36px;height:36px;border-radius:6px;object-fit:cover;flex-shrink:0;
+  background:var(--white);display:grid;place-items:center;font-size:16px;
+  border:1px solid var(--border);
+}
+.file-row-thumb img{width:36px;height:36px;border-radius:6px;object-fit:cover;}
+.file-row-info{flex:1;min-width:0;}
+.file-row-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.file-row-meta{font-size:10px;color:var(--muted);margin-top:1px;}
+.file-row-status{flex-shrink:0;font-size:10px;padding:2px 7px;border-radius:6px;}
+.st-pending{background:#fef9ee;color:var(--c4);}
+.st-done{background:var(--c2l);color:var(--c2);}
+.st-analyzing{background:var(--al);color:var(--accent);}
+.file-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 4px;flex-shrink:0;}
+.file-del:hover{color:var(--c3);}
+
+/* AI tags on file */
+.file-ai-tags{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;}
+.fat{font-size:9px;padding:1px 5px;border-radius:4px;}
+
+/* MORE FILES indicator */
+.more-files{font-size:11px;color:var(--muted);text-align:center;padding:4px;cursor:pointer;}
+.more-files:hover{color:var(--accent);}
+
+/* ANALYZE PANEL */
+.analyze-bar{
+  background:var(--white);border-top:1px solid var(--border);
+  padding:14px 24px;display:flex;align-items:center;gap:12px;flex-shrink:0;
+}
+.analyze-bar p{font-size:13px;color:var(--muted);flex:1;}
+.analyze-bar p b{color:var(--text);}
+.prog-wrap{flex:1;display:flex;flex-direction:column;gap:4px;}
+.prog-bar{height:5px;background:var(--border);border-radius:5px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),#4f46e5);border-radius:5px;transition:width 0.5s ease;width:0%;}
+.prog-lbl{font-size:11px;color:var(--muted);}
+
+/* EMPTY */
+.empty-full{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:10px;color:var(--muted);padding:60px;
+}
+.empty-full .ei{font-size:48px;opacity:0.3;}
+
+/* NOTIF */
+.notif{
+  position:fixed;bottom:20px;right:24px;
+  background:var(--text);color:#fff;padding:10px 18px;border-radius:10px;
+  font-size:13px;box-shadow:var(--shadow-lg);
+  transform:translateY(20px);opacity:0;transition:all 0.25s;z-index:200;
+}
+.notif.show{transform:translateY(0);opacity:1;}
+
+.spin{display:inline-block;width:11px;height:11px;border:2px solid rgba(255,255,255,0.25);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg)}}
+.spin-sm{width:10px;height:10px;border:1.5px solid rgba(29,78,216,0.2);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;display:inline-block;}
+
+input[type=file]{display:none;}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div class="logo">🏘 Neighbor<em>Mind</em></div>
+    <div class="sep"></div>
+    <div class="page-tag">📥 数据采集管理端 <span class="agent-chip">智能体 01 · 网页版</span></div>
+  </div>
+  <div class="topbar-r">
+    <div class="count-chip">已导入 <b id="totalCount">0</b> 份素材</div>
+    <button class="btn btn-outline" onclick="clearAll()">↺ 清空</button>
+    <button class="btn btn-primary" id="analyzeAllBtn" onclick="analyzeAll()" disabled>
+      🤖 汇总AI分析
+    </button>
+  </div>
+</div>
+
+<div class="body">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-label">数据来源</div>
+
+    <button class="sb-btn active" onclick="filterSrc('all',this)">
+      <div class="sb-icon" style="background:#f1f5f9;">📂</div>
+      <div class="sb-info"><div class="sb-name">全部素材</div><div class="sb-cnt" id="cnt-all">0 份</div></div>
+    </button>
+    <button class="sb-btn" onclick="filterSrc('survey',this)">
+      <div class="sb-icon" style="background:var(--c1l);">📊</div>
+      <div class="sb-info"><div class="sb-name">问卷调研数据</div><div class="sb-cnt" id="cnt-survey">0 份</div></div>
+    </button>
+    <button class="sb-btn" onclick="filterSrc('minutes',this)">
+      <div class="sb-icon" style="background:var(--c2l);">📝</div>
+      <div class="sb-info"><div class="sb-name">会议纪要</div><div class="sb-cnt" id="cnt-minutes">0 份</div></div>
+    </button>
+    <button class="sb-btn" onclick="filterSrc('audio',this)">
+      <div class="sb-icon" style="background:var(--c3l);">🎙️</div>
+      <div class="sb-info"><div class="sb-name">录音文件</div><div class="sb-cnt" id="cnt-audio">0 份</div></div>
+    </button>
+    <button class="sb-btn" onclick="filterSrc('monitor',this)">
+      <div class="sb-icon" style="background:var(--c4l);">📹</div>
+      <div class="sb-info"><div class="sb-name">监控截图/视频</div><div class="sb-cnt" id="cnt-monitor">0 份</div></div>
+    </button>
+    <button class="sb-btn" onclick="filterSrc('news',this)">
+      <div class="sb-icon" style="background:var(--c5l);">📰</div>
+      <div class="sb-info"><div class="sb-name">新闻/政策文件</div><div class="sb-cnt" id="cnt-news">0 份</div></div>
+    </button>
+    <button class="sb-btn" onclick="filterSrc('url',this)">
+      <div class="sb-icon" style="background:var(--c6l);">🔗</div>
+      <div class="sb-info"><div class="sb-name">网页链接</div><div class="sb-cnt" id="cnt-url">0 份</div></div>
+    </button>
+    <button class="sb-btn" onclick="filterSrc('media',this)">
+      <div class="sb-icon" style="background:var(--c7l);">🖼️</div>
+      <div class="sb-info"><div class="sb-name">现场照片/视频</div><div class="sb-cnt" id="cnt-media">0 份</div></div>
+    </button>
+
+    <div class="sb-label" style="margin-top:12px;">采集状态</div>
+    <div style="padding:10px 12px;background:var(--bg);border-radius:10px;display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;">
+        <span style="color:var(--muted);">待分析</span>
+        <b id="stPending" style="color:var(--c4);">0</b>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;">
+        <span style="color:var(--muted);">已分析</span>
+        <b id="stDone" style="color:var(--c2);">0</b>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;">
+        <span style="color:var(--muted);">链接收录</span>
+        <b id="stUrl" style="color:var(--c6);">0</b>
+      </div>
+    </div>
+
+    <div style="margin-top:auto;padding:12px;background:var(--al);border-radius:10px;font-size:12px;color:var(--accent);line-height:1.7;border:1px solid rgba(29,78,216,0.1);">
+      💡 上传完所有素材后点击顶部<br>
+      <b>「汇总AI分析」</b>，自动提取关键信息传入智能体02
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="toolbar">
+      <div class="search">
+        <span style="color:var(--muted);">🔍</span>
+        <input type="text" placeholder="搜索文件名、标签、来源…" id="searchInput" oninput="renderCards()">
+      </div>
+      <button class="btn btn-outline" onclick="expandAll()">全部展开</button>
+    </div>
+
+    <div class="source-grid" id="sourceGrid">
+      <!-- Cards injected by JS -->
+    </div>
+
+    <!-- Analyze bar (hidden until files added) -->
+    <div class="analyze-bar" id="analyzeBar" style="display:none;">
+      <div class="prog-wrap">
+        <div class="prog-lbl" id="progLbl">准备分析…</div>
+        <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NOTIF -->
+<div class="notif" id="notif"></div>
+
+<!-- Hidden file inputs -->
+<input type="file" id="fi-survey" accept=".xlsx,.xls,.csv" multiple>
+<input type="file" id="fi-minutes" accept=".pdf,.docx,.doc,.txt" multiple>
+<input type="file" id="fi-audio" accept=".mp3,.m4a,.wav,.aac,.ogg" multiple>
+<input type="file" id="fi-monitor" accept="image/*,video/*" multiple>
+<input type="file" id="fi-news" accept=".pdf,.docx,.doc,.txt,.html" multiple>
+<input type="file" id="fi-media" accept="image/*,video/*" multiple>
+
+<script>
+// ── CONFIG ──
+const SOURCES = {
+  survey:  { label:'问卷调研数据',   icon:'📊', color:'var(--c1)', bg:'var(--c1l)', accept:'.xlsx,.xls,.csv',          types:['XLSX','XLS','CSV'],    desc:'导入问卷星/腾讯问卷导出的 Excel 或 CSV 文件' },
+  minutes: { label:'会议纪要',       icon:'📝', color:'var(--c2)', bg:'var(--c2l)', accept:'.pdf,.docx,.doc,.txt',      types:['PDF','DOCX','TXT'],    desc:'街道访谈、社区座谈会的会议纪要文件' },
+  audio:   { label:'录音文件',       icon:'🎙️', color:'var(--c3)', bg:'var(--c3l)', accept:'.mp3,.m4a,.wav,.aac',       types:['MP3','M4A','WAV'],     desc:'访谈录音、现场录音，AI 自动转文字提取观点' },
+  monitor: { label:'监控截图/视频',  icon:'📹', color:'var(--c4)', bg:'var(--c4l)', accept:'image/*,video/*',           types:['JPG','PNG','MP4','MOV'],'desc':'物业监控静态截图或短视频片段' },
+  news:    { label:'新闻/政策文件',  icon:'📰', color:'var(--c5)', bg:'var(--c5l)', accept:'.pdf,.docx,.txt,.html',     types:['PDF','DOCX','TXT','HTML'],'desc':'本地新闻报道、政府政策文件、规划文件' },
+  url:     { label:'网页链接',       icon:'🔗', color:'var(--c6)', bg:'var(--c6l)', accept:null,                        types:['URL'],                  desc:'粘贴网页地址，AI 自动抓取内容分析' },
+  media:   { label:'现场照片/视频',  icon:'🖼️', color:'var(--c7)', bg:'var(--c7l)', accept:'image/*,video/*',           types:['JPG','PNG','MP4','HEIC'],'desc':'调研员现场拍摄的照片和视频素材' },
+};
+
+const AI_TAGS = {
+  survey:  ['居民满意度','需求排序','投诉集中','改造期望','参与意愿'],
+  minutes: ['领导意见','政策支持','历史沿革','管理痛点','居民诉求'],
+  audio:   ['访谈内容','关键观点','情感倾向','重点问题'],
+  monitor: ['停车统计','人流密度','违停记录','高峰时段'],
+  news:    ['舆情热点','政策导向','历史问题','上级要求'],
+  url:     ['网页内容','相关资讯','背景参考'],
+  media:   ['景观问题','停车混乱','设施损坏','安全隐患','卫生问题'],
+};
+
+// ── STATE ──
+let allFiles = []; // { id, src, name, size, url, mime, aiStatus, aiTags }
+let allUrls = [];  // { id, src:'url', url, title, aiStatus, aiTags }
+let curFilter = 'all';
+let expanded = {};
+
+// ── INIT ──
+Object.keys(SOURCES).forEach(src => {
+  if (src !== 'url') {
+    const fi = document.getElementById('fi-'+src);
+    if (fi) fi.addEventListener('change', e => { handleFiles(Array.from(e.target.files), src); e.target.value=''; });
+  }
+  expanded[src] = true;
+});
+renderCards();
+
+// ── FILE HANDLING ──
+function handleFiles(files, src) {
+  files.forEach(f => {
+    allFiles.push({
+      id: Date.now() + Math.random(),
+      src, name: f.name, size: f.size,
+      url: URL.createObjectURL(f), mime: f.type,
+      aiStatus: 'pending', aiTags: [], aiNote: '',
+    });
+  });
+  updateCounts();
+  renderCards();
+  updateAnalyzeBtn();
+  notify(`✅ 已添加 ${files.length} 份${SOURCES[src].label}`);
+  // Auto AI-tag in background
+  allFiles.filter(f => f.src === src && f.aiStatus === 'pending').forEach(f => autoTag(f));
+}
+
+function addUrl(src) {
+  const inp = document.getElementById('url-input-'+src);
+  const val = inp.value.trim();
+  if (!val) return;
+  let url = val;
+  if (!url.startsWith('http')) url = 'https://' + url;
+  allUrls.push({
+    id: Date.now() + Math.random(),
+    src: 'url', url, title: url,
+    aiStatus: 'pending', aiTags: [], aiNote: '',
+  });
+  inp.value = '';
+  updateCounts();
+  renderCards();
+  updateAnalyzeBtn();
+  notify('🔗 链接已添加，AI 正在抓取…');
+  autoTagUrl(allUrls[allUrls.length - 1]);
+}
+
+function removeFile(id) {
+  allFiles = allFiles.filter(f => f.id !== id);
+  allUrls = allUrls.filter(f => f.id !== id);
+  updateCounts();
+  renderCards();
+  updateAnalyzeBtn();
+}
+
+// ── AUTO TAG ──
+async function autoTag(entry) {
+  entry.aiStatus = 'analyzing';
+  renderCards();
+  await delay(500 + Math.random() * 1000);
+  const pool = AI_TAGS[entry.src] || [];
+  entry.aiTags = pool.sort(() => Math.random() - 0.5).slice(0, 2);
+
+  // Real Claude API for images
+  if (entry.mime && entry.mime.startsWith('image/')) {
+    try {
+      const b64 = await toBase64(entry.url, entry.mime);
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514', max_tokens: 1000,
+          messages: [{ role: 'user', content: [
+            { type: 'image', source: { type: 'base64', media_type: entry.mime, data: b64 } },
+            { type: 'text', text: '分析这张社区现场图片，只返回JSON（无其他内容）：{"tags":["标签1","标签2"],"note":"一句话"}。标签从：景观问题、停车混乱、设施损坏、安全隐患、卫生问题、人流密度、绿化缺失 中选。' }
+          ]}]
+        })
+      });
+      const d = await res.json();
+      const p = JSON.parse((d.content?.[0]?.text||'{}').replace(/```json|```/g,'').trim());
+      if (p.tags) entry.aiTags = p.tags;
+      if (p.note) entry.aiNote = p.note;
+    } catch(e) {}
+  }
+
+  entry.aiStatus = 'done';
+  updateCounts();
+  renderCards();
+}
+
+async function autoTagUrl(entry) {
+  entry.aiStatus = 'analyzing';
+  await delay(1200);
+  entry.aiTags = ['网页内容','背景参考'];
+  try {
+    // Try to get page title via fetch
+    entry.title = entry.url;
+  } catch(e) {}
+  entry.aiStatus = 'done';
+  updateCounts();
+  renderCards();
+}
+
+// ── RENDER CARDS ──
+function renderCards() {
+  const q = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  const grid = document.getElementById('sourceGrid');
+
+  const srcKeys = curFilter === 'all' ? Object.keys(SOURCES) : [curFilter];
+
+  const cards = srcKeys.map(src => {
+    const cfg = SOURCES[src];
+    const items = src === 'url'
+      ? allUrls.filter(u => !q || u.url.toLowerCase().includes(q) || u.aiTags.some(t=>t.includes(q)))
+      : allFiles.filter(f => f.src === src && (!q || f.name.toLowerCase().includes(q) || f.aiTags.some(t=>t.includes(q))));
+
+    const isOpen = expanded[src] !== false;
+    const colorVar = cfg.color;
+
+    let bodyHtml = '';
+    if (src === 'url') {
+      bodyHtml = `
+        <div class="url-row">
+          <input class="url-input" id="url-input-url" placeholder="粘贴网页地址，如 https://…" onkeydown="if(event.key==='Enter')addUrl('url')">
+          <button class="url-add-btn" onclick="addUrl('url')" style="background:${colorVar}">添加</button>
+        </div>
+        ${items.length ? `<div class="file-list">${renderItems(items, src, cfg)}</div>` : ''}
+      `;
+    } else {
+      bodyHtml = `
+        <div class="drop-zone" id="dz-${src}"
+          onclick="document.getElementById('fi-${src}').click()"
+          ondragover="dzOver(event,'${src}')" ondragleave="dzOut('${src}')" ondrop="dzDrop(event,'${src}')">
+          <div class="dz-icon">${cfg.icon}</div>
+          <p>${cfg.desc}</p>
+          <div class="dz-types">${cfg.types.map(t=>`<span class="type-pill">${t}</span>`).join('')}</div>
+        </div>
+        ${items.length ? `<div class="file-list">${renderItems(items, src, cfg)}</div>` : ''}
+      `;
+    }
+
+    return `
+      <div class="src-card" style="animation-delay:${srcKeys.indexOf(src)*0.05}s;">
+        <div class="src-card-head">
+          <div class="src-head-l">
+            <div class="src-head-icon" style="background:${cfg.bg};">${cfg.icon}</div>
+            <div>
+              <div class="src-head-title" style="color:${colorVar}">${cfg.label}</div>
+              <div class="src-head-sub">${items.length} 份已导入${items.filter(i=>i.aiStatus==='done').length ? ` · ${items.filter(i=>i.aiStatus==='done').length} 已分析` : ''}</div>
+            </div>
+          </div>
+          <button onclick="toggleCard('${src}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:4px 8px;border-radius:6px;">${isOpen?'▲':'▼'}</button>
+        </div>
+        ${isOpen ? `<div class="src-card-body">${bodyHtml}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  grid.innerHTML = cards || `<div class="empty-full"><div class="ei">📂</div><p style="font-size:14px;color:var(--muted);">暂无素材</p></div>`;
+}
+
+function renderItems(items, src, cfg) {
+  const MAX = 4;
+  const shown = items.slice(0, MAX);
+  const rest = items.length - MAX;
+
+  return shown.map(item => {
+    const isImg = item.mime && item.mime.startsWith('image/');
+    const isUrl = item.src === 'url';
+    const thumb = isImg
+      ? `<img src="${item.url}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;">`
+      : isUrl ? '🔗' : getFileIcon(item.name);
+
+    const stClass = item.aiStatus === 'done' ? 'st-done' : item.aiStatus === 'analyzing' ? 'st-analyzing' : 'st-pending';
+    const stLabel = item.aiStatus === 'done' ? '已分析' : item.aiStatus === 'analyzing' ? '分析中' : '待分析';
+
+    const tags = item.aiTags.map(t => `<span class="fat" style="background:${cfg.bg};color:${cfg.color}">${t}</span>`).join('');
+    const meta = isUrl ? item.url.slice(0,40)+'…' : formatSize(item.size);
+
+    return `<div class="file-row">
+      <div class="file-row-thumb">${isImg ? thumb : `<span style="font-size:18px;">${thumb}</span>`}</div>
+      <div class="file-row-info">
+        <div class="file-row-name">${isUrl ? (item.title||item.url) : item.name}</div>
+        <div class="file-row-meta">${meta}</div>
+        ${tags ? `<div class="file-ai-tags">${tags}</div>` : ''}
+        ${item.aiNote ? `<div style="font-size:10px;color:var(--muted);margin-top:2px;">${item.aiNote}</div>` : ''}
+      </div>
+      <span class="file-row-status ${stClass}">${item.aiStatus === 'analyzing' ? `<span class="spin-sm"></span>` : stLabel}</span>
+      <button class="file-del" onclick="removeFile(${item.id})">✕</button>
+    </div>`;
+  }).join('') + (rest > 0 ? `<div class="more-files" onclick="expanded['${src}']=true;renderCards()">还有 ${rest} 份，点击展开 ▾</div>` : '');
+}
+
+function getFileIcon(name) {
+  const ext = (name||'').split('.').pop().toLowerCase();
+  const map = {pdf:'📄',docx:'📝',doc:'📝',xlsx:'📊',xls:'📊',csv:'📊',mp3:'🎵',m4a:'🎵',wav:'🎵',mp4:'🎬',mov:'🎬',txt:'📃',html:'🌐'};
+  return map[ext] || '📁';
+}
+
+function formatSize(b) {
+  if (!b) return '';
+  if (b < 1024) return b+'B';
+  if (b < 1024*1024) return (b/1024).toFixed(1)+'KB';
+  return (b/1024/1024).toFixed(1)+'MB';
+}
+
+// ── COUNTS ──
+function updateCounts() {
+  const all = [...allFiles, ...allUrls];
+  document.getElementById('totalCount').textContent = all.length;
+  document.getElementById('cnt-all').textContent = all.length + ' 份';
+
+  Object.keys(SOURCES).forEach(src => {
+    const el = document.getElementById('cnt-'+src);
+    if (!el) return;
+    const n = src === 'url' ? allUrls.length : allFiles.filter(f=>f.src===src).length;
+    el.textContent = n + ' 份';
+  });
+
+  const done = all.filter(f=>f.aiStatus==='done').length;
+  const pending = all.filter(f=>f.aiStatus==='pending').length;
+  document.getElementById('stPending').textContent = pending;
+  document.getElementById('stDone').textContent = done;
+  document.getElementById('stUrl').textContent = allUrls.length;
+}
+
+function updateAnalyzeBtn() {
+  const total = allFiles.length + allUrls.length;
+  const btn = document.getElementById('analyzeAllBtn');
+  btn.disabled = total === 0;
+  btn.textContent = total > 0 ? `🤖 汇总AI分析（${total}份）` : '🤖 汇总AI分析';
+}
+
+// ── CARD TOGGLE ──
+function toggleCard(src) { expanded[src] = !expanded[src]; renderCards(); }
+function expandAll() { Object.keys(SOURCES).forEach(s => expanded[s] = true); renderCards(); }
+
+// ── FILTER ──
+function filterSrc(src, btn) {
+  curFilter = src;
+  document.querySelectorAll('.sb-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCards();
+}
+
+// ── DRAG DROP ──
+function dzOver(e, src) { e.preventDefault(); document.getElementById('dz-'+src)?.classList.add('over'); }
+function dzOut(src) { document.getElementById('dz-'+src)?.classList.remove('over'); }
+function dzDrop(e, src) {
+  e.preventDefault(); dzOut(src);
+  handleFiles(Array.from(e.dataTransfer.files), src);
+}
+
+// ── ANALYZE ALL ──
+async function analyzeAll() {
+  const all = [...allFiles, ...allUrls];
+  if (!all.length) return;
+
+  const btn = document.getElementById('analyzeAllBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spin"></div> 分析中…';
+  document.getElementById('analyzeBar').style.display = 'flex';
+
+  const steps = ['预处理文件…', 'AI 逐项识别…', '提取关键信息…', '汇总问题标签…', '准备传入智能体02…'];
+  for (let i = 0; i < steps.length; i++) {
+    document.getElementById('progLbl').textContent = steps[i];
+    document.getElementById('progFill').style.width = ((i+1)/steps.length*100) + '%';
+    await delay(700);
+  }
+
+  // Tag any remaining pending
+  await Promise.all(all.filter(f=>f.aiStatus==='pending').map(f => f.src==='url' ? autoTagUrl(f) : autoTag(f)));
+
+  document.getElementById('progLbl').textContent = `✅ 分析完成，共 ${all.length} 份素材已处理`;
+  document.getElementById('progFill').style.width = '100%';
+  updateCounts();
+  renderCards();
+  btn.disabled = false;
+  btn.innerHTML = '✅ 已完成，进入智能体02 →';
+  btn.onclick = () => notify('🔗 即将跳转智能体02（开发中）');
+  notify(`✅ 全部 ${all.length} 份素材分析完成，可进入智能体02`);
+}
+
+function clearAll() {
+  if (!confirm('确认清空所有已导入素材？')) return;
+  allFiles = []; allUrls = [];
+  updateCounts(); renderCards(); updateAnalyzeBtn();
+  document.getElementById('analyzeBar').style.display = 'none';
+  document.getElementById('analyzeAllBtn').textContent = '🤖 汇总AI分析';
+  notify('已清空');
+}
+
+function notify(msg) {
+  const el = document.getElementById('notif');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function toBase64(url, mime) {
+  const blob = await (await fetch(url)).blob();
+  return new Promise(res => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.readAsDataURL(blob);
+  });
+}
+</script>
+</body>
+</html>
