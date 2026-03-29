@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeighborMind · 智能体03 · 策略框架生成</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f4f6fb;--white:#fff;--border:#e4e9f2;--text:#1a2235;--muted:#7a8aa0;
+  --accent:#1d4ed8;--al:#eff4ff;
+  --green:#059669;--gl:#ecfdf5;
+  --orange:#d97706;--ol:#fffbeb;
+  --red:#dc2626;--rl:#fef2f2;
+  --purple:#7c3aed;--pl:#f5f3ff;
+  --shadow:0 2px 12px rgba(0,0,0,0.06);
+  --shadow-lg:0 8px 32px rgba(0,0,0,0.1);
+  --r:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* TOP BAR */
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 28px;height:54px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.logo{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px;}
+.logo em{color:var(--accent);font-style:normal;}
+.sep{width:1px;height:16px;background:var(--border);}
+.page-tag{font-size:13px;font-weight:500;display:flex;align-items:center;gap:7px;}
+.chip{font-size:11px;padding:3px 8px;border-radius:6px;font-weight:500;background:var(--al);color:var(--accent);}
+.topbar-r{display:flex;gap:8px;}
+.btn{padding:7px 16px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;font-weight:500;display:flex;align-items:center;gap:5px;transition:all 0.15s;border:none;}
+.btn-ghost{border:1px solid var(--border)!important;background:var(--white);color:var(--muted);}
+.btn-ghost:hover{color:var(--text);background:var(--bg);}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{opacity:0.88;}
+
+/* MAIN SPLIT */
+.body{flex:1;display:grid;grid-template-columns:340px 1fr;overflow:hidden;}
+
+/* ── LEFT INPUT PANEL ── */
+.left{background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;}
+.left-head{padding:16px 18px 0;flex-shrink:0;}
+.left-head h2{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;margin-bottom:4px;}
+.left-head p{font-size:11px;color:var(--muted);line-height:1.5;}
+.left-tabs{display:flex;padding:10px 18px 0;gap:0;border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;}
+.left-tabs::-webkit-scrollbar{display:none;}
+.ltab{padding:7px 12px;font-size:12px;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);white-space:nowrap;transition:all 0.15s;}
+.ltab:hover{color:var(--text);}
+.ltab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.ltab-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-left:4px;background:var(--border);vertical-align:middle;}
+.ltab-dot.filled{background:var(--green);}
+
+.left-body{flex:1;overflow-y:auto;padding:16px 18px;}
+.left-body::-webkit-scrollbar{width:4px;}
+.left-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+.input-section{display:none;}
+.input-section.active{display:block;}
+
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;letter-spacing:0.3px;}
+.field input,.field textarea,.field select{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:'Noto Sans SC',sans-serif;color:var(--text);outline:none;background:var(--white);transition:border-color 0.15s;line-height:1.6;}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent);}
+.field textarea{resize:vertical;min-height:72px;}
+.field-hint{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.5;}
+
+.tag-input-wrap{display:flex;flex-wrap:wrap;gap:5px;padding:7px 9px;border:1px solid var(--border);border-radius:8px;cursor:text;min-height:36px;transition:border-color 0.15s;}
+.tag-input-wrap:focus-within{border-color:var(--accent);}
+.tag-item{background:var(--al);color:var(--accent);font-size:11px;padding:2px 8px;border-radius:5px;display:flex;align-items:center;gap:4px;}
+.tag-item button{background:none;border:none;cursor:pointer;color:var(--accent);font-size:11px;padding:0;line-height:1;}
+.tag-input-wrap input{border:none;outline:none;font-size:12px;font-family:'Noto Sans SC',sans-serif;min-width:80px;flex:1;background:none;}
+
+.upload-card{border:2px dashed var(--border);border-radius:11px;padding:18px 14px;text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:10px;}
+.upload-card:hover,.upload-card.over{border-color:var(--accent);background:var(--al);}
+.uc-icon{font-size:26px;margin-bottom:5px;}
+.uc-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;}
+.uc-types{font-size:11px;color:var(--muted);}
+.file-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
+.file-tag-item{display:flex;align-items:center;gap:5px;background:var(--al);border:1px solid rgba(29,78,216,0.15);color:var(--accent);font-size:11px;padding:3px 8px;border-radius:6px;}
+.file-tag-del{background:none;border:none;cursor:pointer;color:var(--accent);font-size:11px;padding:0;}
+.extract-box{background:var(--gl);border:1px solid rgba(5,150,105,0.15);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:12px;line-height:1.7;color:var(--text);}
+.extract-box-label{font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+.divider-or{font-size:11px;color:var(--muted);text-align:center;margin:10px 0;display:flex;align-items:center;gap:8px;}
+.divider-or::before,.divider-or::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.left-foot{padding:14px 18px;border-top:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;gap:8px;}
+.info-progress{display:flex;gap:3px;}
+.ip-dot{flex:1;height:3px;border-radius:3px;background:var(--border);transition:background 0.3s;}
+.ip-dot.filled{background:var(--green);}
+.ip-lbl{font-size:10px;color:var(--muted);margin-bottom:4px;}
+.gen-btn{width:100%;padding:12px;border-radius:11px;background:linear-gradient(135deg,var(--accent),#4f46e5);color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans SC',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.15s;}
+.gen-btn:hover{opacity:0.9;transform:translateY(-1px);}
+.gen-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+
+/* ── RIGHT OUTPUT PANEL ── */
+.right{display:flex;flex-direction:column;overflow:hidden;}
+.right-head{background:var(--white);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.right-head-l{display:flex;align-items:center;gap:10px;}
+.framework-status{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;}
+.right-scroll{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:14px;}
+.right-scroll::-webkit-scrollbar{width:5px;}
+.right-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:5px;}
+
+/* EMPTY */
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted);}
+.empty .ei{font-size:52px;opacity:0.2;}
+.empty h3{font-size:15px;font-weight:600;color:var(--text);opacity:0.4;}
+.empty p{font-size:13px;text-align:center;line-height:1.7;max-width:320px;}
+
+/* FRAMEWORK BLOCKS */
+.fw-block{background:var(--white);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;animation:up 0.4s ease forwards;opacity:0;}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.fw-block-head{padding:14px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);}
+.fw-level-badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.5px;flex-shrink:0;}
+.fw-block-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;flex:1;}
+.fw-block-actions{display:flex;gap:6px;flex-shrink:0;}
+.fw-action-btn{padding:5px 12px;border-radius:7px;font-size:11px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;border:1px solid var(--border);background:var(--white);color:var(--muted);transition:all 0.15s;display:flex;align-items:center;gap:4px;}
+.fw-action-btn:hover{color:var(--accent);border-color:var(--accent);background:var(--al);}
+.fw-action-btn.regen{color:var(--orange);border-color:rgba(217,119,6,0.3);}
+.fw-action-btn.regen:hover{background:var(--ol);}
+
+.fw-block-body{padding:16px 18px;}
+
+/* Content sections inside blocks */
+.fw-section{margin-bottom:14px;}
+.fw-section:last-child{margin-bottom:0;}
+.fw-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:7px;display:flex;align-items:center;gap:6px;}
+.fw-section-label span{font-weight:400;font-size:10px;text-transform:none;letter-spacing:0;}
+
+/* Editable content */
+.editable{font-size:13px;line-height:1.85;color:var(--text);outline:none;border-radius:8px;padding:8px 10px;border:1px solid transparent;transition:all 0.15s;font-family:'Noto Sans SC',sans-serif;min-height:40px;width:100%;}
+.editable:hover{border-color:var(--border);background:var(--bg);}
+.editable:focus{border-color:var(--accent);background:var(--white);}
+.editable[placeholder]:empty::before{content:attr(placeholder);color:var(--muted);font-style:italic;}
+
+/* Principle tags */
+.principle-row{display:flex;flex-wrap:wrap;gap:6px;}
+.principle-tag{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid;cursor:default;}
+
+/* System grid (mid-level) */
+.sys-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.sys-item{border:1px solid var(--border);border-radius:10px;padding:10px 12px;transition:all 0.15s;cursor:pointer;}
+.sys-item:hover{border-color:var(--accent);box-shadow:var(--shadow);}
+.sys-item.expanded{border-color:var(--accent);background:var(--al);}
+.sys-icon{font-size:18px;margin-bottom:4px;}
+.sys-name{font-size:12px;font-weight:600;margin-bottom:3px;}
+.sys-status{font-size:10px;color:var(--muted);}
+.sys-expand{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:none;}
+.sys-item.expanded .sys-expand{display:block;}
+.sys-expand-text{font-size:11px;line-height:1.7;color:var(--text);outline:none;width:100%;border:none;background:none;font-family:'Noto Sans SC',sans-serif;resize:none;min-height:60px;}
+.sys-expand-text:focus{background:var(--white);border-radius:6px;padding:4px;}
+
+/* Task book (micro) */
+.task-list{display:flex;flex-direction:column;gap:7px;}
+.task-item{display:flex;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:9px;align-items:flex-start;transition:border-color 0.15s;}
+.task-item:hover{border-color:#c8d4e8;}
+.task-num{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;margin-top:1px;}
+.task-body{flex:1;min-width:0;}
+.task-title{font-size:12px;font-weight:600;margin-bottom:3px;outline:none;}
+.task-title:focus{background:var(--bg);border-radius:4px;padding:2px 4px;}
+.task-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;}
+.task-tag{font-size:10px;padding:2px 7px;border-radius:5px;}
+
+/* Comment area */
+.comment-area{background:var(--bg);border-radius:10px;padding:12px 14px;margin-top:10px;}
+.comment-area-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.comment-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px;}
+.comment-item{display:flex;gap:8px;font-size:12px;}
+.comment-av{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;}
+.comment-bubble{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:6px 10px;flex:1;line-height:1.5;}
+.comment-bubble .ct{color:var(--text);}
+.comment-bubble .cm{font-size:10px;color:var(--muted);margin-top:2px;}
+.comment-input-row{display:flex;gap:6px;}
+.comment-inp{flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:'Noto Sans SC',sans-serif;outline:none;background:var(--white);}
+.comment-inp:focus{border-color:var(--accent);}
+.comment-send{padding:7px 12px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;}
+
+/* PROGRESS OVERLAY */
+.prog-overlay{position:absolute;inset:0;background:rgba(255,255,255,0.95);backdrop-filter:blur(4px);display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:10;}
+.prog-overlay.show{display:flex;}
+.prog-box{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:28px 32px;width:360px;box-shadow:var(--shadow-lg);}
+.prog-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.prog-bar{height:5px;background:var(--border);border-radius:5px;overflow:hidden;margin-bottom:14px;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),#4f46e5);border-radius:5px;transition:width 0.5s ease;width:0%;}
+.prog-step{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;}
+
+
+/* UPLOAD CARDS */
+.upload-card{border:2px dashed var(--border);border-radius:10px;padding:16px 12px;text-align:center;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.upload-card:hover,.upload-card.over{border-color:var(--accent);background:var(--al);}
+.uc-icon{font-size:24px;}
+.uc-title{font-size:13px;font-weight:600;color:var(--text);}
+.uc-sub{font-size:11px;color:var(--muted);}
+.uc-types{display:flex;gap:4px;margin-top:2px;}
+.uc-types span,.type-pill-sm{font-size:10px;background:var(--bg);border:1px solid var(--border);padding:1px 6px;border-radius:6px;color:var(--muted);}
+.file-tags{display:flex;flex-direction:column;gap:4px;margin-top:6px;}
+.ftag{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:7px;background:var(--bg);border:1px solid var(--border);font-size:11px;}
+.ftag-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ftag-del{background:none;border:none;cursor:pointer;color:var(--muted);font-size:12px;padding:0 2px;}
+.ftag-del:hover{color:var(--red);}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.25);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;}
+.spin-b{display:inline-block;width:12px;height:12px;border:2px solid rgba(29,78,216,0.15);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+.notif{position:fixed;bottom:20px;right:24px;background:var(--text);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;box-shadow:var(--shadow-lg);transform:translateY(16px);opacity:0;transition:all 0.25s;z-index:300;}
+.notif.show{transform:translateY(0);opacity:1;}
+
+input[type=file]{display:none;}
+
+@media(max-width:900px){
+  .body{grid-template-columns:1fr;}
+  .left{max-height:45vh;}
+  .sys-grid{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div class="logo">🏘 Neighbor<em>Mind</em></div>
+    <div class="sep"></div>
+    <div class="page-tag">🧭 策略框架生成 <span class="chip">智能体 03 · 第一步</span></div>
+  </div>
+  <div class="topbar-r">
+    <button class="btn btn-ghost" onclick="exportPDF()">📄 导出PDF</button>
+    <button class="btn btn-ghost" id="resetBtn" onclick="resetAll()">↺ 重置</button>
+  </div>
+</div>
+
+<div class="body" style="position:relative;">
+
+  <!-- LEFT -->
+  <div class="left">
+
+    <!-- TWO COLUMN UPLOAD -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border);flex-shrink:0;">
+
+      <!-- 规划资料 -->
+      <div style="padding:20px 18px;border-right:1px solid var(--border);">
+        <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--accent);margin-bottom:4px;">🗺 规划资料</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">总规 · 控规 · 街区更新规划</div>
+        <div class="upload-card" onclick="triggerUpload('planning')" ondragover="dzOver(event,'planning')" ondragleave="dzOut('planning')" ondrop="dzDrop(event,'planning')" id="dz-planning">
+          <div class="uc-icon">📎</div>
+          <div class="uc-title">点击或拖拽上传</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">PDF · DOCX · TXT</div>
+        </div>
+        <input type="file" id="fi-planning" accept=".pdf,.docx,.doc,.txt" multiple onchange="handleUpload('planning',this)">
+        <div class="file-tags" id="ft-planning"></div>
+        <textarea id="f-planning-txt" style="width:100%;margin-top:10px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:11px;font-family:'Noto Sans SC',sans-serif;resize:none;height:72px;outline:none;color:var(--text);" placeholder="或直接填写规划要点、用地性质、开发强度限制…" oninput="markFilled('planning')"></textarea>
+      </div>
+
+      <!-- 政策资料 -->
+      <div style="padding:20px 18px;">
+        <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--purple);margin-bottom:4px;">📜 政策资料</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">国家/地方政策 · 专项资金文件</div>
+        <div class="upload-card" onclick="triggerUpload('policy')" ondragover="dzOver(event,'policy')" ondragleave="dzOut('policy')" ondrop="dzDrop(event,'policy')" id="dz-policy">
+          <div class="uc-icon">📎</div>
+          <div class="uc-title">点击或拖拽上传</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">PDF · DOCX · TXT</div>
+        </div>
+        <input type="file" id="fi-policy" accept=".pdf,.docx,.doc,.txt" multiple onchange="handleUpload('policy',this)">
+        <div class="file-tags" id="ft-policy"></div>
+        <textarea id="f-policy-txt" style="width:100%;margin-top:10px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:11px;font-family:'Noto Sans SC',sans-serif;resize:none;height:72px;outline:none;color:var(--text);" placeholder="或直接填写政策要点、可申请资金、约束条件…" oninput="markFilled('policy')"></textarea>
+      </div>
+
+    </div>
+
+    <!-- 从智能体01读取 -->
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0;">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;">从智能体01读取的基础信息</div>
+      <div id="agent01Preview" style="font-size:12px;color:var(--text);line-height:1.8;display:none;"></div>
+      <div id="agent01Empty" style="font-size:12px;color:var(--muted);font-style:italic;">暂未检测到数据，请先在智能体01填写基本信息和历史文化。</div>
+    </div>
+
+    <div class="left-foot">
+      <div>
+        <div class="ip-lbl" id="fillLbl">已上传 0 / 2 类文件</div>
+        <div class="info-progress" id="infoProgress">
+          <div class="ip-dot" id="ip-planning"></div>
+          <div class="ip-dot" id="ip-policy"></div>
+        </div>
+      </div>
+      <button class="gen-btn" id="genBtn" onclick="generate()">
+        🤖 生成策略框架
+      </button>
+    </div>
+  </div>
+
+    <!-- RIGHT -->
+  <div class="right">
+    <div class="right-head">
+      <div class="right-head-l">
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;">策略框架</div>
+        <div class="framework-status" id="fwStatus">
+          <span style="width:7px;height:7px;border-radius:50%;background:var(--border);display:inline-block;"></span>
+          等待生成
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;" id="rightBtns" style="display:none;">
+        <button class="btn btn-ghost" onclick="addComment('main')" style="display:none;" id="commentBtn">💬 团队讨论</button>
+      </div>
+    </div>
+
+    <div class="right-scroll" id="rightScroll">
+      <div class="empty" id="emptyState">
+        <div class="ei">🧭</div>
+        <h3>策略框架待生成</h3>
+        <p>上传规划资料和政策文件<br>或直接填写要点文字<br>点击「生成策略框架」开始</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROGRESS OVERLAY -->
+  <div class="prog-overlay" id="progOverlay">
+    <div class="prog-box">
+      <div class="prog-title"><div class="spin-b" style="width:16px;height:16px;border-width:2.5px;"></div> AI 正在生成策略框架…</div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+      <div class="prog-step" id="progStep">读取项目信息…</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+// ── STATE ──
+const filled = { planning:false, policy:false };
+let fwData = null;
+let comments = {};
+const USERS = ['我','张工','李工','王总'];
+let curUser = 0;
+
+// ── LEFT TABS ──
+function switchLTab(sec, el) {
+  document.querySelectorAll('.ltab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.input-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-'+sec).classList.add('active');
+}
+
+function markFilled(sec) {
+  filled[sec] = true;
+  document.getElementById('dot-'+sec).classList.add('filled');
+  document.getElementById('ip-'+sec).classList.add('filled');
+  const cnt = Object.values(filled).filter(Boolean).length;
+  document.getElementById('fillLbl').textContent = `已上传 ${cnt} / 2 类文件`;
+}
+
+// ── FILE UPLOAD HANDLING ──
+
+function triggerUpload(sec) {
+  document.getElementById('fi-'+sec).click();
+}
+
+function dzOver(e, sec) { e.preventDefault(); document.getElementById('dz-'+sec)?.classList.add('over'); }
+function dzOut(sec) { document.getElementById('dz-'+sec)?.classList.remove('over'); }
+function dzDrop(e, sec) {
+  e.preventDefault(); dzOut(sec);
+  const files = Array.from(e.dataTransfer.files);
+  processFiles(sec, files);
+}
+
+function handleUpload(sec, input) {
+  processFiles(sec, Array.from(input.files));
+  input.value = '';
+}
+
+function processFiles(sec, files) {
+  if (!uploadedFiles[sec]) uploadedFiles[sec] = [];
+  files.forEach(f => uploadedFiles[sec].push({ name: f.name, size: f.size, url: URL.createObjectURL(f), mime: f.type, file: f }));
+  markFilled(sec);
+  renderFileTags(sec);
+  autoExtract(sec);
+}
+
+function renderFileTags(sec) {
+  const tags = document.getElementById('ft-'+sec);
+  if (!tags) return;
+  const files = uploadedFiles[sec] || [];
+  tags.innerHTML = files.map((f, i) => `
+    <div class="file-tag-item">
+      <span>${getFileIcon(f.name)}</span>
+      <span>${f.name.length > 16 ? f.name.slice(0,14)+'…' : f.name}</span>
+      <button class="file-tag-del" onclick="removeUploadedFile('${sec}',${i})">✕</button>
+    </div>`).join('');
+}
+
+function removeUploadedFile(sec, i) {
+  uploadedFiles[sec].splice(i, 1);
+  renderFileTags(sec);
+  if (!uploadedFiles[sec].length) document.getElementById('ex-'+sec).style.display = 'none';
+}
+
+async function autoExtract(sec) {
+  const files = uploadedFiles[sec] || [];
+  if (!files.length) return;
+  const exBox = document.getElementById('ex-'+sec);
+  exBox.style.display = 'block';
+  exBox.innerHTML = `<div class="extract-box-label"><span class="spin-b"></span> AI 正在提取关键信息…</div>`;
+
+  const SEC_LABELS = {
+    basic:'项目基本信息', planning:'上位规划要点', policy:'政策背景要点',
+    culture:'文化历史要点', social:'社会人口要点', client:'甲方诉求要点'
+  };
+
+  // For images, use vision API
+  const imgFile = files.find(f => f.mime && f.mime.startsWith('image/'));
+  try {
+    let result = '';
+    if (imgFile) {
+      const b64 = await toBase64(imgFile.url, imgFile.mime);
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          model:'claude-sonnet-4-20250514', max_tokens:1000,
+          messages:[{role:'user', content:[
+            {type:'image', source:{type:'base64', media_type:imgFile.mime, data:b64}},
+            {type:'text', text:`请从这个文件中提取与"${SEC_LABELS[sec]}"相关的关键信息，用简洁的要点列出（每点不超过30字，最多6点），只返回要点列表，每点以"•"开头。`}
+          ]}]
+        })
+      });
+      const d = await res.json();
+      result = d.content?.[0]?.text || '';
+    } else {
+      // For non-image files, ask Claude to generate based on filename and context
+      const fileNames = files.map(f=>f.name).join('、');
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          model:'claude-sonnet-4-20250514', max_tokens:1000,
+          messages:[{role:'user', content:`用户上传了以下文件用于社区微更新项目的"${SEC_LABELS[sec]}"：${fileNames}。
+请根据文件名推断可能包含的关键信息类型，并提示用户应该从这些文件中关注哪些要点，用"•"开头列出5-6条提示，每条不超过30字。`}]
+        })
+      });
+      const d = await res.json();
+      result = d.content?.[0]?.text || '';
+    }
+    exBox.innerHTML = `
+      <div class="extract-box-label">✅ AI 提取要点</div>
+      <div style="white-space:pre-line;line-height:1.8;">${result}</div>`;
+  } catch(e) {
+    exBox.innerHTML = `<div class="extract-box-label">📎 已上传 ${files.length} 个文件</div><div style="font-size:11px;color:var(--muted);">文件将在生成策略时作为背景参考</div>`;
+  }
+}
+
+function getFileIcon(name) {
+  const ext = (name||'').split('.').pop().toLowerCase();
+  return {pdf:'📄',docx:'📝',doc:'📝',xlsx:'📊',csv:'📊',mp3:'🎵',m4a:'🎵',txt:'📃',jpg:'🖼',png:'🖼',jpeg:'🖼'}[ext]||'📁';
+}
+
+async function toBase64(url, mime) {
+  const blob = await (await fetch(url)).blob();
+  return new Promise(res => { const r=new FileReader(); r.onload=()=>res(r.result.split(',')[1]); r.readAsDataURL(blob); });
+}
+
+// ── COLLECT INPUT ──
+
+// ── FILE UPLOAD (planning / policy) ──
+const uploadedFiles = { planning: [], policy: [] };
+
+function triggerUpload(sec) { document.getElementById('fi-'+sec).click(); }
+
+function handleUpload(sec, input) {
+  Array.from(input.files).forEach(f => {
+    uploadedFiles[sec].push({ name: f.name, size: f.size });
+  });
+  renderFileTags(sec);
+  markFilled(sec);
+  input.value = '';
+}
+
+function renderFileTags(sec) {
+  const container = document.getElementById('ft-'+sec);
+  if (!container) return;
+  container.innerHTML = uploadedFiles[sec].map((f, i) => `
+    <div class="ftag">
+      <span>📄</span>
+      <span class="ftag-name">${f.name}</span>
+      <span style="color:var(--muted);font-size:10px;">${(f.size/1024).toFixed(0)}KB</span>
+      <button class="ftag-del" onclick="removeFile('${sec}',${i})">✕</button>
+    </div>`).join('');
+}
+
+function removeFile(sec, i) {
+  uploadedFiles[sec].splice(i, 1);
+  renderFileTags(sec);
+}
+
+function dzOver(e, sec) { e.preventDefault(); document.getElementById('dz-'+sec)?.classList.add('over'); }
+function dzOut(sec) { document.getElementById('dz-'+sec)?.classList.remove('over'); }
+function dzDrop(e, sec) {
+  e.preventDefault(); dzOut(sec);
+  const dt = new DataTransfer();
+  Array.from(e.dataTransfer.files).forEach(f => dt.items.add(f));
+  const fi = document.getElementById('fi-'+sec);
+  fi.files = dt.files;
+  fi.dispatchEvent(new Event('change'));
+}
+
+// ── READ FROM AGENT01 (localStorage) ──
+function loadAgent01Data() {
+  try {
+    const basic = JSON.parse(localStorage.getItem('nm_basic') || 'null');
+    const culture = JSON.parse(localStorage.getItem('nm_culture') || 'null');
+    const preview = document.getElementById('agent01Preview');
+    const empty = document.getElementById('agent01Empty');
+    if (!basic && !culture) { preview.style.display='none'; empty.style.display='block'; return; }
+    empty.style.display = 'none';
+    preview.style.display = 'block';
+    let html = '';
+    if (basic) {
+      html += `<div style="margin-bottom:6px;"><b>${basic.name||'项目名称未填'}</b> · ${basic.city||''} · ${basic.year||''}</div>`;
+      if (basic.households||basic.population) html += `<div style="color:var(--muted);">👥 ${basic.households||''} ${basic.population||''} · 老龄化${basic.elderly||'-'} · 儿童${basic.children||'-'}</div>`;
+      if (basic.bg) html += `<div style="color:var(--muted);margin-top:2px;">📝 ${basic.bg.slice(0,60)}${basic.bg.length>60?'…':''}</div>`;
+    }
+    if (culture && culture.history) {
+      html += `<div style="color:var(--muted);margin-top:4px;">🏛 ${culture.history.slice(0,60)}${culture.history.length>60?'…':''}</div>`;
+    }
+    preview.innerHTML = html;
+  } catch(e) {}
+}
+
+loadAgent01Data();
+
+function collectInput() {
+  // Load from agent01 localStorage
+  let basic = {}, culture = {};
+  try { basic = JSON.parse(localStorage.getItem('nm_basic') || '{}'); } catch(e) {}
+  try { culture = JSON.parse(localStorage.getItem('nm_culture') || '{}'); } catch(e) {}
+
+  return {
+    name: basic.name || '待命名社区',
+    city: basic.city || '', year: basic.year || '',
+    area: basic.area || '', bldg: basic.bldg || '',
+    households: basic.households || '', population: basic.population || '',
+    elderly: basic.elderly || '', children: basic.children || '',
+    budget: basic.budget || '200', period: basic.period || '2年分两期',
+    bg: basic.bg || '', needs: basic.needs || '', gov: basic.gov || '',
+    planning: [document.getElementById('f-planning-txt')?.value || ''].concat(uploadedFiles.planning.map(f=>f.name)).filter(Boolean).join('；'),
+    policy: [document.getElementById('f-policy-txt')?.value || ''].concat(uploadedFiles.policy.map(f=>f.name)).filter(Boolean).join('；'),
+    culture: [culture.history||'', culture.character||'', culture.assets||'', culture.memory||''].filter(Boolean).join('；'),
+  };
+}
+function v(id) { const el=document.getElementById(id); return el?el.value.trim():''; }
+
+// ── GENERATE ──
+async function generate() {
+  const input = collectInput();
+  if (!input.name || (!input.goal && !input.bg)) {
+    notify('请至少填写「项目名称」和「甲方诉求」');
+    return;
+  }
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spin"></div> 生成中…';
+  showProg('读取项目信息…', 10);
+  document.getElementById('progOverlay').classList.add('show');
+
+  try {
+    showProg('分析上位规划与政策背景…', 25);
+    await delay(500);
+    showProg('生成宏观战略定位…', 45);
+    const macro = await genMacro(input);
+    showProg('梳理中观系统框架…', 65);
+    const meso = await genMeso(input);
+    showProg('生成微观任务书要点…', 82);
+    const micro = await genMicro(input);
+    showProg('整合策略框架…', 95);
+    await delay(400);
+
+    fwData = { macro, meso, micro, input };
+    renderFramework(fwData);
+    document.getElementById('fwStatus').innerHTML = `<span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;"></span> 已生成 · 可编辑迭代`;
+    document.getElementById('commentBtn').style.display = 'flex';
+
+  } catch(e) {
+    console.error(e);
+    fwData = getDemoFramework(input);
+    renderFramework(fwData);
+    notify('⚠️ AI接口异常，已使用示例框架');
+  }
+
+  document.getElementById('progOverlay').classList.remove('show');
+  btn.disabled = false;
+  btn.innerHTML = '🔄 重新生成';
+  notify('✅ 策略框架已生成，点击任意内容可直接编辑');
+}
+
+async function genMacro(inp) {
+  const prompt = `你是资深城市社区微更新规划师。根据以下项目信息，生成宏观战略定位，只返回JSON（无其他内容）：
+{
+  "necessity": "项目必要性（3点，每点20字以内）",
+  "significance": "项目意义（3点，每点20字以内）",
+  "vision": "愿景目标（30字以内）",
+  "positioning": "项目定位（40字以内）",
+  "principles": [{"name":"原则名","desc":"原则说明（20字）","color":"hex颜色"}],
+  "objectives": ["目标1（20字）","目标2","目标3","目标4"]
+}
+项目名：${inp.name}，城市：${inp.city}，建成年代：${inp.year}，面积：${inp.area}㎡，户数：${inp.households}，人口：${inp.population}，老龄化：${inp.elderly}，儿童占比：${inp.children}，背景：${inp.bg}，上位规划：${inp.planning}，政策：${inp.policy}，文化历史：${inp.culture}，预算：${inp.budget}万`;
+  return await callClaude(prompt);
+}
+
+async function genMeso(inp) {
+  const prompt = `你是资深城市社区微更新规划师。根据以下项目信息，生成中观系统框架，只返回JSON（无其他内容）：
+{
+  "spatial": {"name":"空间结构","icon":"🗺","current":"现状问题（20字）","strategy":"系统策略（40字）"},
+  "traffic": {"name":"交通停车","icon":"🚗","current":"现状问题","strategy":"系统策略"},
+  "landscape": {"name":"景观绿化","icon":"🌿","current":"现状问题","strategy":"系统策略"},
+  "building": {"name":"建筑风貌","icon":"🏘","current":"现状问题","strategy":"系统策略"},
+  "culture": {"name":"文化活力","icon":"🎭","current":"现状问题","strategy":"系统策略"},
+  "facility": {"name":"公共服务","icon":"🏛","current":"现状问题","strategy":"系统策略"},
+  "municipal": {"name":"市政基础","icon":"🔧","current":"现状问题","strategy":"系统策略"},
+  "ecology": {"name":"生态环境","icon":"🌱","current":"现状问题","strategy":"系统策略"},
+  "economy": {"name":"经济运营","icon":"💰","current":"现状问题","strategy":"系统策略"}
+}
+项目：${inp.name}，面积：${inp.area}㎡，户数：${inp.households}，人口：${inp.population}，老龄化：${inp.elderly}，背景：${inp.bg}，文化历史：${inp.culture}，上位规划：${inp.planning}，政策：${inp.policy}`;
+  return await callClaude(prompt);
+}
+
+async function genMicro(inp) {
+  const prompt = `你是资深城市社区微更新规划师。根据以下项目信息，生成微观设计任务书要点，只返回JSON数组（无其他内容）：
+[
+  {"category":"专项类别","item":"设计任务项","quantity":"数量/规模","standard":"设计标准要求","priority":"高/中/低","note":"备注"}
+]
+生成8-10项，覆盖环境、交通、设施等主要方面。
+项目：${inp.name}，预算：${inp.budget}万，面积：${inp.area}㎡，户数：${inp.households}，人口：${inp.population}，老龄化：${inp.elderly}，文化历史：${inp.culture}`;
+  return await callClaude(prompt);
+}
+
+async function callClaude(prompt) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{role:'user',content:prompt}] })
+  });
+  const d = await res.json();
+  const txt = d.content?.[0]?.text || '';
+  return JSON.parse(txt.replace(/```json|```/g,'').trim());
+}
+
+// ── RENDER FRAMEWORK ──
+function renderFramework(data) {
+  const { macro, meso, micro, input } = data;
+  document.getElementById('emptyState').style.display = 'none';
+  const scroll = document.getElementById('rightScroll');
+
+  // ── MACRO BLOCK ──
+  const necessityItems = Array.isArray(macro.necessity) ? macro.necessity : [macro.necessity];
+  const significanceItems = Array.isArray(macro.significance) ? macro.significance : [macro.significance];
+  const principles = macro.principles || [];
+  const objectives = macro.objectives || [];
+
+  const macroHTML = `
+    <div class="fw-block" style="animation-delay:0.05s;">
+      <div class="fw-block-head">
+        <span class="fw-level-badge" style="background:#eff4ff;color:#1d4ed8;">宏观 · 战略层</span>
+        <div class="fw-block-title">战略定位与项目论证</div>
+        <div class="fw-block-actions">
+          <button class="fw-action-btn" onclick="addBlockComment('macro')">💬 讨论</button>
+          <button class="fw-action-btn regen" onclick="regenBlock('macro')">↺ 重新生成</button>
+        </div>
+      </div>
+      <div class="fw-block-body">
+
+        <div class="fw-section">
+          <div class="fw-section-label">🎯 项目定位 <span>· 点击编辑</span></div>
+          <div class="editable" contenteditable="true" placeholder="项目定位…">${macro.positioning || ''}</div>
+        </div>
+
+        <div class="fw-section">
+          <div class="fw-section-label">🌟 愿景目标</div>
+          <div class="editable" contenteditable="true" placeholder="愿景目标…" style="font-size:14px;font-weight:500;color:var(--accent);">${macro.vision || ''}</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+          <div class="fw-section" style="margin-bottom:0;">
+            <div class="fw-section-label">📌 必要性</div>
+            ${necessityItems.map(n=>`<div class="editable" contenteditable="true" style="margin-bottom:4px;font-size:12px;">• ${n}</div>`).join('')}
+          </div>
+          <div class="fw-section" style="margin-bottom:0;">
+            <div class="fw-section-label">✨ 意义</div>
+            ${significanceItems.map(s=>`<div class="editable" contenteditable="true" style="margin-bottom:4px;font-size:12px;">• ${s}</div>`).join('')}
+          </div>
+        </div>
+
+        <div class="fw-section">
+          <div class="fw-section-label">🧭 设计原则</div>
+          <div class="principle-row">
+            ${principles.map(p=>`<div class="principle-tag" style="background:${p.color}18;color:${p.color};border-color:${p.color}40;" title="${p.desc}">${p.name}</div>`).join('')}
+          </div>
+        </div>
+
+        <div class="fw-section">
+          <div class="fw-section-label">🎯 分项目标</div>
+          ${objectives.map((o,i)=>`
+            <div style="display:flex;gap:8px;margin-bottom:5px;align-items:flex-start;">
+              <span style="width:18px;height:18px;border-radius:50%;background:var(--al);color:var(--accent);display:grid;place-items:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">${i+1}</span>
+              <div class="editable" contenteditable="true" style="font-size:12px;flex:1;">${o}</div>
+            </div>`).join('')}
+        </div>
+
+        ${renderComments('macro')}
+      </div>
+    </div>`;
+
+  // ── MESO BLOCK ──
+  const sysSections = Object.values(meso || {});
+  const mesoHTML = `
+    <div class="fw-block" style="animation-delay:0.1s;">
+      <div class="fw-block-head">
+        <span class="fw-level-badge" style="background:#ecfdf5;color:#059669;">中观 · 系统层</span>
+        <div class="fw-block-title">九大系统梳理</div>
+        <div class="fw-block-actions">
+          <button class="fw-action-btn" onclick="addBlockComment('meso')">💬 讨论</button>
+          <button class="fw-action-btn regen" onclick="regenBlock('meso')">↺ 重新生成</button>
+        </div>
+      </div>
+      <div class="fw-block-body">
+        <div class="sys-grid" id="sysGrid">
+          ${sysSections.map((sys, i) => `
+            <div class="sys-item" id="sys-${i}" onclick="toggleSys(${i})">
+              <div class="sys-icon">${sys.icon || '📌'}</div>
+              <div class="sys-name">${sys.name || ''}</div>
+              <div class="sys-status" style="color:var(--muted);">${sys.current || ''}</div>
+              <div class="sys-expand">
+                <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">系统策略</div>
+                <textarea class="sys-expand-text" onclick="event.stopPropagation()">${sys.strategy || ''}</textarea>
+              </div>
+            </div>`).join('')}
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px;text-align:center;">点击系统卡片展开编辑策略 · 可直接修改文字</div>
+        ${renderComments('meso')}
+      </div>
+    </div>`;
+
+  // ── MICRO BLOCK ──
+  const tasks = Array.isArray(micro) ? micro : [];
+  const microHTML = `
+    <div class="fw-block" style="animation-delay:0.15s;">
+      <div class="fw-block-head">
+        <span class="fw-level-badge" style="background:#fef2f2;color:#dc2626;">微观 · 任务书层</span>
+        <div class="fw-block-title">设计任务书要点</div>
+        <div class="fw-block-actions">
+          <button class="fw-action-btn" onclick="addBlockComment('micro')">💬 讨论</button>
+          <button class="fw-action-btn regen" onclick="regenBlock('micro')">↺ 重新生成</button>
+        </div>
+      </div>
+      <div class="fw-block-body">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;background:var(--ol);padding:8px 12px;border-radius:8px;border:1px solid rgba(217,119,6,0.15);">
+          ⚠️ 此为任务书框架，详细数量和标准需在深化阶段根据实际情况确认
+        </div>
+        <div class="task-list">
+          ${tasks.map((t, i) => `
+            <div class="task-item">
+              <div class="task-num" style="background:${['var(--red)','var(--orange)','var(--accent)','var(--green)','var(--purple)'][i%5]}">${i+1}</div>
+              <div class="task-body">
+                <div class="task-title" contenteditable="true">[${t.category}] ${t.item}</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:2px;" contenteditable="true">规模：${t.quantity} ｜ 标准：${t.standard}</div>
+                <div class="task-meta">
+                  <span class="task-tag" style="background:${t.priority==='高'?'var(--rl)':t.priority==='中'?'var(--ol)':'var(--gl)'};color:${t.priority==='高'?'var(--red)':t.priority==='中'?'var(--orange)':'var(--green)'};">${t.priority}优先</span>
+                  ${t.note ? `<span class="task-tag" style="background:var(--bg);color:var(--muted);">备注：${t.note}</span>` : ''}
+                </div>
+              </div>
+            </div>`).join('')}
+        </div>
+        ${renderComments('micro')}
+      </div>
+    </div>`;
+
+  scroll.innerHTML = macroHTML + mesoHTML + microHTML;
+}
+
+// ── SYSTEM TOGGLE ──
+function toggleSys(i) {
+  const el = document.getElementById('sys-'+i);
+  el.classList.toggle('expanded');
+}
+
+// ── COMMENTS ──
+function renderComments(block) {
+  const list = comments[block] || [];
+  if (!list.length) return `<div class="comment-area" id="ca-${block}" style="display:none;">${commentInputHTML(block)}</div>`;
+  return `<div class="comment-area" id="ca-${block}">
+    <div class="comment-area-label">💬 团队讨论 <span style="font-weight:400;color:var(--muted);">(${list.length}条)</span></div>
+    <div class="comment-list">
+      ${list.map(c=>`<div class="comment-item">
+        <div class="comment-av" style="background:${c.color}">${c.user[0]}</div>
+        <div class="comment-bubble"><div class="ct">${c.text}</div><div class="cm">${c.user} · ${c.time}</div></div>
+      </div>`).join('')}
+    </div>
+    ${commentInputHTML(block)}
+  </div>`;
+}
+
+function commentInputHTML(block) {
+  return `<div class="comment-input-row">
+    <input class="comment-inp" id="ci-${block}" placeholder="输入讨论意见…" onkeydown="if(event.key==='Enter')sendComment('${block}')">
+    <button class="comment-send" onclick="sendComment('${block}')">发送</button>
+  </div>`;
+}
+
+function addBlockComment(block) {
+  const ca = document.getElementById('ca-'+block);
+  if (ca) { ca.style.display='block'; ca.querySelector('.comment-inp')?.focus(); }
+}
+
+function sendComment(block) {
+  const inp = document.getElementById('ci-'+block);
+  if (!inp || !inp.value.trim()) return;
+  if (!comments[block]) comments[block] = [];
+  const colors = ['#1d4ed8','#059669','#d97706','#7c3aed'];
+  comments[block].push({
+    user: USERS[curUser], color: colors[curUser],
+    text: inp.value.trim(),
+    time: new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})
+  });
+  inp.value = '';
+  renderFramework(fwData);
+  notify('💬 评论已添加');
+}
+
+// ── REGEN BLOCK ──
+async function regenBlock(block) {
+  if (!fwData) return;
+  notify(`↺ 正在重新生成${block==='macro'?'宏观战略':block==='meso'?'系统框架':'任务书'}…`);
+  try {
+    if (block === 'macro') fwData.macro = await genMacro(fwData.input);
+    if (block === 'meso') fwData.meso = await genMeso(fwData.input);
+    if (block === 'micro') fwData.micro = await genMicro(fwData.input);
+    renderFramework(fwData);
+    notify('✅ 已重新生成，请查看更新内容');
+  } catch(e) { notify('⚠️ 重新生成失败，请稍后再试'); }
+}
+
+// ── DEMO DATA ──
+function getDemoFramework(inp) {
+  return {
+    input: inp,
+    macro: {
+      positioning: `将${inp.name}打造为以人为本、安全宜居、文化传承的示范性社区微更新项目`,
+      vision: '让居民住得更安全、更舒适、更有归属感',
+      necessity: ['现有设施老旧，安全隐患突出，亟需系统整治','停车矛盾尖锐，公共空间不足，居民诉求强烈','政策窗口期明确，资金来源有保障，改造条件成熟'],
+      significance: ['提升居民生活品质，增强社区凝聚力','形成可复制可推广的老旧社区更新模式','落实上级老旧小区改造政策，发挥示范引领作用'],
+      principles: [
+        {name:'安全优先',desc:'以消除安全隐患为首要任务',color:'#dc2626'},
+        {name:'问题导向',desc:'聚焦居民核心诉求精准施策',color:'#d97706'},
+        {name:'系统思维',desc:'统筹考虑各系统协同改造',color:'#1d4ed8'},
+        {name:'文化传承',desc:'保留社区记忆与场所精神',color:'#7c3aed'},
+        {name:'全龄友好',desc:'兼顾老人儿童等各类人群',color:'#059669'},
+        {name:'可持续运营',desc:'建立长效管理维护机制',color:'#0284c7'},
+      ],
+      objectives: ['消除安全隐患，实现照明全覆盖','优化停车管理，提升车位利用率30%','修复绿化景观，提升绿化覆盖率至35%','补充公共设施，实现全龄友好设计']
+    },
+    meso: {
+      spatial:{name:'空间结构',icon:'🗺',current:'空间组织混乱，边界不清',strategy:'建立"主轴-组团-节点"空间结构，明确各区域功能定位'},
+      traffic:{name:'交通停车',icon:'🚗',current:'停车位严重不足，违停突出',strategy:'系统梳理车行人行流线，优化停车布局，推行错时停车'},
+      landscape:{name:'景观绿化',icon:'🌿',current:'绿化破损，景观品质低',strategy:'以绿化修复为基础，打造入口节点和组团中心景观'},
+      building:{name:'建筑风貌',icon:'🏘',current:'立面老旧，风格杂乱',strategy:'统一建筑色彩与立面改造导则，体现地域文化特色'},
+      culture:{name:'文化活力',icon:'🎭',current:'缺乏文化活动场地与载体',strategy:'设置文化展示空间，策划社区活动，激活文化认同'},
+      facility:{name:'公共服务',icon:'🏛',current:'设施老旧不足，缺少儿童场地',strategy:'补充全龄化服务设施，建立15分钟生活圈'},
+      municipal:{name:'市政基础',icon:'🔧',current:'管线老化，照明盲区多',strategy:'统筹管线改造时序，优先补齐照明安防设施'},
+      ecology:{name:'生态环境',icon:'🌱',current:'硬化率高，雨水径流大',strategy:'增加透水铺装，设置雨水花园，提升生态韧性'},
+      economy:{name:'经济运营',icon:'💰',current:'缺乏物业运营收入来源',strategy:'引入社区商业微更新，探索可持续运营模式'}
+    },
+    micro: [
+      {category:'交通停车',item:'停车位改造与划线',quantity:'增加50个车位',standard:'符合GB50220标准，设置无障碍车位',priority:'高',note:'需协调物业'},
+      {category:'照明安防',item:'路灯及监控补充',quantity:'新增路灯30盏、监控12处',standard:'照度≥10lux，监控全覆盖',priority:'高',note:''},
+      {category:'景观绿化',item:'绿化带修复与提升',quantity:'修复绿化带约800㎡',standard:'植被覆盖率≥70%，选用乡土植物',priority:'中',note:''},
+      {category:'公共设施',item:'健身器材更换',quantity:'更换健身器材15套',standard:'符合GB19272标准，适老化设计',priority:'中',note:''},
+      {category:'儿童活动',item:'儿童活动场地新建',quantity:'新建儿童活动区200㎡',standard:'软质地面，安全围护，2-12岁全龄',priority:'中',note:''},
+      {category:'无障碍',item:'无障碍系统完善',quantity:'坡道12处、扶手80米',standard:'符合GB50763标准',priority:'中',note:''},
+      {category:'文化景观',item:'入口景观节点改造',quantity:'主入口及2处组团节点',standard:'体现社区文化特色，设置文化展示',priority:'低',note:''},
+      {category:'市政管线',item:'弱电管线整理',quantity:'整理线缆约500米',standard:'入地或规整捆扎，消除安全隐患',priority:'低',note:''},
+    ]
+  };
+}
+
+// ── PROGRESS ──
+function showProg(txt, pct) {
+  document.getElementById('progStep').textContent = txt;
+  document.getElementById('progFill').style.width = pct + '%';
+}
+
+// ── UTILS ──
+function resetAll() {
+  if (!confirm('确认重置所有内容？')) return;
+  document.querySelectorAll('input,textarea').forEach(el => el.value = '');
+  Object.keys(filled).forEach(k => { filled[k]=false; const d=document.getElementById('dot-'+k); if(d)d.classList.remove('filled'); const p=document.getElementById('ip-'+k); if(p)p.classList.remove('filled'); });
+  document.getElementById('fillLbl').textContent = '已填写 0 / 4 类信息';
+  document.getElementById('rightScroll').innerHTML = `<div class="empty" id="emptyState"><div class="ei">🧭</div><h3>策略框架待生成</h3><p>填写左侧信息后点击生成</p></div>`;
+  document.getElementById('fwStatus').innerHTML = `<span style="width:7px;height:7px;border-radius:50%;background:var(--border);display:inline-block;"></span> 等待生成`;
+  fwData = null; comments = {};
+  document.getElementById('genBtn').innerHTML = '🤖 生成策略框架';
+  document.getElementById('genBtn').disabled = false;
+}
+function exportPDF() { window.print(); }
+function delay(ms) { return new Promise(r=>setTimeout(r,ms)); }
+function notify(msg) { const el=document.getElementById('notif'); el.textContent=msg; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2800); }
+</script>
+</body>
+</html>
