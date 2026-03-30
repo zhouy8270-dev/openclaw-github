@@ -513,8 +513,16 @@ input[type=file] { display:none; }
 function navTo(id, btn) {
   document.querySelectorAll('.sb-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  if (id === 'all') {
+    document.getElementById('rightPanel').scrollTop = 0;
+    return;
+  }
+  const panel = document.getElementById('rightPanel');
   const card = document.getElementById('card-' + id);
-  if (card) card.scrollIntoView({ behavior:'smooth', block:'start' });
+  if (!panel || !card) return;
+  const panelTop = panel.getBoundingClientRect().top;
+  const cardTop = card.getBoundingClientRect().top;
+  panel.scrollTop += (cardTop - panelTop) - 12;
 }
 
 // ── FORM CARDS ──
