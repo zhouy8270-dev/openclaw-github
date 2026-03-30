@@ -206,11 +206,239 @@ body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text
 .notif{position:fixed;bottom:20px;right:24px;background:var(--text);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;box-shadow:var(--shadow-lg);transform:translateY(16px);opacity:0;transition:all 0.25s;z-index:500;}
 .notif.show{transform:translateY(0);opacity:1;}
 input[type=file]{display:none;}
+
+/* ── RESPONSIVE (Mobile) ── */
+@media (max-width: 768px) {
+  body { height: 100vh; overflow: hidden; }
+
+  /* Stack layout */
+  .layout { grid-template-columns: 1fr !important; grid-template-rows: auto 1fr; }
+
+  /* Left panel: compact horizontal, not overlapping */
+  .left {
+    border-right: none !important;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  .left-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 10px 12px !important;
+    max-height: 180px;
+    overflow-y: auto;
+  }
+  .left-foot { padding: 10px 12px !important; }
+
+  /* Right: fill remaining */
+  .right { overflow: hidden; min-height: 0; }
+  .right-scroll { padding: 12px !important; }
+
+  /* Tabs: scrollable */
+  .tabs { overflow-x: auto; flex-wrap: nowrap; }
+  .tab { white-space: nowrap; padding: 8px 12px; font-size: 12px; }
+  .right-head { padding: 10px 14px !important; }
+
+  /* MACRO: collapsible blocks */
+  .mac-block { padding: 12px 14px !important; margin-bottom: 8px !important; }
+  .mac-block .sc-content, .mac-block .editable, .mac-block .fsb-item { font-size: 12px !important; }
+  .mac-block .chat-area { display: none; } /* hide AI chat on mobile */
+  .mac-block .chat-area.expanded { display: block; }
+  .macro-layout { grid-template-columns: 1fr !important; }
+  .macro-nav { display: none !important; }
+  .principles-row { gap: 5px; }
+  .principle-tag { font-size: 11px !important; padding: 4px 10px !important; }
+
+  /* Add collapse toggle to mac-block */
+  .mac-label { cursor: pointer; }
+  .mac-block-body { overflow: hidden; transition: max-height 0.3s ease; }
+  .mac-block.collapsed .mac-block-body { max-height: 0 !important; }
+  .mac-block.collapsed .mac-label::after { content: ' ▶'; font-size: 10px; }
+  .mac-block:not(.collapsed) .mac-label::after { content: ' ▼'; font-size: 10px; }
+
+  /* MESO/MICRO: list style instead of cards */
+  .card-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+  }
+  .fw-card {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 10px 12px !important;
+    text-align: left !important;
+    transform: none !important;
+  }
+  .fw-card:hover { transform: none !important; }
+  .fw-card-icon {
+    width: 36px !important; height: 36px !important;
+    border-radius: 10px !important; font-size: 18px !important;
+    flex-shrink: 0 !important; margin: 0 !important;
+  }
+  .fw-card-name { font-size: 13px !important; margin-bottom: 2px !important; }
+  .fw-card-sub { font-size: 11px !important; margin-bottom: 0 !important; }
+  .fw-card-arrow { font-size: 18px !important; margin-left: auto; color: var(--muted) !important; }
+  .fw-card-del { opacity: 1 !important; width: 20px !important; height: 20px !important; }
+  .fw-card-add { min-height: 48px !important; flex-direction: row !important; padding: 10px 14px !important; }
+
+  /* Modal: full screen */
+  .modal-overlay { align-items: flex-end !important; }
+  .modal-box {
+    width: 100% !important; max-width: 100% !important;
+    max-height: 90vh !important; border-radius: 18px 18px 0 0 !important;
+  }
+  .meso-modal-box {
+    width: 100% !important; max-width: 100% !important;
+    max-height: 90vh !important; border-radius: 18px 18px 0 0 !important;
+  }
+  .diagram-pair { grid-template-columns: 1fr !important; }
+  .data-chips { flex-wrap: wrap; }
+
+  /* Map */
+  #microMap { height: 200px !important; }
+}
+
+/* ── NAV SCREEN ── */
+#navScreen {
+  position: fixed; inset: 0; z-index: 1000;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  overflow-y: auto;
+}
+.nav-screen-hero {
+  padding: 40px 24px 28px;
+  color: #fff;
+  flex-shrink: 0;
+}
+.nav-screen-logo {
+  font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800;
+  opacity: 0.8; margin-bottom: 20px; display: flex; align-items: center; gap: 6px;
+}
+.nav-screen-title {
+  font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800;
+  line-height: 1.2; margin-bottom: 6px;
+}
+.nav-screen-sub {
+  font-size: 13px; opacity: 0.75;
+}
+.nav-screen-items {
+  flex: 1; padding: 16px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.nav-screen-item {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px 18px;
+  display: flex; align-items: center; gap: 14px;
+  cursor: pointer; transition: all 0.2s;
+  text-decoration: none; color: var(--text);
+}
+.nav-screen-item:hover, .nav-screen-item:active {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  transform: translateY(-1px);
+}
+.nav-item-icon {
+  width: 48px; height: 48px; border-radius: 13px;
+  display: grid; place-items: center; font-size: 24px;
+  flex-shrink: 0;
+}
+.nav-item-text { flex: 1; }
+.nav-item-label {
+  font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 800;
+  margin-bottom: 3px;
+}
+.nav-item-desc { font-size: 12px; color: var(--muted); }
+.nav-item-arrow { font-size: 18px; color: var(--muted); }
+
+.nav-screen-footer {
+  padding: 16px; text-align: center;
+  font-size: 11px; color: var(--muted);
+  flex-shrink: 0;
+}
+.enter-all-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 20px; border-radius: 10px;
+  background: var(--white); border: 1px solid var(--border);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  color: var(--text); font-family: 'Noto Sans SC', sans-serif;
+  margin-bottom: 10px; transition: all 0.15s;
+}
+.enter-all-btn:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+/* Back button */
+#backToNav {
+  position: fixed; bottom: 20px; right: 20px; z-index: 900;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--text); color: #fff;
+  border: none; cursor: pointer;
+  font-size: 18px; display: none; place-items: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  transition: all 0.2s;
+}
+#backToNav:hover { transform: scale(1.08); }
+#backToNav.visible { display: grid; }
+
+
+/* Mobile topbar: logo only */
+@media (max-width: 768px) {
+  .topbar { height: 46px !important; padding: 0 14px !important; flex-wrap: nowrap !important; }
+  .topbar .page-tag { display: none !important; }
+  .topbar .topbar-r { display: none !important; }
+  .topbar .logo { font-size: 13px !important; }
+  .topbar > div:first-child { overflow: hidden; }
+}
 </style>
 </head>
 <body>
 
+<!-- NAV SCREEN -->
+<div id="navScreen">
+  <div class="nav-screen-hero" style="background:linear-gradient(135deg,#1d4ed8,#4f46e5);">
+    <div class="nav-screen-logo">🏘 NeighborMind</div>
+    <div class="nav-screen-title">策略框架生成</div>
+    <div class="nav-screen-sub">智能体 03 · 点击进入对应模块</div>
+  </div>
+  <div class="nav-screen-items">
+
+    <div class="nav-screen-item" onclick="navGoTo('tab-macro')">
+      <div class="nav-item-icon" style="background:#1d4ed818;">🌐</div>
+      <div class="nav-item-text">
+        <div class="nav-item-label" style="color:#1d4ed8;">宏观战略</div>
+        <div class="nav-item-desc">定位·愿景·原则</div>
+      </div>
+      <div class="nav-item-arrow">›</div>
+    </div>
+    <div class="nav-screen-item" onclick="navGoTo('tab-meso')">
+      <div class="nav-item-icon" style="background:#05966918;">🔲</div>
+      <div class="nav-item-text">
+        <div class="nav-item-label" style="color:#059669;">中观系统</div>
+        <div class="nav-item-desc">各系统分析策略</div>
+      </div>
+      <div class="nav-item-arrow">›</div>
+    </div>
+    <div class="nav-screen-item" onclick="navGoTo('tab-micro')">
+      <div class="nav-item-icon" style="background:#d9770618;">🔍</div>
+      <div class="nav-item-text">
+        <div class="nav-item-label" style="color:#d97706;">微观任务书</div>
+        <div class="nav-item-desc">景观节点任务书</div>
+      </div>
+      <div class="nav-item-arrow">›</div>
+    </div>
+  </div>
+  <div class="nav-screen-footer">
+    <button class="enter-all-btn" onclick="enterAll()">📂 进入完整界面</button>
+    <div>或点击上方模块直接跳转</div>
+  </div>
+</div>
+
+<!-- BACK BUTTON -->
+<button id="backToNav" onclick="showNavScreen()" title="返回导航">⊞</button>
+
+
 <!-- TOP BAR -->
+<div id="mainApp" style="display:none;flex-direction:column;height:100vh;">
 <div class="topbar">
   <div style="display:flex;align-items:center;">
     <div class="logo">🏘 Neighbor<em>Mind</em></div>
@@ -445,85 +673,41 @@ loadAgent01();
 // ══════════════════════════════
 async function generate() {
   const btn = document.getElementById('genBtn');
-  btn.disabled = true; btn.innerHTML = '<div class="spin"></div> 生成中…';
-  showProgress();
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spin"></div> 生成中…';
 
   const input = collectInput();
 
-  // Test API connectivity first
-  let apiOk = false;
+  // 立即显示演示数据，不等待网络
+  useDemoData(input);
+  restorePanels();
+  renderAll();
+  finishGenerate();
+  btn.disabled = false;
+  btn.innerHTML = '🔄 重新生成';
+  notify('已生成示例框架');
+
+  // 后台尝试API优化（不阻塞UI）
   try {
-    const test = await Promise.race([
-      fetch('https://api.anthropic.com/v1/messages', {method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}),
-      new Promise((_,r) => setTimeout(() => r(new Error('timeout')), 4000))
-    ]);
-    apiOk = test.status !== undefined;
-  } catch(e) { apiOk = false; }
-
-  if (!apiOk) {
-    setProg('API不可用，使用示例数据…', 80);
-    await delay(600);
-    useDemoData(input);
-    restorePanels();
-    renderAll();
-    finishGenerate();
-    btn.disabled = false; btn.innerHTML = '🔄 重新生成';
-    notify('⚠️ 网络受限，已使用示例数据');
-    return;
-  }
-
-  try {
-    setProg('生成宏观战略定位…', 20);
-    const macro = await callClaude(macroPrompt(input));
-    setProg('梳理中观系统框架…', 50);
-    const mesoRaw = await callClaude(mesoPrompt(input));
-    setProg('生成微观景观任务书…', 75);
-    const microRaw = await callClaude(microPrompt(input));
-    setProg('整合策略框架…', 95);
-    await delay(300);
-
-    // Process meso
-    mesoActiveSystems = Object.entries(MESO_CATS).map(([key,cfg]) => {
-      const data = mesoRaw[key] || {};
-      return { key, ...cfg, current: data.current||'', strategy: data.strategy||'' };
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(), 8000);
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      signal: controller.signal,
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000,
+        messages:[{role:'user', content: macroPrompt(input)}] })
     });
-
-    // Process micro
-    microTasks = Array.isArray(microRaw) ? microRaw.map((t,i) => ({
-      id: Date.now()+i, cat: guessMicroCat(t.category||''),
-      name: t.item || t.category || '景观节点',
-      theme: t.standard||'', func: t.note||'', notes:'', lat:null, lng:null, address:'',
-    })) : [];
-
-    fwData = { macro, input };
-    restorePanels();
-    renderAll();
-
-    document.getElementById('tabBar').style.display = 'flex';
-    document.getElementById('pdfBtn').style.display = 'flex';
-    document.getElementById('pdfBtn2').style.display = 'flex';
-    document.getElementById('fwStatus').innerHTML = '<span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;"></span> 已生成 · 可编辑迭代';
-    finishGenerate();
-
-  } catch(e) {
-    console.error(e);
-    useDemoData(input);
-    restorePanels();
-    renderAll();
-    finishGenerate();
-    notify('⚠️ API异常，已使用示例数据');
-  }
-
-  btn.disabled = false; btn.innerHTML = '🔄 重新生成';
-  switchTab('macro');
+    if (res.ok) {
+      const d = await res.json();
+      const txt = d.content?.[0]?.text || '';
+      const macro = JSON.parse(txt.replace(/```json|```/g,'').trim());
+      fwData.macro = macro;
+      restorePanels(); renderAll(); finishGenerate();
+      notify('✅ AI已优化内容');
+    }
+  } catch(e) { /* 静默失败，演示数据已显示 */ }
 }
 
-function finishGenerate() {
-  document.getElementById('tabBar').style.display = 'flex';
-  document.getElementById('pdfBtn2').style.display = 'flex';
-  document.getElementById('fwStatus').innerHTML = '<span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;"></span> 已生成 · 可编辑迭代';
-  switchTab('macro');
-}
 
 function collectInput() {
   let basic={}, culture={};
@@ -573,13 +757,22 @@ function guessMicroCat(cat) {
 }
 
 async function callClaude(prompt) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{role:'user',content:prompt}] })
-  });
-  const d = await res.json();
-  const txt = d.content?.[0]?.text||'';
-  return JSON.parse(txt.replace(/```json|```/g,'').trim());
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 6000);
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      signal: controller.signal,
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{role:'user',content:prompt}] })
+    });
+    clearTimeout(timer);
+    const d = await res.json();
+    const txt = d.content?.[0]?.text||'';
+    return JSON.parse(txt.replace(/```json|```/g,'').trim());
+  } catch(e) {
+    clearTimeout(timer);
+    throw e;
+  }
 }
 
 function useDemoData(inp) {
@@ -1137,8 +1330,94 @@ function resetAll() {
   document.getElementById('genBtn').disabled=false;
 }
 
+
+// Mobile: collapsible macro blocks
+function initMobileCollapse() {
+  if (window.innerWidth > 768) return;
+  document.querySelectorAll('.mac-block').forEach((block, i) => {
+    // Wrap body content
+    const label = block.querySelector('.mac-label');
+    if (!label || block.dataset.collapseInit) return;
+    block.dataset.collapseInit = '1';
+
+    // Wrap everything after label in a collapsible div
+    const children = Array.from(block.children).filter(c => c !== label);
+    const wrapper = document.createElement('div');
+    wrapper.className = 'mac-block-body';
+    children.forEach(c => wrapper.appendChild(c));
+    block.appendChild(wrapper);
+
+    // First block open, rest collapsed
+    if (i > 0) block.classList.add('collapsed');
+
+    label.addEventListener('click', () => {
+      block.classList.toggle('collapsed');
+    });
+  });
+}
+// Call after renderMacro
+const _origRenderMacro = renderMacro;
+function renderMacro() {
+  _origRenderMacro();
+  setTimeout(initMobileCollapse, 50);
+}
+
 function delay(ms){return new Promise(r=>setTimeout(r,ms));}
 function notify(msg){const el=document.getElementById('notif');el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2800);}
+
+// ── NAV SCREEN ──
+function showNavScreen() {
+  document.getElementById('navScreen').style.display = 'flex';
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('backToNav').classList.remove('visible');
+}
+
+function enterAll() {
+  document.getElementById('navScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'flex';
+  document.getElementById('backToNav').classList.add('visible');
+}
+
+function navGoTo(id) {
+  enterAll();
+  setTimeout(() => {
+    // Try clicking the element or scrolling to it
+    const el = document.getElementById(id);
+    if (!el) return;
+    // For tabs
+    if (el.classList.contains('tab') || el.classList.contains('nav-item') || el.classList.contains('phase-card')) {
+      el.click();
+    } else {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    // Switch tab if it's a panel
+    const tabId = id.replace('mod-','').replace('panel-','');
+    if (typeof switchTab === 'function' && ['macro','meso','micro'].includes(tabId)) {
+      switchTab(tabId);
+    }
+    if (typeof switchModule === 'function') {
+      switchModule(tabId, null);
+    }
+    if (typeof selectPhase === 'function' && ['concept','deepen','final'].includes(tabId)) {
+      selectPhase(tabId);
+    }
+  }, 100);
+}
+
+// Show on mobile only - or always show
+(function() {
+  // On mobile always show nav first; on desktop skip
+  if (window.innerWidth <= 768) {
+    document.getElementById('navScreen').style.display = 'flex';
+    document.getElementById('mainApp').style.display = 'none';
+  } else {
+    document.getElementById('navScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'flex';
+  }
+})();
+
 </script>
+
+</div>
 </body>
 </html>

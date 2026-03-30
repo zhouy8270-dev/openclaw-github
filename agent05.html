@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeighborMind · 智能体05 · 汇报生成</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f6fb;--white:#fff;--border:#e4e9f2;--text:#1a2235;--muted:#7a8aa0;
+  --accent:#1d4ed8;--al:#eff4ff;
+  --green:#059669;--gl:#ecfdf5;
+  --orange:#d97706;--ol:#fffbeb;
+  --purple:#7c3aed;--pl:#f5f3ff;
+  --red:#dc2626;--rl:#fef2f2;
+  --shadow:0 2px 12px rgba(0,0,0,0.07);
+  --shadow-lg:0 8px 32px rgba(0,0,0,0.12);
+  --r:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 24px;height:54px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.logo{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;}
+.logo em{color:var(--accent);font-style:normal;}
+.page-tag{font-size:13px;font-weight:500;display:flex;align-items:center;gap:7px;margin-left:12px;padding-left:12px;border-left:1px solid var(--border);}
+.chip{font-size:11px;padding:3px 8px;border-radius:6px;font-weight:500;background:var(--al);color:var(--accent);}
+.btn{padding:7px 16px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;font-weight:500;display:flex;align-items:center;gap:6px;transition:all 0.15s;border:none;}
+.btn-ghost{border:1px solid var(--border)!important;background:var(--white);color:var(--muted);}
+.btn-ghost:hover{background:var(--bg);color:var(--text);}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{opacity:0.88;}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed;}
+
+.layout{flex:1;display:grid;grid-template-columns:260px 1fr;overflow:hidden;}
+
+/* LEFT */
+.left{background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+.left-section{padding:16px;}
+.left-section+.left-section{border-top:1px solid var(--border);}
+.ls-title{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+
+/* Phase cards */
+.phase-card{border-radius:12px;border:2px solid transparent;padding:12px 14px;cursor:pointer;transition:all 0.2s;margin-bottom:8px;}
+.phase-card:hover{transform:translateY(-1px);box-shadow:var(--shadow);}
+.phase-card.active{border-color:currentColor;}
+.pc-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.pc-badge{font-family:'Syne',sans-serif;font-size:11px;font-weight:800;padding:2px 8px;border-radius:6px;}
+.pc-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;}
+.pc-depth{font-size:11px;opacity:0.7;margin-top:2px;}
+.pc-versions{display:flex;gap:5px;margin-top:8px;}
+.version-btn{flex:1;padding:5px 8px;border-radius:7px;border:1px solid;font-size:11px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;font-weight:500;text-align:center;transition:all 0.15s;}
+.version-btn:hover{opacity:0.8;}
+.version-btn.active{opacity:1;}
+
+/* Form fields */
+.field{margin-bottom:12px;}
+.field-label{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.8px;}
+.field-input{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:'Noto Sans SC',sans-serif;outline:none;color:var(--text);transition:border-color 0.15s;}
+.field-input:focus{border-color:var(--accent);}
+.field-textarea{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:'Noto Sans SC',sans-serif;outline:none;resize:none;height:64px;line-height:1.6;transition:border-color 0.15s;}
+.field-textarea:focus{border-color:var(--accent);}
+
+.gen-btn{width:100%;padding:12px;border-radius:11px;background:linear-gradient(135deg,var(--accent),#4f46e5);color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans SC',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.15s;}
+.gen-btn:hover{opacity:0.9;}
+.gen-btn:disabled{opacity:0.45;cursor:not-allowed;}
+
+/* RIGHT */
+.right{display:flex;flex-direction:column;overflow:hidden;}
+.right-head{background:var(--white);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.right-scroll{flex:1;overflow-y:auto;padding:24px;}
+.right-scroll::-webkit-scrollbar{width:5px;}
+.right-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:5px;}
+
+/* REPORT SLIDES PREVIEW */
+.slides-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;}
+.slide-card{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:all 0.2s;animation:up 0.3s ease forwards;opacity:0;}
+.slide-card:hover{box-shadow:var(--shadow);transform:translateY(-2px);}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.slide-preview{aspect-ratio:16/9;display:flex;flex-direction:column;position:relative;overflow:hidden;}
+.slide-num{position:absolute;top:8px;left:8px;font-size:10px;font-weight:700;background:rgba(0,0,0,0.35);color:#fff;padding:2px 7px;border-radius:5px;}
+.slide-type-badge{position:absolute;top:8px;right:8px;font-size:9px;font-weight:600;padding:2px 6px;border-radius:4px;}
+.slide-info{padding:10px 12px;border-top:1px solid var(--border);}
+.slide-title{font-size:12px;font-weight:600;margin-bottom:2px;}
+.slide-desc{font-size:10px;color:var(--muted);line-height:1.4;}
+.slide-actions{display:flex;gap:5px;margin-top:7px;}
+.slide-action-btn{flex:1;padding:4px 8px;border-radius:6px;font-size:11px;border:1px solid var(--border);background:var(--bg);cursor:pointer;font-family:'Noto Sans SC',sans-serif;text-align:center;transition:all 0.15s;}
+.slide-action-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* EMPTY */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:var(--muted);}
+.empty-icon{font-size:52px;opacity:0.2;}
+
+/* COST TABLE */
+.cost-table{width:100%;border-collapse:collapse;font-size:12px;}
+.cost-table th{padding:8px 12px;background:var(--bg);text-align:left;font-weight:600;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.8px;}
+.cost-table td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.cost-table tr:last-child td{border-bottom:none;}
+.cost-table input{border:none;background:none;font-size:12px;font-family:'Noto Sans SC',sans-serif;width:100%;outline:none;color:var(--text);}
+.cost-table input:focus{background:var(--al);border-radius:4px;padding:2px 4px;}
+.cost-total{background:var(--al);font-weight:700;color:var(--accent);}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);display:none;place-items:center;}
+.modal-overlay.open{display:grid;}
+.modal-box{background:var(--white);border-radius:20px;width:95%;max-width:820px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow-lg);animation:mIn 0.2s ease;}
+@keyframes mIn{from{opacity:0;transform:scale(0.96)}to{opacity:1;transform:scale(1)}}
+.modal-hd{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.modal-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;}
+.modal-close{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;font-size:15px;color:var(--muted);display:grid;place-items:center;}
+.modal-body{overflow-y:auto;padding:22px;flex:1;}
+
+.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.25);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg)}}
+.notif{position:fixed;bottom:20px;right:24px;background:var(--text);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;box-shadow:var(--shadow-lg);transform:translateY(16px);opacity:0;transition:all 0.25s;z-index:500;}
+.notif.show{transform:translateY(0);opacity:1;}
+
+/* ── RESPONSIVE (Mobile) ── */
+@media (max-width: 768px) {
+  /* Layout: stack left/right panels */
+  .layout { grid-template-columns: 1fr !important; }
+  .left, .leftnav { 
+    border-right: none !important; 
+    border-bottom: 1px solid var(--border);
+    max-height: 220px;
+    overflow-y: auto;
+  }
+  .right, .main { min-height: 0; }
+  
+  /* Topbar: compact */
+  .topbar { padding: 0 14px; }
+  .page-tag { display: none; }
+  .topbar-r .btn span, .topbar-r .btn div { font-size: 11px; }
+  
+  /* Cards: 2 columns on mobile */
+  .card-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+  .slides-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+  .case-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+  
+  /* Panels scroll */
+  .right-scroll, .main-scroll { padding: 14px !important; }
+  
+  /* Nav: horizontal scroll on mobile */
+  .leftnav { 
+    flex-direction: row !important; 
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 10px 12px !important;
+    gap: 6px !important;
+    max-height: 70px !important;
+  }
+  .nav-item { 
+    flex-shrink: 0 !important; 
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+    white-space: nowrap !important;
+  }
+  .nav-icon { width: 22px !important; height: 22px !important; font-size: 11px !important; }
+  .nav-label, .nav-divider, .nav-sub { display: none !important; }
+  
+  /* Tabs: scrollable */
+  .tabs { overflow-x: auto; flex-wrap: nowrap; }
+  .tab { white-space: nowrap; padding: 9px 12px; font-size: 12px; }
+  
+  /* Modal: full screen */
+  .modal-box, .meso-modal-box {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+  }
+  
+  /* Node grid: single column */
+  .node-grid { grid-template-columns: 1fr !important; }
+  
+  /* Specialist: single column */
+  #mod-spec > div { grid-template-columns: 1fr !important; }
+  
+  /* Diagram pair: single column */
+  .diagram-pair { grid-template-columns: 1fr !important; }
+  
+  /* Macro layout: no sidebar */
+  .macro-layout { grid-template-columns: 1fr !important; }
+  .macro-nav { display: none !important; }
+  
+  /* Phase cards: compact */
+  .phase-card { padding: 10px 12px !important; margin-bottom: 6px !important; }
+  
+  /* Cost table: scrollable */
+  .cost-table-wrap { overflow-x: auto; }
+  
+  /* Upload areas: smaller */
+  .upload-area { padding: 20px !important; }
+  .ua-icon { font-size: 24px !important; }
+  
+  /* Section cards */
+  .section-card { padding: 14px 16px !important; }
+  .mac-block { padding: 14px 16px !important; }
+  
+  /* Left panels in 03 */
+  .left { max-height: 200px !important; }
+  .left-body { padding: 12px !important; }
+}
+
+@media (max-width: 480px) {
+  .card-grid { grid-template-columns: 1fr 1fr !important; gap: 6px !important; }
+  .slides-grid { grid-template-columns: 1fr !important; }
+  .fw-card { padding: 12px 10px !important; }
+  .fw-card-icon { width: 40px !important; height: 40px !important; font-size: 20px !important; }
+}
+
+
+/* ── NAV SCREEN ── */
+#navScreen {
+  position: fixed; inset: 0; z-index: 1000;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  overflow-y: auto;
+}
+.nav-screen-hero {
+  padding: 40px 24px 28px;
+  color: #fff;
+  flex-shrink: 0;
+}
+.nav-screen-logo {
+  font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800;
+  opacity: 0.8; margin-bottom: 20px; display: flex; align-items: center; gap: 6px;
+}
+.nav-screen-title {
+  font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800;
+  line-height: 1.2; margin-bottom: 6px;
+}
+.nav-screen-sub {
+  font-size: 13px; opacity: 0.75;
+}
+.nav-screen-items {
+  flex: 1; padding: 16px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.nav-screen-item {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px 18px;
+  display: flex; align-items: center; gap: 14px;
+  cursor: pointer; transition: all 0.2s;
+  text-decoration: none; color: var(--text);
+}
+.nav-screen-item:hover, .nav-screen-item:active {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  transform: translateY(-1px);
+}
+.nav-item-icon {
+  width: 48px; height: 48px; border-radius: 13px;
+  display: grid; place-items: center; font-size: 24px;
+  flex-shrink: 0;
+}
+.nav-item-text { flex: 1; }
+.nav-item-label {
+  font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 800;
+  margin-bottom: 3px;
+}
+.nav-item-desc { font-size: 12px; color: var(--muted); }
+.nav-item-arrow { font-size: 18px; color: var(--muted); }
+
+.nav-screen-footer {
+  padding: 16px; text-align: center;
+  font-size: 11px; color: var(--muted);
+  flex-shrink: 0;
+}
+.enter-all-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 20px; border-radius: 10px;
+  background: var(--white); border: 1px solid var(--border);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  color: var(--text); font-family: 'Noto Sans SC', sans-serif;
+  margin-bottom: 10px; transition: all 0.15s;
+}
+.enter-all-btn:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+/* Back button */
+#backToNav {
+  position: fixed; bottom: 20px; right: 20px; z-index: 900;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--text); color: #fff;
+  border: none; cursor: pointer;
+  font-size: 18px; display: none; place-items: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  transition: all 0.2s;
+}
+#backToNav:hover { transform: scale(1.08); }
+#backToNav.visible { display: grid; }
+
+
+/* Mobile topbar: logo only */
+@media (max-width: 768px) {
+  .topbar { height: 46px !important; padding: 0 14px !important; flex-wrap: nowrap !important; }
+  .topbar .page-tag { display: none !important; }
+  .topbar .topbar-r { display: none !important; }
+  .topbar .logo { font-size: 13px !important; }
+  .topbar > div:first-child { overflow: hidden; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV SCREEN -->
+<div id="navScreen">
+  <div class="nav-screen-hero" style="background:linear-gradient(135deg,#d97706,#dc2626);">
+    <div class="nav-screen-logo">🏘 NeighborMind</div>
+    <div class="nav-screen-title">汇报生成</div>
+    <div class="nav-screen-sub">智能体 05 · 点击进入对应模块</div>
+  </div>
+  <div class="nav-screen-items">
+
+    <div class="nav-screen-item" onclick="navGoTo('pc-concept')">
+      <div class="nav-item-icon" style="background:#05966918;">📋</div>
+      <div class="nav-item-text">
+        <div class="nav-item-label" style="color:#059669;">概念汇报</div>
+        <div class="nav-item-desc">动估算·数据包</div>
+      </div>
+      <div class="nav-item-arrow">›</div>
+    </div>
+    <div class="nav-screen-item" onclick="navGoTo('pc-deepen')">
+      <div class="nav-item-icon" style="background:#d9770618;">📐</div>
+      <div class="nav-item-text">
+        <div class="nav-item-label" style="color:#d97706;">深化汇报</div>
+        <div class="nav-item-desc">方案估算·提示词包</div>
+      </div>
+      <div class="nav-item-arrow">›</div>
+    </div>
+    <div class="nav-screen-item" onclick="navGoTo('pc-final')">
+      <div class="nav-item-icon" style="background:#1d4ed818;">📌</div>
+      <div class="nav-item-text">
+        <div class="nav-item-label" style="color:#1d4ed8;">定案汇报</div>
+        <div class="nav-item-desc">概算·定案确认</div>
+      </div>
+      <div class="nav-item-arrow">›</div>
+    </div>
+  </div>
+  <div class="nav-screen-footer">
+    <button class="enter-all-btn" onclick="enterAll()">📂 进入完整界面</button>
+    <div>或点击上方模块直接跳转</div>
+  </div>
+</div>
+
+<!-- BACK BUTTON -->
+<button id="backToNav" onclick="showNavScreen()" title="返回导航">⊞</button>
+
+
+<div id="mainApp" style="display:none;flex-direction:column;height:100vh;">
+<div class="topbar">
+  <div style="display:flex;align-items:center;">
+    <div class="logo">🏘 Neighbor<em>Mind</em></div>
+    <div class="page-tag">📊 汇报生成 <span class="chip">智能体 05</span></div>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button class="btn btn-ghost" onclick="exportPPT()" id="exportBtn" style="display:none;">📥 导出PPT</button>
+    <button class="btn btn-ghost" onclick="exportZip()" id="zipBtn" style="display:none;">📦 打包数据包</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- LEFT -->
+  <div class="left">
+
+    <!-- Phase selector -->
+    <div class="left-section">
+      <div class="ls-title">汇报阶段</div>
+
+      <div class="phase-card" id="pc-concept" style="background:#ecfdf5;color:#059669;" onclick="selectPhase('concept')">
+        <div class="pc-head">
+          <span class="pc-badge" style="background:rgba(5,150,105,0.15);">第一阶段</span>
+          <span class="pc-title">概念汇报</span>
+        </div>
+        <div class="pc-depth">动估算深度 · 数据包zip</div>
+        <div class="pc-versions">
+          <div class="version-btn active" id="vbtn-concept-gov" style="border-color:#059669;background:rgba(5,150,105,0.12);color:#059669;" onclick="event.stopPropagation();selectVersion('concept','gov')">🏛 政府版</div>
+          <div class="version-btn" id="vbtn-concept-res" style="border-color:#059669;color:#059669;" onclick="event.stopPropagation();selectVersion('concept','res')">👥 居民版</div>
+        </div>
+      </div>
+
+      <div class="phase-card" id="pc-deepen" style="background:#fffbeb;color:#d97706;" onclick="selectPhase('deepen')">
+        <div class="pc-head">
+          <span class="pc-badge" style="background:rgba(217,119,6,0.15);">第二阶段</span>
+          <span class="pc-title">深化汇报</span>
+        </div>
+        <div class="pc-depth">方案估算深度 · 提示词+照片包</div>
+        <div class="pc-versions">
+          <div class="version-btn active" id="vbtn-deepen-gov" style="border-color:#d97706;background:rgba(217,119,6,0.12);color:#d97706;" onclick="event.stopPropagation();selectVersion('deepen','gov')">🏛 政府版</div>
+          <div class="version-btn" id="vbtn-deepen-res" style="border-color:#d97706;color:#d97706;" onclick="event.stopPropagation();selectVersion('deepen','res')">👥 居民版</div>
+        </div>
+      </div>
+
+      <div class="phase-card" id="pc-final" style="background:#eff4ff;color:#1d4ed8;" onclick="selectPhase('final')">
+        <div class="pc-head">
+          <span class="pc-badge" style="background:rgba(29,78,216,0.12);">第三阶段</span>
+          <span class="pc-title">定案汇报</span>
+        </div>
+        <div class="pc-depth">概算深度 · 北京定额</div>
+        <div class="pc-versions">
+          <div class="version-btn active" id="vbtn-final-gov" style="border-color:#1d4ed8;background:rgba(29,78,216,0.12);color:#1d4ed8;" onclick="event.stopPropagation();selectVersion('final','gov')">🏛 政府版</div>
+          <div class="version-btn" id="vbtn-final-res" style="border-color:#1d4ed8;color:#1d4ed8;" onclick="event.stopPropagation();selectVersion('final','res')">👥 居民版</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Project info -->
+    <div class="left-section">
+      <div class="ls-title">项目信息</div>
+      <div class="field">
+        <div class="field-label">项目名称</div>
+        <input class="field-input" type="text" id="f-name" placeholder="从智能体01读取…">
+      </div>
+      <div class="field">
+        <div class="field-label">汇报时间</div>
+        <input class="field-input" type="date" id="f-date">
+      </div>
+      <div class="field">
+        <div class="field-label">汇报对象补充说明</div>
+        <textarea class="field-textarea" id="f-audience" placeholder="如：街道办领导、区规划局…（政府版）或楼门长、业委会…（居民版）"></textarea>
+      </div>
+      <div class="field">
+        <div class="field-label">特别强调内容</div>
+        <textarea class="field-textarea" id="f-emphasis" placeholder="本次汇报需重点说明的问题或决策点…"></textarea>
+      </div>
+    </div>
+
+    <!-- Generate -->
+    <div class="left-section">
+      <button class="gen-btn" id="genBtn" onclick="generate()">📊 生成汇报大纲</button>
+    </div>
+
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+    <div class="right-head">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;" id="reportTitle">📊 汇报内容</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px;" id="reportSub">选择阶段和版本，点击「生成汇报大纲」</div>
+      </div>
+      <div style="display:flex;gap:8px;" id="rightActions" style="display:none;"></div>
+    </div>
+
+    <div class="right-scroll" id="rightScroll">
+      <div class="empty" id="emptyState">
+        <div class="empty-icon">📊</div>
+        <div style="font-size:15px;font-weight:600;color:var(--text);opacity:0.4;">汇报内容待生成</div>
+        <div style="font-size:13px;text-align:center;max-width:300px;line-height:1.7;">选择汇报阶段和政府/居民版本，填写项目信息，点击「生成汇报大纲」</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE DETAIL MODAL -->
+<div class="modal-overlay" id="slideModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div class="modal-hd">
+      <div class="modal-title" id="modalTitle">幻灯片详情</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+// ══════════════════════════════
+// STATE
+// ══════════════════════════════
+let currentPhase = 'concept';
+let currentVersion = 'gov';
+let reportSlides = [];
+const PHASE_COLORS = { concept:'#059669', deepen:'#d97706', final:'#1d4ed8' };
+const PHASE_NAMES  = { concept:'概念汇报', deepen:'深化汇报', final:'定案汇报' };
+const VERSION_NAMES = { gov:'政府版', res:'居民版' };
+
+// ══════════════════════════════
+// SLIDE CONFIGS PER PHASE+VERSION
+// ══════════════════════════════
+const SLIDE_TEMPLATES = {
+  concept_gov: [
+    { type:'cover',    title:'封面',           icon:'🏘', desc:'项目名称、阶段、日期、设计单位' },
+    { type:'overview', title:'项目概况',        icon:'📋', desc:'区位、规模、建成年代、户数人口' },
+    { type:'policy',   title:'政策背景',        icon:'📜', desc:'上位规划、政策依据、资金来源' },
+    { type:'problem',  title:'现状问题',        icon:'🔍', desc:'问题诊断、居民诉求、数据支撑' },
+    { type:'strategy', title:'更新策略',        icon:'🧭', desc:'宏观战略、系统策略（来自智能体03）' },
+    { type:'plan',     title:'总平面图',        icon:'🗺', desc:'总体布局、功能分区' },
+    { type:'nodes',    title:'重点节点设计',    icon:'🎨', desc:'各景观节点改造方案' },
+    { type:'cost',     title:'造价估算',        icon:'💰', desc:'动估算，各系统费用汇总' },
+    { type:'schedule', title:'实施计划',        icon:'📅', desc:'分期实施安排、里程碑节点' },
+    { type:'next',     title:'下一步工作',      icon:'➡', desc:'深化方向、需甲方确认事项' },
+  ],
+  concept_res: [
+    { type:'cover',    title:'封面',           icon:'🏘', desc:'简洁封面，避免专业术语' },
+    { type:'problem',  title:'我们发现了什么', icon:'🔍', desc:'用居民语言描述现状问题' },
+    { type:'vision',   title:'改造后什么样',   icon:'✨', desc:'愿景图、效果图为主，少文字' },
+    { type:'nodes',    title:'重点改造区域',   icon:'🎨', desc:'各节点现状vs效果图对比' },
+    { type:'schedule', title:'什么时候改',     icon:'📅', desc:'简洁时间安排，避免技术细节' },
+    { type:'engage',   title:'我们需要您参与', icon:'🤝', desc:'居民参与方式、意见收集' },
+  ],
+  deepen_gov: [
+    { type:'cover',    title:'封面',           icon:'🏘', desc:'深化阶段标识' },
+    { type:'response', title:'上阶段意见回应', icon:'💬', desc:'概念阶段反馈意见逐条回应' },
+    { type:'plan',     title:'深化总平面',     icon:'🗺', desc:'深化总平面图，精准定位' },
+    { type:'detail',   title:'各节点深化设计', icon:'🎨', desc:'每个节点详细设计说明' },
+    { type:'spec',     title:'专项设计',       icon:'🌿', desc:'种植、铺装、小品、照明深化' },
+    { type:'cost',     title:'方案估算',       icon:'💰', desc:'各分项估算，含工程量' },
+    { type:'standard', title:'规范指标核查',   icon:'✅', desc:'各项指标是否符合规范要求' },
+    { type:'manage',   title:'施工管理要点',   icon:'🔧', desc:'施工难点、居民干扰、进度控制' },
+    { type:'next',     title:'下一步工作',     icon:'➡', desc:'定案所需确认事项' },
+  ],
+  deepen_res: [
+    { type:'cover',    title:'封面',           icon:'🏘', desc:'简洁封面' },
+    { type:'response', title:'上次反馈了什么', icon:'💬', desc:'居民意见回应，简洁明了' },
+    { type:'nodes',    title:'改造方案展示',   icon:'🎨', desc:'效果图为主，每个节点一页' },
+    { type:'life',     title:'改造后的生活',   icon:'🌟', desc:'场景化描述，引发共鸣' },
+    { type:'engage',   title:'施工期间注意',   icon:'⚠', desc:'施工影响、配合事项' },
+    { type:'vote',     title:'征询意见',       icon:'🗳', desc:'重点决策项居民确认' },
+  ],
+  final_gov: [
+    { type:'cover',    title:'封面',           icon:'🏘', desc:'定案阶段' },
+    { type:'response', title:'深化意见回应',   icon:'💬', desc:'深化阶段所有反馈意见回应' },
+    { type:'plan',     title:'定案总平面',     icon:'🗺', desc:'最终总平面，含精确尺寸' },
+    { type:'nodes',    title:'定案节点设计',   icon:'🎨', desc:'各节点最终设计方案' },
+    { type:'spec',     title:'材料清单',       icon:'📋', desc:'各项材料规格型号确定' },
+    { type:'budget',   title:'工程概算',       icon:'💰', desc:'按北京定额概算，分项明细' },
+    { type:'standard', title:'报批材料清单',   icon:'✅', desc:'需报审材料、手续' },
+    { type:'contract', title:'招标要点',       icon:'📄', desc:'招标范围、技术要求' },
+    { type:'schedule', title:'实施进度计划',   icon:'📅', desc:'精确施工进度甘特图' },
+    { type:'maintain', title:'运维管理',       icon:'🔧', desc:'后期维护要求、责任划分' },
+  ],
+  final_res: [
+    { type:'cover',    title:'封面',           icon:'🏘', desc:'简洁封面' },
+    { type:'final',    title:'最终改造方案',   icon:'✨', desc:'效果图为主，最终确认版' },
+    { type:'nodes',    title:'每个区域改什么', icon:'🎨', desc:'各区域改造内容简明说明' },
+    { type:'budget',   title:'改造费用说明',   icon:'💰', desc:'总费用、资金来源，不含明细' },
+    { type:'schedule', title:'施工时间安排',   icon:'📅', desc:'大致时间、对居民的影响' },
+    { type:'thanks',   title:'感谢居民参与',   icon:'🤝', desc:'参与历程、感谢语' },
+  ],
+};
+
+// Cost categories per phase
+const COST_ITEMS = {
+  concept: [
+    { name:'场地平整与基础工程', unit:'㎡', price:150 },
+    { name:'道路及铺装工程',     unit:'㎡', price:300 },
+    { name:'绿化种植工程',       unit:'㎡', price:200 },
+    { name:'景观小品及设施',     unit:'项', price:0 },
+    { name:'照明工程',           unit:'项', price:0 },
+    { name:'给排水工程',         unit:'项', price:0 },
+    { name:'其他工程',           unit:'项', price:0 },
+  ],
+  deepen: [
+    { name:'土方及基础工程',     unit:'㎡', price:180 },
+    { name:'硬质铺装（主路）',   unit:'㎡', price:380 },
+    { name:'硬质铺装（广场）',   unit:'㎡', price:450 },
+    { name:'绿化种植（乔木）',   unit:'株', price:800 },
+    { name:'绿化种植（灌木）',   unit:'㎡', price:180 },
+    { name:'景观构筑物',         unit:'项', price:0 },
+    { name:'坐凳及设施',         unit:'套', price:3500 },
+    { name:'照明系统',           unit:'套', price:0 },
+    { name:'给排水改造',         unit:'项', price:0 },
+    { name:'安防监控',           unit:'项', price:0 },
+  ],
+  final: [
+    { name:'01 土石方工程',       unit:'m³', price:85 },
+    { name:'02 砌筑工程',         unit:'m³', price:650 },
+    { name:'03 混凝土工程',       unit:'m³', price:580 },
+    { name:'04 防水工程',         unit:'㎡', price:120 },
+    { name:'05 装饰装修工程',     unit:'㎡', price:420 },
+    { name:'06 给排水工程',       unit:'项', price:0 },
+    { name:'07 电气工程',         unit:'项', price:0 },
+    { name:'08 绿化工程',         unit:'㎡', price:280 },
+    { name:'09 景观设施工程',     unit:'项', price:0 },
+    { name:'10 暂列金额（5%）',   unit:'项', price:0 },
+  ],
+};
+
+// ══════════════════════════════
+// PHASE / VERSION SELECTION
+// ══════════════════════════════
+function selectPhase(phase) {
+  currentPhase = phase;
+  document.querySelectorAll('.phase-card').forEach(c => c.classList.remove('active'));
+  document.getElementById('pc-' + phase)?.classList.add('active');
+}
+
+function selectVersion(phase, ver) {
+  currentVersion = ver;
+  ['gov','res'].forEach(v => {
+    const btn = document.getElementById('vbtn-' + phase + '-' + v);
+    if (!btn) return;
+    const color = PHASE_COLORS[phase];
+    if (v === ver) {
+      btn.style.background = color + '20';
+      btn.style.fontWeight = '700';
+    } else {
+      btn.style.background = 'transparent';
+      btn.style.fontWeight = '500';
+    }
+  });
+}
+
+// ══════════════════════════════
+// GENERATE
+// ══════════════════════════════
+async function generate() {
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true; btn.innerHTML = '<div class="spin"></div> 生成中…';
+
+  // Load project data
+  let basic = {}, macro = {};
+  try { basic = JSON.parse(localStorage.getItem('nm_basic') || '{}'); } catch(e){}
+  if (basic.name) document.getElementById('f-name').value = basic.name;
+
+  const projectName = document.getElementById('f-name').value || basic.name || '社区微更新项目';
+  const audience = document.getElementById('f-audience').value;
+  const emphasis = document.getElementById('f-emphasis').value;
+
+  const key = currentPhase + '_' + currentVersion;
+  const templates = SLIDE_TEMPLATES[key] || [];
+
+  // Show progress
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('rightScroll').innerHTML =
+    '<div style="text-align:center;padding:60px 20px;">'
+    + '<div class="spin" style="width:20px;height:20px;border-width:3px;border-top-color:var(--accent);margin:0 auto 12px;"></div>'
+    + '<div style="font-size:14px;font-weight:600;">AI正在生成' + PHASE_NAMES[currentPhase] + ' · ' + VERSION_NAMES[currentVersion] + '…</div>'
+    + '<div style="font-size:12px;color:var(--muted);margin-top:6px;">共 ' + templates.length + ' 张幻灯片</div>'
+    + '</div>';
+
+  try {
+    // Generate content for each slide
+    const slidesWithContent = await generateSlideContents(templates, projectName, audience, emphasis);
+    reportSlides = slidesWithContent;
+    renderSlides(slidesWithContent);
+
+    // Update header
+    const color = PHASE_COLORS[currentPhase];
+    document.getElementById('reportTitle').innerHTML =
+      '<span style="color:' + color + ';">' + PHASE_NAMES[currentPhase] + '</span> · ' + VERSION_NAMES[currentVersion];
+    document.getElementById('reportSub').textContent =
+      projectName + ' · ' + templates.length + ' 张幻灯片 · 点击任意幻灯片查看详情';
+
+    document.getElementById('exportBtn').style.display = 'flex';
+    if (currentPhase === 'concept') document.getElementById('zipBtn').style.display = 'flex';
+    else document.getElementById('zipBtn').style.display = 'none';
+    if (currentPhase === 'deepen') document.getElementById('zipBtn').style.display = 'flex';
+
+    notify('✅ 汇报大纲已生成，点击幻灯片查看内容');
+  } catch(e) {
+    console.error(e);
+    reportSlides = templates;
+    renderSlides(templates);
+    notify('⚠️ API未连接，已生成框架结构');
+  }
+
+  btn.disabled = false; btn.innerHTML = '🔄 重新生成';
+}
+
+async function generateSlideContents(templates, projectName, audience, emphasis) {
+  // Generate brief AI content for each slide
+  let basic = {}, macro = {};
+  try { basic = JSON.parse(localStorage.getItem('nm_basic') || '{}'); } catch(e){}
+
+  const context = '项目：' + projectName + '，户数：' + (basic.households||'') + '，人口：' + (basic.population||'') + '，背景：' + (basic.bg||'') + '，汇报对象：' + audience + '，强调：' + emphasis;
+  const isGov = currentVersion === 'gov';
+  const phase = currentPhase;
+
+  const prompt = '你是城市规划汇报专家。为以下项目的' + PHASE_NAMES[phase] + '（' + (isGov?'政府版：详细专业，含规范指标':'居民版：简洁通俗，重效果图') + '）生成每张幻灯片的内容要点，只返回JSON数组：\n'
+    + '[{"type":"slide_type","keyPoints":["要点1","要点2","要点3"],"speakerNotes":"演讲备注（30字）"}]\n'
+    + '幻灯片列表：' + templates.map(t=>t.type+':'+t.title).join('、') + '\n'
+    + context;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:2000, messages:[{role:'user',content:prompt}] })
+    });
+    const d = await res.json();
+    const txt = (d.content?.[0]?.text || '').replace(/```json|```/g,'').trim();
+    const aiContents = JSON.parse(txt);
+    return templates.map((t,i) => ({...t, keyPoints: aiContents[i]?.keyPoints || [], speakerNotes: aiContents[i]?.speakerNotes || ''}));
+  } catch(e) {
+    return templates.map(t => ({...t, keyPoints:[], speakerNotes:''}));
+  }
+}
+
+// ══════════════════════════════
+// RENDER SLIDES
+// ══════════════════════════════
+function renderSlides(slides) {
+  const color = PHASE_COLORS[currentPhase];
+  const scroll = document.getElementById('rightScroll');
+
+  scroll.innerHTML = '<div class="slides-grid" id="slidesGrid"></div>';
+  if (currentPhase === 'concept' || currentVersion === 'gov') {
+    scroll.innerHTML += renderCostSection();
+  }
+
+  const grid = document.getElementById('slidesGrid');
+  grid.innerHTML = slides.map((slide, i) => renderSlideCard(slide, i, color)).join('');
+}
+
+function renderSlideCard(slide, i, color) {
+  const bg = slideBackground(slide.type, color);
+  const points = (slide.keyPoints||[]).slice(0,3).map(p => '<div style="font-size:10px;color:rgba(255,255,255,0.85);margin-bottom:3px;display:flex;gap:4px;"><span>·</span><span>' + p + '</span></div>').join('');
+
+  return '<div class="slide-card" style="animation-delay:' + (i*0.04) + 's" onclick="openSlide(' + i + ')">'
+    + '<div class="slide-preview" style="background:' + bg + ';padding:14px;">'
+    + '<div class="slide-num">' + (i+1) + ' / ' + reportSlides.length + '</div>'
+    + '<div style="font-size:18px;margin-bottom:6px;">' + slide.icon + '</div>'
+    + '<div style="font-family:\'Syne\',sans-serif;font-size:12px;font-weight:800;color:#fff;margin-bottom:6px;">' + slide.title + '</div>'
+    + points
+    + '</div>'
+    + '<div class="slide-info">'
+    + '<div class="slide-title">' + slide.title + '</div>'
+    + '<div class="slide-desc">' + (slide.speakerNotes || slide.desc || '') + '</div>'
+    + '<div class="slide-actions">'
+    + '<div class="slide-action-btn" onclick="event.stopPropagation();openSlide(' + i + ')">✏️ 编辑</div>'
+    + '<div class="slide-action-btn" onclick="event.stopPropagation();genSlideContent(' + i + ')">🤖 AI改写</div>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+function slideBackground(type, color) {
+  const overlays = { cover:'linear-gradient(135deg,'+color+','+color+'99)', cost:'linear-gradient(135deg,#d97706,#f59e0b)', budget:'linear-gradient(135deg,#1d4ed8,#4f46e5)' };
+  return overlays[type] || 'linear-gradient(135deg,'+color+'dd,'+color+'99)';
+}
+
+function renderCostSection() {
+  const items = COST_ITEMS[currentPhase] || COST_ITEMS.concept;
+  const isGov = currentVersion === 'gov';
+  if (!isGov) return '';
+
+  const rows = items.map((item,i) =>
+    '<tr>'
+    + '<td>' + item.name + '</td>'
+    + '<td><input type="number" placeholder="0" id="cost-qty-' + i + '" onchange="calcCost()" style="width:70px;text-align:right;"></td>'
+    + '<td>' + item.unit + '</td>'
+    + '<td><input type="number" value="' + (item.price||'') + '" id="cost-price-' + i + '" onchange="calcCost()" style="width:80px;text-align:right;"></td>'
+    + '<td id="cost-total-' + i + '" style="font-weight:600;color:var(--accent);">-</td>'
+    + '</tr>'
+  ).join('');
+
+  const phaseLabel = currentPhase === 'concept' ? '动估算' : currentPhase === 'deepen' ? '方案估算' : '工程概算（北京定额）';
+
+  return '<div style="background:var(--white);border:1px solid var(--border);border-radius:var(--r);margin-top:16px;overflow:hidden;">'
+    + '<div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">'
+    + '<div style="font-family:\'Syne\',sans-serif;font-size:14px;font-weight:800;">💰 造价' + phaseLabel + '</div>'
+    + '<div style="display:flex;gap:8px;">'
+    + '<span id="grandTotal" style="font-size:14px;font-weight:700;color:var(--accent);">总计：-</span>'
+    + '<button onclick="calcCost()" style="padding:5px 12px;border-radius:7px;background:var(--al);color:var(--accent);border:1px solid rgba(29,78,216,0.2);font-size:11px;cursor:pointer;font-family:\'Noto Sans SC\',sans-serif;">🤖 AI估算</button>'
+    + '</div>'
+    + '</div>'
+    + '<div style="overflow-x:auto;"><table class="cost-table">'
+    + '<thead><tr><th>工程项目</th><th style="text-align:right;">工程量</th><th>单位</th><th style="text-align:right;">单价(元)</th><th>合计(元)</th></tr></thead>'
+    + '<tbody>' + rows + '</tbody>'
+    + '</table></div>'
+    + (currentPhase === 'final' ? '<div style="padding:12px 18px;background:var(--bg);font-size:11px;color:var(--muted);">* 概算依据：北京市建设工程费用定额（2012版）及补充说明</div>' : '')
+    + '</div>';
+}
+
+function calcCost() {
+  const items = COST_ITEMS[currentPhase] || COST_ITEMS.concept;
+  let grand = 0;
+  items.forEach((item, i) => {
+    const qty = parseFloat(document.getElementById('cost-qty-'+i)?.value) || 0;
+    const price = parseFloat(document.getElementById('cost-price-'+i)?.value) || 0;
+    const total = qty * price;
+    grand += total;
+    const el = document.getElementById('cost-total-'+i);
+    if (el) el.textContent = total > 0 ? total.toLocaleString() : '-';
+  });
+  const el = document.getElementById('grandTotal');
+  if (el) el.textContent = grand > 0 ? '总计：' + grand.toLocaleString() + ' 元' : '总计：-';
+}
+
+// ══════════════════════════════
+// SLIDE DETAIL MODAL
+// ══════════════════════════════
+function openSlide(idx) {
+  const slide = reportSlides[idx];
+  if (!slide) return;
+  document.getElementById('modalTitle').textContent = (idx+1) + '. ' + slide.icon + ' ' + slide.title;
+
+  const color = PHASE_COLORS[currentPhase];
+  const points = (slide.keyPoints||[]).map((p,i) =>
+    '<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;">'
+    + '<div style="width:22px;height:22px;border-radius:50%;background:'+color+'18;color:'+color+';font-size:11px;font-weight:700;display:grid;place-items:center;flex-shrink:0;">'+(i+1)+'</div>'
+    + '<div class="editable" contenteditable="true" style="flex:1;font-size:13px;line-height:1.7;outline:none;padding:4px 8px;border-radius:7px;border:1px solid transparent;" onmouseover="this.style.borderColor=\'var(--border)\'" onmouseout="this.style.borderColor=\'transparent\'" onfocus="this.style.borderColor=\'var(--accent)\'">' + p + '</div>'
+    + '</div>'
+  ).join('') || '<div style="color:var(--muted);font-size:13px;font-style:italic;padding:20px 0;">暂无内容，点击「AI生成」自动填充</div>';
+
+  document.getElementById('modalBody').innerHTML =
+    '<div style="background:linear-gradient(135deg,'+color+','+color+'99);border-radius:12px;padding:20px;margin-bottom:16px;color:#fff;">'
+    + '<div style="font-size:32px;margin-bottom:8px;">' + slide.icon + '</div>'
+    + '<div style="font-family:\'Syne\',sans-serif;font-size:18px;font-weight:800;">' + slide.title + '</div>'
+    + '<div style="font-size:12px;opacity:0.8;margin-top:4px;">' + (slide.desc||'') + '</div>'
+    + '</div>'
+    + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;">内容要点（可直接编辑）</div>'
+    + points
+    + '<div style="border-top:1px dashed var(--border);padding-top:14px;margin-top:14px;">'
+    + '<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">演讲备注</div>'
+    + '<div contenteditable="true" style="font-size:12px;padding:10px 12px;background:var(--bg);border-radius:9px;outline:none;line-height:1.7;min-height:48px;border:1px solid transparent;" onfocus="this.style.borderColor=\'var(--accent)\'" onblur="this.style.borderColor=\'transparent\'">' + (slide.speakerNotes||'点击填写演讲备注…') + '</div>'
+    + '</div>'
+    + '<div style="display:flex;gap:8px;margin-top:16px;">'
+    + '<button onclick="genSlideContent('+idx+');closeModal()" style="flex:1;padding:10px;border-radius:9px;background:var(--accent);color:#fff;border:none;cursor:pointer;font-family:\'Noto Sans SC\',sans-serif;font-weight:600;font-size:13px;">🤖 AI重新生成此页</button>'
+    + '<button onclick="closeModal()" style="padding:10px 18px;border-radius:9px;border:1px solid var(--border);background:var(--white);cursor:pointer;font-family:\'Noto Sans SC\',sans-serif;font-size:13px;">关闭</button>'
+    + '</div>';
+
+  document.getElementById('slideModal').classList.add('open');
+}
+
+async function genSlideContent(idx) {
+  const slide = reportSlides[idx];
+  if (!slide) return;
+  const isGov = currentVersion === 'gov';
+  let basic = {};
+  try { basic = JSON.parse(localStorage.getItem('nm_basic') || '{}'); } catch(e){}
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:600,
+        messages:[{role:'user',content:
+          '你是汇报专家。为社区微更新项目的「' + slide.title + '」幻灯片生成内容，'
+          + (isGov ? '政府版：专业详细，引用规范依据' : '居民版：通俗简洁，避免专业术语')
+          + '。只返回JSON：{"keyPoints":["要点1","要点2","要点3"],"speakerNotes":"30字备注"}\n'
+          + '项目：' + (basic.name||'社区项目') + '，背景：' + (basic.bg||'')
+        }]
+      })
+    });
+    const d = await res.json();
+    const txt = (d.content?.[0]?.text||'').replace(/```json|```/g,'').trim();
+    const c = JSON.parse(txt);
+    reportSlides[idx].keyPoints = c.keyPoints || [];
+    reportSlides[idx].speakerNotes = c.speakerNotes || '';
+    renderSlides(reportSlides);
+    notify('✅ 第' + (idx+1) + '张幻灯片已更新');
+  } catch(e) {
+    notify('⚠️ 生成失败');
+  }
+}
+
+function closeModal() { document.getElementById('slideModal').classList.remove('open'); }
+
+// ══════════════════════════════
+// EXPORT
+// ══════════════════════════════
+function exportPPT() {
+  notify('📥 PPT导出功能开发中，当前可截图或打印各幻灯片');
+}
+
+function exportZip() {
+  if (currentPhase === 'concept') notify('📦 概念阶段数据包：包含现状照片、问卷数据、策略框架，正在打包…');
+  else if (currentPhase === 'deepen') notify('📦 深化阶段数据包：包含AI生图提示词和现状照片，正在打包…');
+}
+
+// ══════════════════════════════
+// INIT
+// ══════════════════════════════
+function init() {
+  // Load project name
+  try {
+    const basic = JSON.parse(localStorage.getItem('nm_basic') || '{}');
+    if (basic.name) document.getElementById('f-name').value = basic.name;
+  } catch(e) {}
+  // Set today's date
+  document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
+  // Mark first phase as active
+  selectPhase('concept');
+}
+
+function notify(msg) {
+  const el = document.getElementById('notif');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._t); el._t = setTimeout(()=>el.classList.remove('show'), 3000);
+}
+
+init();
+
+// ── NAV SCREEN ──
+function showNavScreen() {
+  document.getElementById('navScreen').style.display = 'flex';
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('backToNav').classList.remove('visible');
+}
+
+function enterAll() {
+  document.getElementById('navScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'flex';
+  document.getElementById('backToNav').classList.add('visible');
+}
+
+function navGoTo(id) {
+  enterAll();
+  setTimeout(() => {
+    // Try clicking the element or scrolling to it
+    const el = document.getElementById(id);
+    if (!el) return;
+    // For tabs
+    if (el.classList.contains('tab') || el.classList.contains('nav-item') || el.classList.contains('phase-card')) {
+      el.click();
+    } else {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    // Switch tab if it's a panel
+    const tabId = id.replace('mod-','').replace('panel-','');
+    if (typeof switchTab === 'function' && ['macro','meso','micro'].includes(tabId)) {
+      switchTab(tabId);
+    }
+    if (typeof switchModule === 'function') {
+      switchModule(tabId, null);
+    }
+    if (typeof selectPhase === 'function' && ['concept','deepen','final'].includes(tabId)) {
+      selectPhase(tabId);
+    }
+  }, 100);
+}
+
+// Show on mobile only - or always show
+(function() {
+  // On mobile always show nav first; on desktop skip
+  if (window.innerWidth <= 768) {
+    document.getElementById('navScreen').style.display = 'flex';
+    document.getElementById('mainApp').style.display = 'none';
+  } else {
+    document.getElementById('navScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'flex';
+  }
+})();
+
+</script>
+
+</div>
+</body>
+</html>

@@ -6,372 +6,501 @@
 <title>NeighborMind · 数据采集管理端</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#f4f6fb;--white:#fff;--border:#e4e9f2;--text:#1a2235;--muted:#7a8aa0;
-  --accent:#1d4ed8;--al:#eff4ff;
-  --c1:#1d4ed8;--c1l:#eff4ff;
-  --c2:#059669;--c2l:#ecfdf5;
-  --c3:#dc2626;--c3l:#fef2f2;
-  --c4:#d97706;--c4l:#fffbeb;
-  --c5:#7c3aed;--c5l:#f5f3ff;
-  --c6:#0284c7;--c6l:#f0f9ff;
-  --c7:#475569;--c7l:#f8fafc;
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; overflow:hidden; font-family:'Noto Sans SC',sans-serif; background:#f4f6fb; color:#1a2235; }
+
+:root {
+  --bg:#f4f6fb; --white:#fff; --border:#e4e9f2; --text:#1a2235; --muted:#7a8aa0;
+  --accent:#1d4ed8; --al:#eff4ff;
+  --c1:#1d4ed8; --c1l:#eff4ff;
+  --c2:#059669; --c2l:#ecfdf5;
+  --c3:#dc2626; --c3l:#fef2f2;
+  --c4:#d97706; --c4l:#fffbeb;
+  --c5:#7c3aed; --c5l:#f5f3ff;
+  --c6:#0284c7; --c6l:#f0f9ff;
+  --c7:#475569; --c7l:#f8fafc;
   --shadow:0 2px 10px rgba(0,0,0,0.06);
   --shadow-lg:0 8px 32px rgba(0,0,0,0.1);
   --r:14px;
 }
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+
+.page { display:flex; flex-direction:column; height:100vh; }
 
 /* TOP BAR */
-.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 32px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;flex-shrink:0;}
-.logo{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px;}
-.logo em{color:var(--accent);font-style:normal;}
-.sep{width:1px;height:18px;background:var(--border);}
-.page-tag{font-size:13px;font-weight:500;display:flex;align-items:center;gap:7px;}
-.agent-chip{background:var(--al);color:var(--accent);font-size:11px;padding:3px 8px;border-radius:6px;font-weight:500;}
-.topbar-r{display:flex;align-items:center;gap:10px;}
-.count-chip{background:var(--bg);border:1px solid var(--border);padding:5px 14px;border-radius:20px;font-size:12px;color:var(--muted);}
-.count-chip b{color:var(--accent);}
-.btn{padding:8px 18px;border-radius:9px;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;font-weight:500;display:flex;align-items:center;gap:6px;transition:all 0.15s;border:none;}
-.btn-outline{border:1px solid var(--border)!important;background:var(--white);color:var(--text);}
-.btn-outline:hover{background:var(--bg);}
-.btn-primary{background:linear-gradient(135deg,var(--accent),#4f46e5);color:#fff;}
-.btn-primary:hover{opacity:0.88;}
-.btn-primary:disabled{opacity:0.4;cursor:not-allowed;}
+.topbar { flex-shrink:0; height:56px; background:var(--white); border-bottom:1px solid var(--border); padding:0 28px; display:flex; align-items:center; justify-content:space-between; z-index:20; }
+.logo { font-family:'Syne',sans-serif; font-size:16px; font-weight:800; display:flex; align-items:center; gap:8px; }
+.logo em { color:var(--accent); font-style:normal; }
+.sep { width:1px; height:18px; background:var(--border); }
+.page-tag { font-size:13px; font-weight:500; display:flex; align-items:center; gap:7px; }
+.agent-chip { background:var(--al); color:var(--accent); font-size:11px; padding:3px 8px; border-radius:6px; font-weight:500; }
+.topbar-r { display:flex; align-items:center; gap:10px; }
+.count-chip { background:var(--bg); border:1px solid var(--border); padding:5px 14px; border-radius:20px; font-size:12px; color:var(--muted); }
+.count-chip b { color:var(--accent); }
+.btn { padding:8px 16px; border-radius:9px; font-size:12px; cursor:pointer; font-family:'Noto Sans SC',sans-serif; font-weight:500; display:flex; align-items:center; gap:5px; transition:all 0.15s; border:none; }
+.btn-ghost { border:1px solid var(--border) !important; background:var(--white); color:var(--muted); }
+.btn-ghost:hover { color:var(--text); background:var(--bg); }
+.btn-primary { background:linear-gradient(135deg,var(--accent),#4f46e5); color:#fff; }
+.btn-primary:hover { opacity:0.88; }
+.btn-primary:disabled { opacity:0.4; cursor:not-allowed; }
 
-/* LAYOUT */
-.body{flex:1;display:grid;grid-template-columns:240px 1fr;min-height:0;}
+/* SPLIT — this is the key: both children are flex items with overflow:auto */
+.split { flex:1; display:flex; min-height:0; }
 
-/* SIDEBAR */
-.sidebar{background:var(--white);border-right:1px solid var(--border);padding:20px 12px;display:flex;flex-direction:column;gap:3px;overflow-y:auto;}
-.sb-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:8px 10px 4px;}
-.sb-btn{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:'Noto Sans SC',sans-serif;transition:background 0.12s;}
-.sb-btn:hover{background:var(--bg);}
-.sb-btn.active{background:var(--al);}
-.sb-icon{width:30px;height:30px;border-radius:7px;display:grid;place-items:center;font-size:14px;flex-shrink:0;}
-.sb-name{font-size:13px;font-weight:500;flex:1;}
-.sb-btn.active .sb-name{color:var(--accent);}
-.sb-cnt{font-size:11px;color:var(--muted);}
+/* LEFT — scrolls independently */
+.sidebar { width:240px; flex-shrink:0; overflow-y:auto; background:var(--white); border-right:1px solid var(--border); padding:16px 12px; display:flex; flex-direction:column; gap:3px; }
+.sidebar::-webkit-scrollbar { width:4px; }
+.sidebar::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
 
-/* STATUS PILLS */
-.status-row{display:flex;flex-direction:column;gap:6px;padding:10px 10px;background:var(--bg);border-radius:10px;margin:4px 0;}
-.status-item{display:flex;justify-content:space-between;font-size:12px;}
-.status-item span{color:var(--muted);}
+.sb-label { font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); padding:8px 10px 4px; }
+.sb-btn { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:10px; cursor:pointer; border:none; background:none; width:100%; text-align:left; font-family:'Noto Sans SC',sans-serif; transition:background 0.12s; }
+.sb-btn:hover { background:var(--bg); }
+.sb-btn.active { background:var(--al); }
+.sb-btn.active .sb-name { color:var(--accent); }
+.sb-icon { width:30px; height:30px; border-radius:7px; display:grid; place-items:center; font-size:14px; flex-shrink:0; }
+.sb-name { font-size:13px; font-weight:500; flex:1; }
+.sb-cnt { font-size:11px; color:var(--muted); }
+.status-row { display:flex; flex-direction:column; gap:6px; padding:10px; background:var(--bg); border-radius:10px; margin:4px 0; }
+.status-item { display:flex; justify-content:space-between; font-size:12px; }
+.status-item span { color:var(--muted); }
 
-/* MAIN */
-.main{display:flex;flex-direction:column;overflow:hidden;}
-.toolbar{background:var(--white);border-bottom:1px solid var(--border);padding:11px 24px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
-.search{flex:1;display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:7px 14px;}
-.search input{border:none;background:none;outline:none;font-size:13px;font-family:'Noto Sans SC',sans-serif;color:var(--text);width:100%;}
-.search input::placeholder{color:var(--muted);}
+/* RIGHT — scrolls independently */
+.right-panel { flex:1; overflow-y:auto; min-width:0; }
+.right-panel::-webkit-scrollbar { width:5px; }
+.right-panel::-webkit-scrollbar-thumb { background:var(--border); border-radius:5px; }
 
-/* CARDS SCROLL */
-.cards-scroll{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:14px;}
-.cards-scroll::-webkit-scrollbar{width:5px;}
-.cards-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:5px;}
+/* Sticky toolbar inside right panel */
+.toolbar { position:sticky; top:0; z-index:10; background:var(--white); border-bottom:1px solid var(--border); padding:10px 24px; display:flex; align-items:center; gap:10px; }
+.search { flex:1; display:flex; align-items:center; gap:8px; background:var(--bg); border:1px solid var(--border); border-radius:9px; padding:7px 14px; }
+.search input { border:none; background:none; outline:none; font-size:13px; font-family:'Noto Sans SC',sans-serif; color:var(--text); width:100%; }
+.search input::placeholder { color:var(--muted); }
 
-/* SOURCE CARD */
-.src-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:box-shadow 0.2s;animation:up 0.3s ease forwards;opacity:0;}
-.src-card:hover{box-shadow:var(--shadow);}
-@keyframes up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-
-/* Card header */
-.card-hd{padding:14px 18px;display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none;}
-.card-hd-icon{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:20px;flex-shrink:0;}
-.card-hd-info{flex:1;min-width:0;}
-.card-hd-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;}
-.card-hd-sub{font-size:11px;color:var(--muted);margin-top:2px;}
-.card-hd-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
-.card-status-pill{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;}
-.pill-empty{background:var(--bg);color:var(--muted);border:1px solid var(--border);}
-.pill-has{background:var(--c4l);color:var(--c4);border:1px solid rgba(217,119,6,0.15);}
-.pill-analyzing{background:var(--al);color:var(--accent);border:1px solid rgba(29,78,216,0.15);}
-.pill-done{background:var(--c2l);color:var(--c2);border:1px solid rgba(5,150,105,0.15);}
-.chevron{color:var(--muted);font-size:12px;transition:transform 0.2s;}
-.chevron.open{transform:rotate(180deg);}
-
-/* Card body */
-.card-body{border-top:1px solid var(--border);}
-
-/* Two column inside card */
-.card-cols{display:grid;grid-template-columns:1fr 1fr;gap:0;}
-.card-col{padding:16px 18px;}
-.card-col+.card-col{border-left:1px solid var(--border);}
-.col-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:10px;}
-
-/* Drop zone */
-.dz{border:2px dashed var(--border);border-radius:10px;padding:16px 12px;text-align:center;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:5px;}
-.dz:hover,.dz.over{border-color:var(--accent);background:var(--al);}
-.dz-icon{font-size:22px;}
-.dz p{font-size:12px;color:var(--muted);line-height:1.5;}
-.dz-types{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;margin-top:3px;}
-.tp{font-size:10px;background:var(--bg);border:1px solid var(--border);padding:1px 6px;border-radius:8px;color:var(--muted);}
-.dz-btn{margin-top:6px;padding:5px 14px;border-radius:7px;background:var(--accent);color:#fff;border:none;font-size:11px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;}
-
-/* URL input */
-.url-row{display:flex;gap:7px;}
-.url-inp{flex:1;padding:7px 11px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:'Noto Sans SC',sans-serif;outline:none;transition:border-color 0.15s;}
-.url-inp:focus{border-color:var(--accent);}
-.url-add{padding:7px 12px;border-radius:8px;border:none;font-size:12px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;color:#fff;white-space:nowrap;}
-
-/* File list */
-.file-list{margin-top:8px;display:flex;flex-direction:column;gap:5px;}
-.frow{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:8px;background:var(--bg);border:1px solid var(--border);}
-.fthumb{width:32px;height:32px;border-radius:6px;background:var(--white);border:1px solid var(--border);display:grid;place-items:center;font-size:14px;flex-shrink:0;overflow:hidden;}
-.fthumb img{width:32px;height:32px;object-fit:cover;border-radius:6px;}
-.finfo{flex:1;min-width:0;}
-.fname{font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.fmeta{font-size:10px;color:var(--muted);}
-.fdel{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;flex-shrink:0;padding:2px;}
-.fdel:hover{color:var(--c3);}
-.more-lbl{font-size:11px;color:var(--muted);text-align:center;padding:3px;cursor:pointer;}
-.more-lbl:hover{color:var(--accent);}
-
-/* Analyze button inside card */
-.card-analyze-btn{
-  width:100%;padding:9px;border-radius:8px;border:none;cursor:pointer;
-  font-size:13px;font-weight:600;font-family:'Noto Sans SC',sans-serif;
-  display:flex;align-items:center;justify-content:center;gap:7px;
-  margin-top:10px;transition:all 0.15s;
-}
-.card-analyze-btn:disabled{opacity:0.4;cursor:not-allowed;}
-
-/* Analysis result panel */
-.analysis-panel{padding:14px 18px;border-top:1px solid var(--border);background:linear-gradient(135deg,rgba(29,78,216,0.02),transparent);}
-.ap-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
-.ap-title span{color:var(--c2);}
-.ap-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
-.aptag{font-size:11px;padding:3px 9px;border-radius:6px;font-weight:500;}
-.ap-points{display:flex;flex-direction:column;gap:5px;}
-.ap-point{font-size:12px;color:var(--text);line-height:1.6;padding:7px 10px;background:var(--white);border-radius:8px;border:1px solid var(--border);display:flex;gap:8px;}
-.ap-point-dot{width:6px;height:6px;border-radius:50%;margin-top:5px;flex-shrink:0;}
-.ap-summary{font-size:12px;color:var(--muted);line-height:1.7;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);}
-
-/* BOTTOM BAR */
-.bottom-bar{background:var(--white);border-top:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:14px;flex-shrink:0;}
-.progress-section{flex:1;display:flex;flex-direction:column;gap:4px;}
-.prog-bar{height:5px;background:var(--border);border-radius:5px;overflow:hidden;}
-.prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),#4f46e5);border-radius:5px;transition:width 0.5s ease;width:0%;}
-.prog-lbl{font-size:11px;color:var(--muted);}
-
-.spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,0.25);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;}
-.spin-c{display:inline-block;width:11px;height:11px;border:2px solid rgba(29,78,216,0.15);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;}
-@keyframes sp{to{transform:rotate(360deg)}}
-
+.content-area { padding:20px 24px; display:flex; flex-direction:column; gap:14px; }
 
 /* FORM CARDS */
-.form-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;animation:up 0.3s ease forwards;opacity:0;}
-.form-card-head{padding:14px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;}
-.form-card-icon{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:20px;flex-shrink:0;}
-.form-card-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;flex:1;}
-.form-card-sub{font-size:11px;color:var(--muted);margin-top:2px;}
-.form-card-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;flex-shrink:0;}
-.form-card-body{padding:18px 20px;}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
-.form-field{display:flex;flex-direction:column;gap:5px;}
-.form-field.full{grid-column:1/-1;}
-.form-field label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
-.form-field input,.form-field textarea,.form-field select{padding:8px 11px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:'Noto Sans SC',sans-serif;color:var(--text);outline:none;background:var(--white);transition:border-color 0.15s;width:100%;}
-.form-field input:focus,.form-field textarea:focus{border-color:var(--accent);}
-.form-field textarea{resize:vertical;min-height:64px;line-height:1.6;}
-.form-save-btn{margin-top:14px;padding:9px;border-radius:9px;width:100%;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans SC',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.15s;}
-.form-saved{font-size:11px;color:var(--c2);display:flex;align-items:center;gap:4px;margin-top:8px;justify-content:center;}
+.form-card { background:var(--white); border:1px solid var(--border); border-radius:var(--r); overflow:hidden; }
+.form-card-head { padding:14px 18px; display:flex; align-items:center; gap:12px; cursor:pointer; user-select:none; border-bottom:1px solid var(--border); }
+.form-card-icon { width:40px; height:40px; border-radius:11px; display:grid; place-items:center; font-size:20px; flex-shrink:0; }
+.form-card-title { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; flex:1; }
+.form-card-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+.form-card-badge { font-size:10px; font-weight:700; padding:3px 9px; border-radius:20px; flex-shrink:0; }
+.form-card-body { padding:18px 20px; }
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.form-field { display:flex; flex-direction:column; gap:5px; }
+.form-field.full { grid-column:1/-1; }
+.form-field label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--muted); }
+.form-field input, .form-field textarea, .form-field select { padding:8px 10px; border:1px solid var(--border); border-radius:8px; font-size:12px; font-family:'Noto Sans SC',sans-serif; color:var(--text); outline:none; background:var(--white); transition:border-color 0.15s; width:100%; }
+.form-field input:focus, .form-field textarea:focus { border-color:var(--accent); }
+.form-field textarea { resize:vertical; min-height:64px; line-height:1.6; }
+.form-save-btn { margin-top:14px; padding:10px; border-radius:9px; width:100%; border:none; font-size:13px; font-weight:600; cursor:pointer; font-family:'Noto Sans SC',sans-serif; display:flex; align-items:center; justify-content:center; gap:6px; transition:all 0.15s; }
+.form-saved { font-size:11px; color:var(--c2); display:flex; align-items:center; gap:4px; margin-top:8px; justify-content:center; }
 
-.notif{position:fixed;bottom:20px;right:24px;background:var(--text);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;box-shadow:var(--shadow-lg);transform:translateY(16px);opacity:0;transition:all 0.25s;z-index:200;}
-.notif.show{transform:translateY(0);opacity:1;}
+.divider { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:11px; padding:4px 0; }
+.divider::before, .divider::after { content:''; flex:1; height:1px; background:var(--border); }
 
-input[type=file]{display:none;}
+/* SOURCE CARDS */
+.src-card { background:var(--white); border:1px solid var(--border); border-radius:var(--r); overflow:hidden; transition:box-shadow 0.2s; animation:up 0.3s ease forwards; opacity:0; }
+.src-card:hover { box-shadow:var(--shadow); }
+@keyframes up { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
 
-@media(max-width:800px){
-  .body{grid-template-columns:1fr;}
-  .sidebar{display:none;}
-  .card-cols{grid-template-columns:1fr;}
-  .card-col+.card-col{border-left:none;border-top:1px solid var(--border);}
+.card-hd { padding:14px 18px; display:flex; align-items:center; gap:12px; cursor:pointer; user-select:none; }
+.card-hd-icon { width:40px; height:40px; border-radius:11px; display:grid; place-items:center; font-size:20px; flex-shrink:0; }
+.card-hd-info { flex:1; }
+.card-hd-title { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; }
+.card-hd-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+.card-hd-right { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.card-status-pill { font-size:11px; padding:3px 10px; border-radius:20px; font-weight:500; }
+.pill-empty { background:var(--bg); color:var(--muted); border:1px solid var(--border); }
+.pill-has { background:var(--c4l); color:var(--c4); border:1px solid rgba(217,119,6,0.15); }
+.pill-analyzing { background:var(--al); color:var(--accent); }
+.pill-done { background:var(--c2l); color:var(--c2); }
+.chevron { color:var(--muted); font-size:12px; transition:transform 0.2s; }
+.chevron.open { transform:rotate(180deg); }
+
+.card-body { border-top:1px solid var(--border); }
+.card-cols { display:grid; grid-template-columns:1fr 1fr; }
+.card-col { padding:16px 18px; }
+.card-col+.card-col { border-left:1px solid var(--border); }
+.col-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; color:var(--muted); margin-bottom:10px; }
+
+.dz { border:2px dashed var(--border); border-radius:10px; padding:16px 12px; text-align:center; cursor:pointer; transition:all 0.2s; display:flex; flex-direction:column; align-items:center; gap:5px; }
+.dz:hover, .dz.over { border-color:var(--accent); background:var(--al); }
+.dz-icon { font-size:22px; }
+.dz p { font-size:12px; color:var(--muted); line-height:1.5; }
+.dz-types { display:flex; flex-wrap:wrap; gap:3px; justify-content:center; margin-top:3px; }
+.tp { font-size:10px; background:var(--bg); border:1px solid var(--border); padding:1px 6px; border-radius:8px; color:var(--muted); }
+.dz-btn { margin-top:6px; padding:5px 14px; border-radius:7px; background:var(--accent); color:#fff; border:none; font-size:11px; cursor:pointer; font-family:'Noto Sans SC',sans-serif; }
+.url-row { display:flex; gap:7px; }
+.url-inp { flex:1; padding:7px 10px; border:1px solid var(--border); border-radius:8px; font-size:12px; font-family:'Noto Sans SC',sans-serif; outline:none; }
+.url-inp:focus { border-color:var(--accent); }
+.url-add { padding:7px 12px; border-radius:8px; border:none; font-size:12px; cursor:pointer; font-family:'Noto Sans SC',sans-serif; color:#fff; }
+.file-list { margin-top:8px; display:flex; flex-direction:column; gap:5px; }
+.frow { display:flex; align-items:center; gap:8px; padding:7px 9px; border-radius:8px; background:var(--bg); border:1px solid var(--border); }
+.fthumb { width:32px; height:32px; border-radius:6px; background:var(--white); border:1px solid var(--border); display:grid; place-items:center; font-size:14px; flex-shrink:0; overflow:hidden; }
+.fthumb img { width:32px; height:32px; object-fit:cover; border-radius:6px; }
+.finfo { flex:1; min-width:0; }
+.fname { font-size:11px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.fmeta { font-size:10px; color:var(--muted); }
+.fdel { background:none; border:none; color:var(--muted); cursor:pointer; font-size:13px; padding:2px; }
+.fdel:hover { color:var(--c3); }
+.more-lbl { font-size:11px; color:var(--muted); text-align:center; padding:3px; cursor:pointer; }
+.card-analyze-btn { width:100%; padding:9px; border-radius:8px; border:none; cursor:pointer; font-size:13px; font-weight:600; font-family:'Noto Sans SC',sans-serif; display:flex; align-items:center; justify-content:center; gap:7px; margin-top:10px; transition:all 0.15s; }
+.card-analyze-btn:disabled { opacity:0.4; cursor:not-allowed; }
+.ap-tags { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px; }
+.aptag { font-size:11px; padding:3px 9px; border-radius:6px; font-weight:500; }
+.ap-points { display:flex; flex-direction:column; gap:5px; }
+.ap-point { font-size:12px; line-height:1.6; padding:7px 10px; background:var(--white); border-radius:8px; border:1px solid var(--border); display:flex; gap:8px; }
+.ap-point-dot { width:6px; height:6px; border-radius:50%; margin-top:5px; flex-shrink:0; }
+.ap-summary { font-size:12px; color:var(--muted); line-height:1.7; margin-top:8px; padding-top:8px; border-top:1px dashed var(--border); }
+
+.bottom-bar { position:sticky; bottom:0; background:var(--white); border-top:1px solid var(--border); padding:12px 24px; display:flex; align-items:center; gap:14px; }
+.prog-wrap { flex:1; display:flex; flex-direction:column; gap:4px; }
+.prog-bar { height:5px; background:var(--border); border-radius:5px; overflow:hidden; }
+.prog-fill { height:100%; background:linear-gradient(90deg,var(--accent),#4f46e5); border-radius:5px; transition:width 0.5s ease; width:0%; }
+.prog-lbl { font-size:11px; color:var(--muted); }
+
+.spin { display:inline-block; width:12px; height:12px; border:2px solid rgba(255,255,255,0.25); border-top-color:#fff; border-radius:50%; animation:sp .7s linear infinite; }
+.spin-c { display:inline-block; width:11px; height:11px; border:2px solid rgba(29,78,216,0.15); border-top-color:var(--accent); border-radius:50%; animation:sp .7s linear infinite; }
+@keyframes sp { to{transform:rotate(360deg)} }
+
+.notif { position:fixed; bottom:20px; right:24px; background:var(--text); color:#fff; padding:10px 18px; border-radius:10px; font-size:13px; box-shadow:var(--shadow-lg); transform:translateY(16px); opacity:0; transition:all 0.25s; z-index:200; }
+.notif.show { transform:translateY(0); opacity:1; }
+input[type=file] { display:none; }
+
+@media (max-width: 768px) {
+  body { height: auto; overflow: auto; }
+  .body { grid-template-columns: 1fr !important; overflow: visible; height: auto; }
+  .sidebar { display: none; }
+  .main { overflow-y: visible; height: auto; }
+  .topbar { padding: 0 14px; }
+  .toolbar { padding: 10px 14px; }
+  #formCardsWrap { padding: 12px 14px 0 !important; }
+  .cards-scroll { padding: 0 14px 14px !important; }
+  .card-cols { grid-template-columns: 1fr !important; }
+  .form-grid, .form-grid-3 { grid-template-columns: 1fr !important; }
+}
+
+
+/* ── NAV SCREEN ── */
+#navScreen {
+  position: fixed; inset: 0; z-index: 1000;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  overflow-y: auto;
+}
+.nav-screen-hero {
+  padding: 40px 24px 28px;
+  color: #fff;
+  flex-shrink: 0;
+}
+.nav-screen-logo {
+  font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800;
+  opacity: 0.8; margin-bottom: 20px; display: flex; align-items: center; gap: 6px;
+}
+.nav-screen-title {
+  font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800;
+  line-height: 1.2; margin-bottom: 6px;
+}
+.nav-screen-sub {
+  font-size: 13px; opacity: 0.75;
+}
+.nav-screen-items {
+  flex: 1; padding: 16px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.nav-screen-item {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px 18px;
+  display: flex; align-items: center; gap: 14px;
+  cursor: pointer; transition: all 0.2s;
+  text-decoration: none; color: var(--text);
+}
+.nav-screen-item:hover, .nav-screen-item:active {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  transform: translateY(-1px);
+}
+.nav-item-icon {
+  width: 48px; height: 48px; border-radius: 13px;
+  display: grid; place-items: center; font-size: 24px;
+  flex-shrink: 0;
+}
+.nav-item-text { flex: 1; }
+.nav-item-label {
+  font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 800;
+  margin-bottom: 3px;
+}
+.nav-item-desc { font-size: 12px; color: var(--muted); }
+.nav-item-arrow { font-size: 18px; color: var(--muted); }
+
+.nav-screen-footer {
+  padding: 16px; text-align: center;
+  font-size: 11px; color: var(--muted);
+  flex-shrink: 0;
+}
+.enter-all-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 20px; border-radius: 10px;
+  background: var(--white); border: 1px solid var(--border);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  color: var(--text); font-family: 'Noto Sans SC', sans-serif;
+  margin-bottom: 10px; transition: all 0.15s;
+}
+.enter-all-btn:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+/* Back button */
+#backToNav {
+  position: fixed; bottom: 20px; right: 20px; z-index: 900;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--text); color: #fff;
+  border: none; cursor: pointer;
+  font-size: 18px; display: none; place-items: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  transition: all 0.2s;
+}
+#backToNav:hover { transform: scale(1.08); }
+#backToNav.visible { display: grid; }
+
+
+/* Mobile topbar: logo only */
+@media (max-width: 768px) {
+  .topbar { height: 46px !important; padding: 0 14px !important; flex-wrap: nowrap !important; }
+  .topbar .page-tag { display: none !important; }
+  .topbar .topbar-r { display: none !important; }
+  .topbar .logo { font-size: 13px !important; }
+  .topbar > div:first-child { overflow: hidden; }
 }
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <div style="display:flex;align-items:center;gap:12px;">
-    <div class="logo">🏘 Neighbor<em>Mind</em></div>
-    <div class="sep"></div>
-    <div class="page-tag">📥 数据采集管理端 <span class="agent-chip">智能体 01</span></div>
+<!-- NAV SCREEN -->
+<div id="navScreen">
+  <div class="nav-screen-hero" style="background:linear-gradient(135deg,#7c3aed,#1d4ed8);">
+    <div class="nav-screen-logo">🏘 NeighborMind</div>
+    <div class="nav-screen-title">数据采集管理端</div>
+    <div class="nav-screen-sub">智能体 01 · 点击进入对应模块</div>
   </div>
-  <div class="topbar-r">
-    <div class="count-chip">已导入 <b id="totalCount">0</b> 份 · 已分析 <b id="doneCount">0</b> 份</div>
-    <button class="btn btn-outline" onclick="clearAll()">↺ 清空重置</button>
-    <button class="btn btn-primary" id="mergeBtn" onclick="mergeAll()" disabled>
-      🔀 汇总全部分析结果
-    </button>
+  <div class="nav-screen-items">
+
+    <div class="nav-screen-item" onclick="navGoTo('card-basic')">
+      <div class="nav-item-icon" style="background:#05966918;">📋</div>
+      <div class="nav-item-text">
+        <div class="nav-item-label" style="color:#059669;">基本信息</div>
+        <div class="nav-item-desc">项目名称·户数·人口</div>
+      </div>
+      <div class="nav-item-arrow">›</div>
+    </div>
+    <div class="nav-screen-item" onclick="navGoTo('card-culture')">
+      <div class="nav-item-icon" style="background:#7c3aed18;">🏛</div>
+      <div class="nav-item-text">
+        <div class="nav-item-label" style="color:#7c3aed;">历史文化</div>
+        <div class="nav-item-desc">历史沿革·文化特色</div>
+      </div>
+      <div class="nav-item-arrow">›</div>
+    </div>
+    <div class="nav-screen-item" onclick="navGoTo('survey-card')">
+      <div class="nav-item-icon" style="background:#1d4ed818;">📊</div>
+      <div class="nav-item-text">
+        <div class="nav-item-label" style="color:#1d4ed8;">问卷数据</div>
+        <div class="nav-item-desc">问卷星导出文件</div>
+      </div>
+      <div class="nav-item-arrow">›</div>
+    </div>
+    <div class="nav-screen-item" onclick="navGoTo('minutes-card')">
+      <div class="nav-item-icon" style="background:#05966918;">📝</div>
+      <div class="nav-item-text">
+        <div class="nav-item-label" style="color:#059669;">会议纪要</div>
+        <div class="nav-item-desc">访谈·座谈记录</div>
+      </div>
+      <div class="nav-item-arrow">›</div>
+    </div>
+    <div class="nav-screen-item" onclick="navGoTo('media-card')">
+      <div class="nav-item-icon" style="background:#d9770618;">🖼</div>
+      <div class="nav-item-text">
+        <div class="nav-item-label" style="color:#d97706;">现场照片</div>
+        <div class="nav-item-desc">现场采集素材</div>
+      </div>
+      <div class="nav-item-arrow">›</div>
+    </div>
+  </div>
+  <div class="nav-screen-footer">
+    <button class="enter-all-btn" onclick="enterAll()">📂 进入完整界面</button>
+    <div>或点击上方模块直接跳转</div>
   </div>
 </div>
 
-<div class="body">
+<!-- BACK BUTTON -->
+<button id="backToNav" onclick="showNavScreen()" title="返回导航">⊞</button>
 
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <div class="sb-label">第一阶段 · 基础信息</div>
-    <button class="sb-btn active" onclick="scrollTo('all',this)">
-      <div class="sb-icon" style="background:#f1f5f9;">📂</div>
-      <div class="sb-name">全部</div>
-      <div class="sb-cnt" id="sb-all">0</div>
-    </button>
-    <button class="sb-btn" onclick="scrollTo('basic',this)">
-      <div class="sb-icon" style="background:#ecfdf5;">📋</div>
-      <div class="sb-name">基本信息</div>
-      <div class="sb-cnt" id="sb-basic" style="color:var(--c2);font-size:10px;">必填</div>
-    </button>
-    <button class="sb-btn" onclick="scrollTo('culture',this)">
-      <div class="sb-icon" style="background:#f5f3ff;">🏛</div>
-      <div class="sb-name">历史文化</div>
-      <div class="sb-cnt" id="sb-culture" style="color:var(--c5);font-size:10px;">必填</div>
-    </button>
-    <div class="sb-label">数据采集</div>
-    <button class="sb-btn" onclick="scrollTo('survey',this)">
-      <div class="sb-icon" style="background:var(--c1l);">📊</div>
-      <div class="sb-name">问卷数据</div>
-      <div class="sb-cnt" id="sb-survey">0</div>
-    </button>
-    <button class="sb-btn" onclick="scrollTo('minutes',this)">
-      <div class="sb-icon" style="background:var(--c2l);">📝</div>
-      <div class="sb-name">会议纪要</div>
-      <div class="sb-cnt" id="sb-minutes">0</div>
-    </button>
-    <button class="sb-btn" onclick="scrollTo('audio',this)">
-      <div class="sb-icon" style="background:var(--c3l);">🎙️</div>
-      <div class="sb-name">录音文件</div>
-      <div class="sb-cnt" id="sb-audio">0</div>
-    </button>
-    <button class="sb-btn" onclick="scrollTo('monitor',this)">
-      <div class="sb-icon" style="background:var(--c4l);">📹</div>
-      <div class="sb-name">监控素材</div>
-      <div class="sb-cnt" id="sb-monitor">0</div>
-    </button>
-    <button class="sb-btn" onclick="scrollTo('news',this)">
-      <div class="sb-icon" style="background:var(--c5l);">📰</div>
-      <div class="sb-name">新闻/政策</div>
-      <div class="sb-cnt" id="sb-news">0</div>
-    </button>
-    <button class="sb-btn" onclick="scrollTo('url',this)">
-      <div class="sb-icon" style="background:var(--c6l);">🔗</div>
-      <div class="sb-name">网页链接</div>
-      <div class="sb-cnt" id="sb-url">0</div>
-    </button>
-    <button class="sb-btn" onclick="scrollTo('media',this)">
-      <div class="sb-icon" style="background:var(--c7l);">🖼️</div>
-      <div class="sb-name">现场照片/视频</div>
-      <div class="sb-cnt" id="sb-media">0</div>
-    </button>
+<div class="page">
 
-    <div class="sb-label" style="margin-top:8px;">分析进度</div>
-    <div class="status-row">
-      <div class="status-item"><span>📁 已导入</span><b id="st-total" style="color:var(--accent)">0</b></div>
-      <div class="status-item"><span>⏳ 待分析</span><b id="st-pending" style="color:var(--c4)">0</b></div>
-      <div class="status-item"><span>✅ 已分析</span><b id="st-done" style="color:var(--c2)">0</b></div>
+  <div id="mainApp" style="display:none;flex-direction:column;height:100vh;">
+<div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="logo">🏘 Neighbor<em>Mind</em></div>
+      <div class="sep"></div>
+      <div class="page-tag">📥 数据采集管理端 <span class="agent-chip">智能体 01</span></div>
     </div>
-
-    <div style="margin-top:auto;padding:11px;background:var(--al);border-radius:10px;font-size:12px;color:var(--accent);line-height:1.8;border:1px solid rgba(29,78,216,0.1);">
-      <b>使用流程：</b><br>
-      ① 填写基本信息 + 历史文化<br>
-      ② 上传各类素材 → 单独分析<br>
-      ③ 汇总 → 进入智能体02
+    <div class="topbar-r">
+      <div class="count-chip">已导入 <b id="totalCount">0</b> 份 · 已分析 <b id="doneCount">0</b> 份</div>
+      <button class="btn btn-ghost" onclick="clearAll()">↺ 清空</button>
+      <button class="btn btn-primary" id="mergeBtn" onclick="mergeAll()" disabled>🔀 汇总分析结果</button>
     </div>
   </div>
 
-  <!-- MAIN -->
-  <div class="main">
-    <div class="toolbar">
-      <div class="search">
-        <span style="color:var(--muted);font-size:14px;">🔍</span>
-        <input type="text" placeholder="搜索文件名、标签…" id="searchInput" oninput="renderAll()">
+  <div class="split">
+
+    <!-- LEFT SIDEBAR - own scroll -->
+    <div class="sidebar">
+      <div class="sb-label">第一阶段</div>
+      <button class="sb-btn active" onclick="navTo('basic',this)">
+        <div class="sb-icon" style="background:#ecfdf5;">📋</div>
+        <div class="sb-name">基本信息</div>
+        <div class="sb-cnt" id="sb-basic" style="color:var(--c2);font-size:10px;">必填</div>
+      </button>
+      <button class="sb-btn" onclick="navTo('culture',this)">
+        <div class="sb-icon" style="background:#f5f3ff;">🏛</div>
+        <div class="sb-name">历史文化</div>
+        <div class="sb-cnt" id="sb-culture" style="color:var(--c5);font-size:10px;">必填</div>
+      </button>
+
+      <div class="sb-label">数据采集</div>
+      <button class="sb-btn" onclick="navTo('survey',this)">
+        <div class="sb-icon" style="background:var(--c1l);">📊</div>
+        <div class="sb-name">问卷数据</div>
+        <div class="sb-cnt" id="sb-survey"></div>
+      </button>
+      <button class="sb-btn" onclick="navTo('minutes',this)">
+        <div class="sb-icon" style="background:var(--c2l);">📝</div>
+        <div class="sb-name">会议纪要</div>
+        <div class="sb-cnt" id="sb-minutes"></div>
+      </button>
+      <button class="sb-btn" onclick="navTo('audio',this)">
+        <div class="sb-icon" style="background:var(--c3l);">🎙️</div>
+        <div class="sb-name">录音文件</div>
+        <div class="sb-cnt" id="sb-audio"></div>
+      </button>
+      <button class="sb-btn" onclick="navTo('monitor',this)">
+        <div class="sb-icon" style="background:var(--c4l);">📹</div>
+        <div class="sb-name">监控素材</div>
+        <div class="sb-cnt" id="sb-monitor"></div>
+      </button>
+      <button class="sb-btn" onclick="navTo('news',this)">
+        <div class="sb-icon" style="background:var(--c5l);">📰</div>
+        <div class="sb-name">新闻/政策</div>
+        <div class="sb-cnt" id="sb-news"></div>
+      </button>
+      <button class="sb-btn" onclick="navTo('url',this)">
+        <div class="sb-icon" style="background:var(--c6l);">🔗</div>
+        <div class="sb-name">网页链接</div>
+        <div class="sb-cnt" id="sb-url"></div>
+      </button>
+      <button class="sb-btn" onclick="navTo('media',this)">
+        <div class="sb-icon" style="background:var(--c7l);">🖼️</div>
+        <div class="sb-name">现场照片/视频</div>
+        <div class="sb-cnt" id="sb-media"></div>
+      </button>
+
+      <div class="sb-label" style="margin-top:8px;">分析进度</div>
+      <div class="status-row">
+        <div class="status-item"><span>📁 已导入</span><b id="st-total" style="color:var(--accent)">0</b></div>
+        <div class="status-item"><span>⏳ 待分析</span><b id="st-pending" style="color:var(--c4)">0</b></div>
+        <div class="status-item"><span>✅ 已分析</span><b id="st-done" style="color:var(--c2)">0</b></div>
       </div>
-      <button class="btn btn-outline" onclick="analyzeAllCards()">⚡ 全部单独分析</button>
+      <div style="margin-top:auto;padding:11px;background:var(--al);border-radius:10px;font-size:12px;color:var(--accent);line-height:1.8;border:1px solid rgba(29,78,216,0.1);">
+        <b>使用流程：</b><br>① 填写基本信息+历史文化<br>② 上传素材→单独分析<br>③ 汇总→进入智能体02
+      </div>
     </div>
 
-    <!-- BASIC INFO CARD -->
-    <div class="form-card" id="card-basic" style="animation-delay:0s;">
-      <div class="form-card-head" onclick="toggleFormCard('basic')">
-        <div class="form-card-icon" style="background:#ecfdf5;">📋</div>
-        <div>
-          <div class="form-card-title" style="color:#059669;">基本信息</div>
-          <div class="form-card-sub">项目名称、规模、人口户数等基础数据</div>
+    <!-- RIGHT PANEL - own scroll -->
+    <div class="right-panel" id="rightPanel">
+      <div class="toolbar">
+        <div class="search">
+          <span style="color:var(--muted);">🔍</span>
+          <input type="text" placeholder="搜索文件名、标签…" id="searchInput" oninput="renderAll()">
         </div>
-        <span class="form-card-badge" style="background:#ecfdf5;color:#059669;" id="basic-badge">● 第一阶段必填</span>
-        <span id="basic-chevron" style="color:var(--muted);font-size:12px;margin-left:4px;">▼</span>
+        <button class="btn btn-ghost" onclick="analyzeAllCards()">⚡ 全部单独分析</button>
       </div>
-      <div class="form-card-body" id="basic-body">
-        <div class="form-grid">
-          <div class="form-field full"><label>项目名称 *</label><input type="text" id="bi-name" placeholder="如：朝阳区劲松一区微更新项目" oninput="markBasic()"></div>
-          <div class="form-field"><label>所在城市/区</label><input type="text" id="bi-city" placeholder="如：北京市朝阳区" oninput="markBasic()"></div>
-          <div class="form-field"><label>建成年代</label><input type="text" id="bi-year" placeholder="如：1980年代" oninput="markBasic()"></div>
-          <div class="form-field"><label>用地面积（㎡）</label><input type="number" id="bi-area" placeholder="如：15000" oninput="markBasic()"></div>
-          <div class="form-field"><label>建筑面积（㎡）</label><input type="number" id="bi-bldg" placeholder="如：45000" oninput="markBasic()"></div>
-          <div class="form-field"><label>总户数</label><input type="text" id="bi-households" placeholder="如：800户" oninput="markBasic()"></div>
-          <div class="form-field"><label>总人口</label><input type="text" id="bi-population" placeholder="如：2200人" oninput="markBasic()"></div>
-          <div class="form-field"><label>老龄化比例</label><input type="text" id="bi-elderly" placeholder="如：45%" oninput="markBasic()"></div>
-          <div class="form-field"><label>儿童比例</label><input type="text" id="bi-children" placeholder="如：15%" oninput="markBasic()"></div>
-          <div class="form-field"><label>总预算（万元）</label><input type="number" id="bi-budget" placeholder="如：300" oninput="markBasic()"></div>
-          <div class="form-field"><label>改造周期</label>
-            <select id="bi-period" oninput="markBasic()">
-              <option>1年内完成</option><option selected>2年分两期</option><option>3年分三期</option>
-            </select>
+
+      <div class="content-area" id="contentArea">
+
+        <!-- 基本信息 -->
+        <div class="form-card" id="card-basic">
+          <div class="form-card-head" onclick="toggleFC('basic')">
+            <div class="form-card-icon" style="background:#ecfdf5;">📋</div>
+            <div style="flex:1;">
+              <div class="form-card-title" style="color:#059669;">基本信息</div>
+              <div class="form-card-sub">项目名称、规模、人口户数等基础数据</div>
+            </div>
+            <span class="form-card-badge" style="background:#ecfdf5;color:#059669;" id="basic-badge">● 第一阶段必填</span>
+            <span id="basic-chev" style="color:var(--muted);font-size:12px;margin-left:8px;">▼</span>
           </div>
-          <div class="form-field full"><label>项目背景简述</label><textarea id="bi-bg" placeholder="项目来源、主要问题、改造契机…" oninput="markBasic()"></textarea></div>
-          <div class="form-field full"><label>居民核心诉求（问卷/访谈结论）</label><textarea id="bi-needs" placeholder="居民最迫切的需求，从问卷或访谈中提炼…" oninput="markBasic()"></textarea></div>
-          <div class="form-field full"><label>社区治理情况</label><input type="text" id="bi-gov" placeholder="业委会、物业、居委会、志愿者组织等情况" oninput="markBasic()"></div>
+          <div id="basic-body" class="form-card-body">
+            <div class="form-grid">
+              <div class="form-field full"><label>项目名称 *</label><input type="text" id="bi-name" placeholder="如：朝阳区劲松一区微更新项目" oninput="markFC('basic')"></div>
+              <div class="form-field"><label>所在城市/区</label><input type="text" id="bi-city" placeholder="如：北京市朝阳区" oninput="markFC('basic')"></div>
+              <div class="form-field"><label>建成年代</label><input type="text" id="bi-year" placeholder="如：1980年代" oninput="markFC('basic')"></div>
+              <div class="form-field"><label>用地面积（㎡）</label><input type="number" id="bi-area" placeholder="15000" oninput="markFC('basic')"></div>
+              <div class="form-field"><label>建筑面积（㎡）</label><input type="number" id="bi-bldg" placeholder="45000" oninput="markFC('basic')"></div>
+              <div class="form-field"><label>总户数</label><input type="text" id="bi-households" placeholder="如：800户" oninput="markFC('basic')"></div>
+              <div class="form-field"><label>总人口</label><input type="text" id="bi-population" placeholder="如：2200人" oninput="markFC('basic')"></div>
+              <div class="form-field"><label>老龄化比例</label><input type="text" id="bi-elderly" placeholder="如：45%" oninput="markFC('basic')"></div>
+              <div class="form-field"><label>儿童比例</label><input type="text" id="bi-children" placeholder="如：15%" oninput="markFC('basic')"></div>
+              <div class="form-field"><label>总预算（万元）</label><input type="number" id="bi-budget" placeholder="300" oninput="markFC('basic')"></div>
+              <div class="form-field"><label>改造周期</label>
+                <select id="bi-period" oninput="markFC('basic')">
+                  <option>1年内完成</option><option selected>2年分两期</option><option>3年分三期</option>
+                </select>
+              </div>
+              <div class="form-field full"><label>项目背景简述</label><textarea id="bi-bg" placeholder="项目来源、主要问题、改造契机…" oninput="markFC('basic')"></textarea></div>
+              <div class="form-field full"><label>居民核心诉求</label><textarea id="bi-needs" placeholder="从问卷或访谈中提炼的主要诉求…" oninput="markFC('basic')"></textarea></div>
+              <div class="form-field full"><label>社区治理情况</label><input type="text" id="bi-gov" placeholder="业委会、物业、居委会情况等" oninput="markFC('basic')"></div>
+            </div>
+            <button class="form-save-btn" style="background:var(--c2);color:#fff;" onclick="saveFC('basic')">💾 保存基本信息</button>
+            <div class="form-saved" id="basic-saved" style="display:none;">✅ 已保存，将传入智能体03策略生成</div>
+          </div>
         </div>
-        <button class="form-save-btn" style="background:var(--c2);color:#fff;" onclick="saveBasic()">💾 保存基本信息</button>
-        <div class="form-saved" id="basic-saved" style="display:none;">✅ 已保存，将传入智能体03策略生成</div>
-      </div>
-    </div>
 
-    <!-- CULTURE CARD -->
-    <div class="form-card" id="card-culture" style="animation-delay:0.05s;">
-      <div class="form-card-head" onclick="toggleFormCard('culture')">
-        <div class="form-card-icon" style="background:#f5f3ff;">🏛</div>
-        <div>
-          <div class="form-card-title" style="color:#7c3aed;">历史文化</div>
-          <div class="form-card-sub">历史沿革、文化特色、社区记忆与场所精神</div>
+        <!-- 历史文化 -->
+        <div class="form-card" id="card-culture">
+          <div class="form-card-head" onclick="toggleFC('culture')">
+            <div class="form-card-icon" style="background:#f5f3ff;">🏛</div>
+            <div style="flex:1;">
+              <div class="form-card-title" style="color:#7c3aed;">历史文化</div>
+              <div class="form-card-sub">历史沿革、文化特色、社区记忆与场所精神</div>
+            </div>
+            <span class="form-card-badge" style="background:#f5f3ff;color:#7c3aed;" id="culture-badge">● 第一阶段必填</span>
+            <span id="culture-chev" style="color:var(--muted);font-size:12px;margin-left:8px;">▼</span>
+          </div>
+          <div id="culture-body" class="form-card-body">
+            <div class="form-grid">
+              <div class="form-field full"><label>历史沿革</label><textarea id="cu-history" placeholder="建设历史、单位大院背景、重要历史节点…" oninput="markFC('culture')"></textarea></div>
+              <div class="form-field full"><label>地域文化特色</label><textarea id="cu-character" placeholder="地方文化、民俗特色、历史街区特征…" oninput="markFC('culture')"></textarea></div>
+              <div class="form-field full"><label>现有文化资产</label><textarea id="cu-assets" placeholder="老树、历史建筑、壁画、雕塑、传统活动…" oninput="markFC('culture')"></textarea></div>
+              <div class="form-field full"><label>社区记忆与认同感</label><textarea id="cu-memory" placeholder="居民共同记忆、有价值的场所节点…" oninput="markFC('culture')"></textarea></div>
+            </div>
+            <button class="form-save-btn" style="background:var(--c5);color:#fff;" onclick="saveFC('culture')">💾 保存历史文化信息</button>
+            <div class="form-saved" id="culture-saved" style="display:none;">✅ 已保存，将传入智能体03策略生成</div>
+          </div>
         </div>
-        <span class="form-card-badge" style="background:#f5f3ff;color:#7c3aed;" id="culture-badge">● 第一阶段必填</span>
-        <span id="culture-chevron" style="color:var(--muted);font-size:12px;margin-left:4px;">▼</span>
+
+        <div class="divider">数据采集</div>
+        <div id="cardsContainer"></div>
+
       </div>
-      <div class="form-card-body" id="culture-body">
-        <div class="form-grid">
-          <div class="form-field full"><label>历史沿革</label><textarea id="cu-history" placeholder="建设历史、单位大院背景、重要历史节点…" oninput="markCulture()"></textarea></div>
-          <div class="form-field full"><label>地域文化特色</label><textarea id="cu-character" placeholder="地方文化、民俗特色、历史街区特征…" oninput="markCulture()"></textarea></div>
-          <div class="form-field full"><label>现有文化资产</label><textarea id="cu-assets" placeholder="老树、历史建筑、壁画、雕塑、传统活动…" oninput="markCulture()"></textarea></div>
-          <div class="form-field full"><label>社区记忆与认同感</label><textarea id="cu-memory" placeholder="居民共同记忆、有价值的场所节点、场所精神…" oninput="markCulture()"></textarea></div>
+
+      <div class="bottom-bar" id="bottomBar" style="display:none;">
+        <div class="prog-wrap">
+          <div class="prog-lbl" id="progLbl">汇总中…</div>
+          <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
         </div>
-        <button class="form-save-btn" style="background:var(--c5);color:#fff;" onclick="saveCulture()">💾 保存历史文化信息</button>
-        <div class="form-saved" id="culture-saved" style="display:none;">✅ 已保存，将传入智能体03策略生成</div>
+        <button class="btn btn-ghost" onclick="document.getElementById('bottomBar').style.display='none'">关闭</button>
       </div>
     </div>
 
-    <div style="font-size:11px;color:var(--muted);padding:4px 2px 8px;display:flex;align-items:center;gap:6px;">
-      <div style="flex:1;height:1px;background:var(--border);"></div>
-      数据采集
-      <div style="flex:1;height:1px;background:var(--border);"></div>
-    </div>
-
-    <div class="cards-scroll" id="cardsScroll"></div>
-
-    <div class="bottom-bar" id="bottomBar" style="display:none;">
-      <div class="progress-section">
-        <div class="prog-lbl" id="progLbl">汇总中…</div>
-        <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
-      </div>
-      <button class="btn btn-outline" onclick="document.getElementById('bottomBar').style.display='none'">关闭</button>
-    </div>
   </div>
 </div>
 
 <div class="notif" id="notif"></div>
-
-<!-- File inputs -->
 <input type="file" id="fi-survey"  accept=".xlsx,.xls,.csv" multiple>
 <input type="file" id="fi-minutes" accept=".pdf,.docx,.doc,.txt" multiple>
 <input type="file" id="fi-audio"   accept=".mp3,.m4a,.wav,.aac" multiple>
@@ -380,499 +509,309 @@ input[type=file]{display:none;}
 <input type="file" id="fi-media"   accept="image/*,video/*" multiple>
 
 <script>
-// ── CONFIG ──
+// ── NAV: scroll right panel to card ──
+function navTo(id, btn) {
+  document.querySelectorAll('.sb-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const card = document.getElementById('card-' + id);
+  if (card) card.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// ── FORM CARDS ──
+const fcOpen = { basic:true, culture:true };
+function toggleFC(key) {
+  fcOpen[key] = !fcOpen[key];
+  document.getElementById(key+'-body').style.display = fcOpen[key] ? '' : 'none';
+  document.getElementById(key+'-chev').textContent = fcOpen[key] ? '▼' : '▶';
+}
+function markFC(key) {
+  const b = document.getElementById(key+'-badge');
+  if (b) { b.textContent='● 填写中'; b.style.color='#d97706'; b.style.background='#fffbeb'; }
+}
+function saveFC(key) {
+  const map = key==='basic'
+    ? {name:'bi-name',city:'bi-city',year:'bi-year',area:'bi-area',bldg:'bi-bldg',households:'bi-households',population:'bi-population',elderly:'bi-elderly',children:'bi-children',budget:'bi-budget',period:'bi-period',bg:'bi-bg',needs:'bi-needs',gov:'bi-gov'}
+    : {history:'cu-history',character:'cu-character',assets:'cu-assets',memory:'cu-memory'};
+  const data = {};
+  Object.entries(map).forEach(([k,id]) => { const el=document.getElementById(id); if(el) data[k]=el.value; });
+  localStorage.setItem('nm_'+key, JSON.stringify(data));
+  const b = document.getElementById(key+'-badge');
+  if (b) { b.textContent='✅ 已保存'; b.style.color='#059669'; b.style.background='#ecfdf5'; }
+  document.getElementById(key+'-saved').style.display = 'flex';
+  document.getElementById('sb-'+key).textContent = '✅';
+  notify('✅ '+(key==='basic'?'基本信息':'历史文化')+'已保存');
+}
+function loadSaved() {
+  ['basic','culture'].forEach(key => {
+    try {
+      const data = JSON.parse(localStorage.getItem('nm_'+key)||'null');
+      if (!data) return;
+      const pre = key==='basic'?'bi-':'cu-';
+      Object.entries(data).forEach(([k,v]) => { const el=document.getElementById(pre+k); if(el&&v) el.value=v; });
+      const b = document.getElementById(key+'-badge');
+      if (b) { b.textContent='✅ 已保存'; b.style.color='#059669'; b.style.background='#ecfdf5'; }
+      document.getElementById(key+'-saved').style.display='flex';
+      document.getElementById('sb-'+key).textContent='✅';
+    } catch(e) {}
+  });
+}
+
+// ── SOURCES ──
 const SRCS = {
-  survey:  { label:'问卷调研数据', icon:'📊', color:'var(--c1)', bg:'var(--c1l)', accept:'.xlsx,.xls,.csv',    types:['XLSX','CSV'],   desc:'问卷星/腾讯问卷导出文件' },
-  minutes: { label:'会议纪要',     icon:'📝', color:'var(--c2)', bg:'var(--c2l)', accept:'.pdf,.docx,.txt',   types:['PDF','DOCX'],   desc:'访谈、座谈会纪要文件' },
-  audio:   { label:'录音文件',     icon:'🎙️', color:'var(--c3)', bg:'var(--c3l)', accept:'.mp3,.m4a,.wav',    types:['MP3','M4A'],    desc:'访谈录音，AI自动提取要点' },
-  monitor: { label:'监控截图/视频',icon:'📹', color:'var(--c4)', bg:'var(--c4l)', accept:'image/*,video/*',   types:['JPG','MP4'],    desc:'物业监控截图或视频片段' },
-  news:    { label:'新闻/政策文件',icon:'📰', color:'var(--c5)', bg:'var(--c5l)', accept:'.pdf,.docx,.txt',   types:['PDF','TXT'],    desc:'本地新闻、政策文件、规划文件' },
-  url:     { label:'网页链接',     icon:'🔗', color:'var(--c6)', bg:'var(--c6l)', accept:null,                types:['URL'],          desc:'粘贴网址，AI自动抓取分析' },
-  media:   { label:'现场照片/视频',icon:'🖼️', color:'var(--c7)', bg:'var(--c7l)', accept:'image/*,video/*',   types:['JPG','MP4'],    desc:'现场拍摄照片和视频素材' },
+  survey:  {label:'问卷调研数据',icon:'📊',color:'var(--c1)',bg:'var(--c1l)',accept:'.xlsx,.xls,.csv',types:['XLSX','CSV'],desc:'问卷星/腾讯问卷导出文件'},
+  minutes: {label:'会议纪要',icon:'📝',color:'var(--c2)',bg:'var(--c2l)',accept:'.pdf,.docx,.txt',types:['PDF','DOCX'],desc:'访谈、座谈会纪要文件'},
+  audio:   {label:'录音文件',icon:'🎙️',color:'var(--c3)',bg:'var(--c3l)',accept:'.mp3,.m4a,.wav',types:['MP3','M4A'],desc:'访谈录音，AI自动提取要点'},
+  monitor: {label:'监控截图/视频',icon:'📹',color:'var(--c4)',bg:'var(--c4l)',accept:'image/*,video/*',types:['JPG','MP4'],desc:'物业监控截图或视频片段'},
+  news:    {label:'新闻/政策文件',icon:'📰',color:'var(--c5)',bg:'var(--c5l)',accept:'.pdf,.docx,.txt',types:['PDF','TXT'],desc:'本地新闻、政策文件、规划文件'},
+  url:     {label:'网页链接',icon:'🔗',color:'var(--c6)',bg:'var(--c6l)',accept:null,types:['URL'],desc:'粘贴网址，AI自动抓取分析'},
+  media:   {label:'现场照片/视频',icon:'🖼️',color:'var(--c7)',bg:'var(--c7l)',accept:'image/*,video/*',types:['JPG','MP4'],desc:'现场拍摄照片和视频素材'},
+};
+const DEMO = {
+  survey:  {tags:['居民满意度低','停车需求强烈','绿化改善期望'],points:['78%居民对停车问题不满','62%希望增加活动空间','绿化改造支持率85%','老年居民对无障碍需求突出'],summary:'共回收127份问卷，诉求集中在停车、绿化和设施三大方向。'},
+  minutes: {tags:['领导支持','分期计划','资金明确'],points:['街道明确支持微更新','停车问题为首要突破口','物业同意配合改造','区级补贴60%+自筹40%'],summary:'形成初步共识：优先停车，同步景观，分两期实施。'},
+  audio:   {tags:['夜间照明不足','物业消极','历史遗留'],points:['居民反映夜间照明严重不足','物业担心增加成本','10年前改造计划未落实','年轻居民希望增加儿童活动区'],summary:'提取23个有效观点，照明和儿童设施是高频关键词。'},
+  monitor: {tags:['早高峰溢出','监控盲区','违停'],points:['早高峰停车位占用率140%','监控盲区3处','放学时段入口拥堵','夜间外来车辆35%'],summary:'分析48小时监控，发现停车、安全隐患、盲区三类问题。'},
+  news:    {tags:['政策利好','上级关注','改造先例'],points:['住建局支持老旧小区微更新','本区同类案例已完成','媒体曾报道停车问题','须2/3居民大会同意'],summary:'政策环境有利，资金可申请，有同类参考案例。'},
+  url:     {tags:['网页内容','背景参考'],points:['网页内容已抓取','提取关键信息','纳入综合分析'],summary:'网页链接内容已收录。'},
+  media:   {tags:['设施损坏','停车混乱','绿化缺失'],points:['12处设施损坏','停车线标识模糊','绿化覆盖率不足30%','南门无障碍通道缺失'],summary:'识别4大类19处问题，设施和停车最为突出。'},
 };
 
-// Demo analysis results per source type
-const DEMO_ANALYSIS = {
-  survey:  {
-    tags:['居民满意度低','停车需求强烈','绿化改善期望','设施更新需求'],
-    points:['78% 居民对停车问题表示不满，是最集中的投诉方向','62% 希望增加休闲活动空间和健身设施','绿化美化改造支持率达 85%，居民参与意愿强','老年居民对无障碍设施需求突出，占受访者 34%'],
-    summary:'问卷共回收有效答卷 127 份，居民诉求集中在停车、绿化和设施三大方向，整体改造意愿强烈。'
-  },
-  minutes: {
-    tags:['领导支持改造','停车专项研究','分期实施计划','资金来源明确'],
-    points:['街道办明确表示支持本次微更新，列入年度重点工作','社区书记提出停车问题应作为首要突破口','物业公司同意配合改造，但需提前 3 个月通知','资金来源：区级补贴 60% + 居民自筹 40%'],
-    summary:'会议形成初步共识：优先解决停车问题，同步推进景观提升，计划分两期实施，第一期资金已基本落实。'
-  },
-  audio:   {
-    tags:['居民强烈诉求','物业消极态度','历史遗留问题','安全顾虑突出'],
-    points:['多位居民反映夜间照明严重不足，存在安全隐患','物业对改造态度消极，担心增加运营成本','部分老居民提及 10 年前曾有改造计划但未落实','年轻居民希望增加儿童活动区，现有设施严重老旧'],
-    summary:'录音转录共提取 23 个有效观点，安全照明和儿童设施是高频关键词，物业协调将是推进难点。'
-  },
-  monitor: {
-    tags:['违停严重','早晚高峰拥堵','盲区安全隐患','人流密度分析'],
-    points:['早高峰(7-9点)停车位占用率达 140%，严重溢出','监控盲区 3 处，东北角长期无人管理，垃圾堆积','下午 3-5 点儿童放学时段入口拥堵，存在安全风险','夜间 22 点后外来车辆占用比例约 35%'],
-    summary:'分析 48 小时监控素材，识别出停车位严重不足、入口安全隐患、监控盲区三类核心问题。'
-  },
-  news:    {
-    tags:['政策利好','上级关注','历史报道','改造先例'],
-    points:['市住建局 2024 年文件明确支持老旧小区微更新，可申请专项资金','本区同类改造案例（XX 小区）已完成，可参考借鉴','本地媒体曾报道该社区停车问题，有舆论关注基础','政策要求：改造方案须经居民大会 2/3 以上同意'],
-    summary:'政策环境有利，上级资金可争取，同类案例可参考，需注意居民民主决策程序要求。'
-  },
-  url:     {
-    tags:['网页内容','背景参考','相关资讯'],
-    points:['网页内容已抓取','提取关键背景信息','纳入综合分析'],
-    summary:'网页链接内容已收录，将纳入综合分析背景资料。'
-  },
-  media:   {
-    tags:['景观问题','停车混乱','设施损坏','安全隐患','绿化缺失'],
-    points:['识别到 12 处设施损坏，其中健身器材 5 处、路灯 3 处、座椅 4 处','停车线标识模糊，地面破损面积约 200㎡','绿化带存在枯死植物，缺乏维护，覆盖率不足 30%','南门入口台阶无扶手，无障碍通道缺失'],
-    summary:'现场照片共识别出 4 大类 19 处问题，设施损坏和停车混乱最为突出，需优先处理。'
-  },
-};
+let cardData = {};
+Object.keys(SRCS).forEach(s => { cardData[s]={files:[],urls:[],status:'empty',result:null,open:true}; });
 
-// ── STATE ──
-let cardData = {}; // src -> { files:[], urls:[], status:'empty'|'has'|'analyzing'|'done', result:null, open:true }
-Object.keys(SRCS).forEach(src => { cardData[src] = { files:[], urls:[], status:'empty', result:null, open:true }; });
-
-// ── FILE INPUTS ──
 Object.keys(SRCS).forEach(src => {
-  if (src === 'url') return;
+  if(src==='url') return;
   const fi = document.getElementById('fi-'+src);
-  if (!fi) return;
+  if(!fi) return;
   fi.addEventListener('change', e => {
-    Array.from(e.target.files).forEach(f => {
-      cardData[src].files.push({ id:Date.now()+Math.random(), name:f.name, size:f.size, url:URL.createObjectURL(f), mime:f.type });
-    });
-    if (cardData[src].status === 'empty') cardData[src].status = 'has';
+    Array.from(e.target.files).forEach(f => cardData[src].files.push({id:Date.now()+Math.random(),name:f.name,size:f.size,url:URL.createObjectURL(f),mime:f.type}));
+    if(cardData[src].status==='empty') cardData[src].status='has';
     updateCounts(); renderAll(); updateMergeBtn();
-    notify(`✅ 已导入 ${e.target.files.length} 份${SRCS[src].label}`);
-    e.target.value = '';
+    notify(`✅ 已添加 ${e.target.files.length} 份${SRCS[src].label}`);
+    e.target.value='';
   });
 });
 
-// ── RENDER ALL CARDS ──
 function renderAll() {
-  const scroll = document.getElementById('cardsScroll');
-  scroll.innerHTML = Object.keys(SRCS).map((src, i) => renderCard(src, i)).join('');
+  const q = (document.getElementById('searchInput')?.value||'').toLowerCase();
+  document.getElementById('cardsContainer').innerHTML = Object.keys(SRCS).map((src,i) => renderCard(src,i,q)).join('');
 }
 
-function renderCard(src, idx) {
-  const cfg = SRCS[src];
-  const d = cardData[src];
-  const allItems = [...d.files, ...d.urls];
-  const isOpen = d.open;
+function renderCard(src, idx, q='') {
+  const cfg=SRCS[src], d=cardData[src];
+  const all=[...d.files,...d.urls].filter(f=>!q||f.name?.toLowerCase().includes(q)||f.url?.toLowerCase().includes(q));
+  const allRaw=[...d.files,...d.urls];
 
-  // Status pill
-  let pillClass = 'pill-empty', pillTxt = '未导入';
-  if (d.status === 'analyzing') { pillClass = 'pill-analyzing'; pillTxt = '分析中…'; }
-  else if (d.status === 'done') { pillClass = 'pill-done'; pillTxt = `✓ 已分析`; }
-  else if (allItems.length) { pillClass = 'pill-has'; pillTxt = `${allItems.length} 份待分析`; }
+  let pc='pill-empty',pt='未导入';
+  if(d.status==='analyzing'){pc='pill-analyzing';pt='分析中…';}
+  else if(d.status==='done'){pc='pill-done';pt='✓ 已分析';}
+  else if(allRaw.length){pc='pill-has';pt=allRaw.length+' 份待分析';}
 
-  // Analyze btn
-  const canAnalyze = allItems.length > 0 && d.status !== 'analyzing' && d.status !== 'done';
-  const analyzeBtnHtml = `<button class="card-analyze-btn" 
-    style="background:${cfg.bg};color:${cfg.color};border:1px solid currentColor;"
-    onclick="analyzeCard('${src}')" ${!canAnalyze ? 'disabled' : ''}>
-    ${d.status === 'analyzing' ? `<span class="spin-c"></span> 分析中…` : d.status === 'done' ? '✓ 已分析完成' : `🤖 单独分析${SRCS[src].label}`}
-  </button>`;
+  const canA=allRaw.length>0&&d.status!=='analyzing'&&d.status!=='done';
+  const aBtn=`<button class="card-analyze-btn" style="background:${cfg.bg};color:${cfg.color};border:1px solid currentColor;" onclick="analyzeCard('${src}')" ${!canA?'disabled':''}>${d.status==='analyzing'?`<span class="spin-c"></span> 分析中…`:d.status==='done'?'✓ 已分析':`🤖 单独分析${cfg.label}`}</button>`;
 
-  // Left col: upload
-  let uploadHtml = '';
-  if (src === 'url') {
-    uploadHtml = `
-      <div class="url-row">
-        <input class="url-inp" id="url-inp-${src}" placeholder="粘贴网页地址 https://…" onkeydown="if(event.key==='Enter')addUrl('${src}')">
-        <button class="url-add" onclick="addUrl('${src}')" style="background:${cfg.color}">添加</button>
-      </div>`;
+  const uploadHtml = src==='url' ? `<div class="url-row"><input class="url-inp" id="url-inp-url" placeholder="粘贴网页地址 https://…" onkeydown="if(event.key==='Enter')addUrl('url')"><button class="url-add" onclick="addUrl('url')" style="background:${cfg.color}">添加</button></div>`
+    : `<div class="dz" id="dz-${src}" onclick="document.getElementById('fi-${src}').click()" ondragover="dzOver(event,'${src}')" ondragleave="dzOut('${src}')" ondrop="dzDrop(event,'${src}')"><div class="dz-icon">${cfg.icon}</div><p>${cfg.desc}</p><div class="dz-types">${cfg.types.map(t=>`<span class="tp">${t}</span>`).join('')}</div><button class="dz-btn" onclick="event.stopPropagation();document.getElementById('fi-${src}').click()">选择文件</button></div>`;
+
+  const shown=all.slice(0,3), rest=all.length-3;
+  const fileHtml=all.length?`<div class="file-list">${shown.map(f=>{const isImg=f.mime?.startsWith('image/');return`<div class="frow"><div class="fthumb">${isImg?`<img src="${f.url}">`:`<span style="font-size:18px;">${getIcon(f.name||f.url)}</span>`}</div><div class="finfo"><div class="fname">${f.name||f.url}</div><div class="fmeta">${f.size?fmtSize(f.size):'URL'}</div></div><button class="fdel" onclick="removeItem('${src}',${f.id})">✕</button></div>`;}).join('')}${rest>0?`<div class="more-lbl">还有${rest}份▾</div>`:''}</div>`:'' ;
+
+  let rightHtml='';
+  if(d.status==='done'&&d.result){
+    const r=d.result;
+    rightHtml=`<div class="ap-tags">${r.tags.map(t=>`<span class="aptag" style="background:${cfg.bg};color:${cfg.color}">${t}</span>`).join('')}</div><div class="ap-points" id="app-${src}" style="max-height:120px;overflow:hidden;transition:max-height 0.3s;">${r.points.map(p=>`<div class="ap-point"><div class="ap-point-dot" style="background:${cfg.color}"></div><span>${p}</span></div>`).join('')}</div>${r.points.length>3?`<button onclick="togglePts('${src}')" id="apt-${src}" style="margin-top:6px;background:none;border:none;font-size:11px;color:${cfg.color};cursor:pointer;">▾ 展开全部${r.points.length}条</button>`:''}<div class="ap-summary">${r.summary}</div>`;
+  } else if(d.status==='analyzing'){
+    rightHtml=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80px;gap:10px;color:var(--muted);"><span class="spin-c" style="width:22px;height:22px;border-width:3px;"></span><span style="font-size:12px;">分析中…</span></div>`;
+  } else if(allRaw.length){
+    rightHtml=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80px;gap:8px;color:var(--muted);"><span style="font-size:26px;opacity:0.3;">${cfg.icon}</span><span style="font-size:12px;">点击左下方按钮分析</span></div>`;
   } else {
-    uploadHtml = `
-      <div class="dz" id="dz-${src}"
-        onclick="document.getElementById('fi-${src}').click()"
-        ondragover="dzOver(event,'${src}')" ondragleave="dzOut('${src}')" ondrop="dzDrop(event,'${src}')">
-        <div class="dz-icon">${cfg.icon}</div>
-        <p>${cfg.desc}</p>
-        <div class="dz-types">${cfg.types.map(t=>`<span class="tp">${t}</span>`).join('')}</div>
-        <button class="dz-btn" onclick="event.stopPropagation();document.getElementById('fi-${src}').click()">选择文件</button>
-      </div>`;
-  }
-
-  // File list
-  const shown = allItems.slice(0,3);
-  const rest = allItems.length - 3;
-  const fileListHtml = allItems.length ? `
-    <div class="file-list">
-      ${shown.map(f => {
-        const isImg = f.mime && f.mime.startsWith('image/');
-        const thumb = isImg ? `<img src="${f.url}">` : `<span>${getIcon(f.name||f.url)}</span>`;
-        return `<div class="frow">
-          <div class="fthumb">${thumb}</div>
-          <div class="finfo">
-            <div class="fname">${f.name||f.url}</div>
-            <div class="fmeta">${f.size ? fmtSize(f.size) : 'URL'}</div>
-          </div>
-          <button class="fdel" onclick="removeItem('${src}','${f.id}')">✕</button>
-        </div>`;
-      }).join('')}
-      ${rest > 0 ? `<div class="more-lbl">还有 ${rest} 份 ▾</div>` : ''}
-    </div>` : '';
-
-  // Right col: analysis result or prompt
-  let rightHtml = '';
-  if (d.status === 'done' && d.result) {
-    const r = d.result;
-    rightHtml = `
-      <div class="ap-tags">${r.tags.map(t=>`<span class="aptag" style="background:${cfg.bg};color:${cfg.color}">${t}</span>`).join('')}</div>
-      <div class="ap-points" id="ap-points-${src}" style="max-height:120px;overflow:hidden;transition:max-height 0.35s ease;">
-        ${r.points.map(p=>`
-          <div class="ap-point">
-            <div class="ap-point-dot" style="background:${cfg.color}"></div>
-            <span>${p}</span>
-          </div>`).join('')}
-      </div>
-      ${r.points.length > 3 ? `
-        <button onclick="togglePoints('${src}')" id="ap-toggle-${src}"
-          style="margin-top:6px;background:none;border:none;font-size:11px;color:${cfg.color};cursor:pointer;padding:2px 0;font-family:'Noto Sans SC',sans-serif;">
-          ▾ 展开全部 ${r.points.length} 条
-        </button>` : ''}
-      <div class="ap-summary">${r.summary}</div>`;
-  } else if (d.status === 'analyzing') {
-    rightHtml = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;color:var(--muted);padding:20px 0;">
-      <span class="spin-c" style="width:24px;height:24px;border-width:3px;"></span>
-      <span style="font-size:13px;">AI 正在分析${cfg.label}…</span>
-    </div>`;
-  } else if (allItems.length) {
-    rightHtml = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;color:var(--muted);padding:20px 0;">
-      <span style="font-size:28px;opacity:0.3;">${cfg.icon}</span>
-      <span style="font-size:12px;">点击左下方按钮开始分析</span>
-    </div>`;
-  } else {
-    rightHtml = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;color:var(--muted);padding:20px 0;">
-      <span style="font-size:28px;opacity:0.2;">${cfg.icon}</span>
-      <span style="font-size:12px;">上传文件后分析</span>
-    </div>`;
+    rightHtml=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80px;gap:8px;color:var(--muted);"><span style="font-size:26px;opacity:0.2;">${cfg.icon}</span><span style="font-size:12px;">上传文件后分析</span></div>`;
   }
 
   return `<div class="src-card" id="card-${src}" style="animation-delay:${idx*0.04}s;">
     <div class="card-hd" onclick="toggleCard('${src}')">
       <div class="card-hd-icon" style="background:${cfg.bg}">${cfg.icon}</div>
-      <div class="card-hd-info">
-        <div class="card-hd-title" style="color:${cfg.color}">${cfg.label}</div>
-        <div class="card-hd-sub">${allItems.length ? `${allItems.length} 份文件` : '暂未导入'}</div>
-      </div>
-      <div class="card-hd-right">
-        <span class="card-status-pill ${pillClass}">${pillTxt}</span>
-        <span class="chevron ${isOpen?'open':''}">▼</span>
-      </div>
+      <div class="card-hd-info"><div class="card-hd-title" style="color:${cfg.color}">${cfg.label}</div><div class="card-hd-sub">${allRaw.length?allRaw.length+' 份文件':'暂未导入'}</div></div>
+      <div class="card-hd-right"><span class="card-status-pill ${pc}">${pt}</span><span class="chevron ${d.open?'open':''}">▼</span></div>
     </div>
-    ${isOpen ? `
-    <div class="card-body">
-      <div class="card-cols">
-        <div class="card-col">
-          <div class="col-label">上传素材</div>
-          ${uploadHtml}
-          ${fileListHtml}
-          ${analyzeBtnHtml}
-        </div>
-        <div class="card-col">
-          <div class="col-label">分析结果 ${d.status==='done'?'<span>✓ 完成</span>':''}</div>
-          ${rightHtml}
-        </div>
-      </div>
-    </div>` : ''}
+    ${d.open?`<div class="card-body"><div class="card-cols"><div class="card-col"><div class="col-label">上传素材</div>${uploadHtml}${fileHtml}${aBtn}</div><div class="card-col"><div class="col-label">分析结果${d.status==='done'?'<span style="color:var(--c2);margin-left:4px;">✓</span>':''}</div>${rightHtml}</div></div></div>`:''}
   </div>`;
 }
 
-// ── ANALYZE SINGLE CARD ──
-async function analyzeCard(src) {
-  const d = cardData[src];
-  const allItems = [...d.files, ...d.urls];
-  if (!allItems.length) return;
+function togglePts(src){const el=document.getElementById('app-'+src),btn=document.getElementById('apt-'+src);if(!el||!btn)return;const o=el.style.maxHeight==='none';el.style.maxHeight=o?'120px':'none';btn.textContent=o?`▾ 展开全部`:`▴ 收起`;}
 
-  d.status = 'analyzing';
-  renderAll();
-
-  // Try real Claude API for images
-  let realResult = null;
-  const imgs = d.files.filter(f => f.mime && f.mime.startsWith('image/'));
-  if (imgs.length > 0 && (src === 'media' || src === 'monitor')) {
-    try {
-      const b64 = await toBase64(imgs[0].url, imgs[0].mime);
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({
-          model:'claude-sonnet-4-20250514', max_tokens:1000,
-          messages:[{ role:'user', content:[
-            { type:'image', source:{ type:'base64', media_type:imgs[0].mime, data:b64 } },
-            { type:'text', text:`你是社区微更新专家。分析这张社区现场图片，只返回JSON（无任何其他内容）：
-{"tags":["标签1","标签2","标签3"],"points":["发现1","发现2","发现3","发现4"],"summary":"两句话总结"}
-标签从：景观问题、停车混乱、设施损坏、安全隐患、卫生问题、人流密度、绿化缺失、照明不足 中选。` }
-          ]}]
-        })
-      });
-      const data = await res.json();
-      const txt = data.content?.[0]?.text || '';
-      realResult = JSON.parse(txt.replace(/```json|```/g,'').trim());
-    } catch(e) {}
+async function analyzeCard(src){
+  const d=cardData[src];
+  if(![...d.files,...d.urls].length) return;
+  d.status='analyzing'; renderAll();
+  let result=null;
+  const imgs=d.files.filter(f=>f.mime?.startsWith('image/'));
+  if(imgs.length&&(src==='media'||src==='monitor')){
+    try{
+      const b64=await toBase64(imgs[0].url,imgs[0].mime);
+      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:imgs[0].mime,data:b64}},{type:'text',text:'分析这张社区现场图片，只返回JSON：{"tags":["标签1","标签2","标签3"],"points":["发现1","发现2","发现3","发现4"],"summary":"两句话总结"}'}]}]})});
+      const data=await res.json();
+      result=JSON.parse((data.content?.[0]?.text||'{}').replace(/```json|```/g,'').trim());
+    }catch(e){}
   }
-
-  // For text-based sources, try Claude text analysis
-  if (!realResult && (src === 'survey' || src === 'minutes' || src === 'news') && d.files.length > 0) {
-    try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({
-          model:'claude-sonnet-4-20250514', max_tokens:1000,
-          messages:[{ role:'user', content:`你是社区微更新顾问。针对"${SRCS[src].label}"这类数据来源（共${d.files.length}份文件），模拟生成分析结果，只返回JSON：
-{"tags":["关键标签1","标签2","标签3","标签4"],"points":["具体发现1","发现2","发现3","发现4"],"summary":"两句话综合总结"}
-内容要符合城市社区微更新调研场景，标签和发现要具体实用。` }]
-        })
-      });
-      const data = await res.json();
-      const txt = data.content?.[0]?.text || '';
-      realResult = JSON.parse(txt.replace(/```json|```/g,'').trim());
-    } catch(e) {}
+  if(!result&&d.files.length){
+    try{
+      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:`针对"${SRCS[src].label}"（共${d.files.length}份），生成分析，只返回JSON：{"tags":["标签1","标签2","标签3","标签4"],"points":["发现1","发现2","发现3","发现4"],"summary":"两句话总结"}。内容符合城市社区微更新场景。`}]})});
+      const data=await res.json();
+      result=JSON.parse((data.content?.[0]?.text||'{}').replace(/```json|```/g,'').trim());
+    }catch(e){}
   }
-
-  await delay(800);
-
-  d.result = realResult || DEMO_ANALYSIS[src];
-  d.status = 'done';
-  updateCounts();
-  renderAll();
-  updateMergeBtn();
+  await delay(500);
+  d.result=result||DEMO[src];
+  d.status='done';
+  updateCounts(); renderAll(); updateMergeBtn();
   notify(`✅ ${SRCS[src].label}分析完成`);
 }
 
-async function analyzeAllCards() {
-  const pending = Object.keys(SRCS).filter(src => {
-    const d = cardData[src];
-    return ([...d.files,...d.urls].length > 0) && d.status !== 'done' && d.status !== 'analyzing';
-  });
-  if (!pending.length) { notify('所有有素材的来源已分析完成'); return; }
-  for (const src of pending) { await analyzeCard(src); }
-  notify(`✅ 全部 ${pending.length} 类分析完成，可点击「汇总」`);
+async function analyzeAllCards(){
+  const pending=Object.keys(SRCS).filter(s=>[...cardData[s].files,...cardData[s].urls].length&&cardData[s].status!=='done'&&cardData[s].status!=='analyzing');
+  if(!pending.length){notify('所有有素材来源已分析完成');return;}
+  for(const s of pending) await analyzeCard(s);
 }
 
-// ── MERGE ALL ──
-async function mergeAll() {
-  const done = Object.keys(SRCS).filter(src => cardData[src].status === 'done');
-  if (!done.length) { notify('请先完成各类单独分析'); return; }
-
-  const bar = document.getElementById('bottomBar');
-  bar.style.display = 'flex';
-  const steps = ['收集各类分析结果…','交叉验证问题优先级…','生成综合问题清单…','标注证据来源…','完成，准备传入智能体02'];
-
-  for (let i = 0; i < steps.length; i++) {
-    document.getElementById('progLbl').textContent = steps[i];
-    document.getElementById('progFill').style.width = ((i+1)/steps.length*100)+'%';
-    await delay(600);
-  }
-
-  // Build merged summary via Claude
-  const allPoints = done.map(src => `【${SRCS[src].label}】\n${cardData[src].result.points.join('\n')}`).join('\n\n');
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        model:'claude-sonnet-4-20250514', max_tokens:1000,
-        messages:[{ role:'user', content:`你是城市社区微更新规划师。以下是来自多个数据来源的分析结果，请交叉比对，生成综合诊断摘要（200字以内），用**加粗**标注高优先级问题：\n\n${allPoints}` }]
-      })
-    });
-    const data = await res.json();
-    const summary = data.content?.[0]?.text || '';
-    document.getElementById('progLbl').textContent = '✅ 汇总完成 — ' + summary.slice(0,40) + '…';
-  } catch(e) {
-    document.getElementById('progLbl').textContent = `✅ 汇总完成，${done.length} 类数据已整合，可进入智能体02`;
-  }
-
-  notify(`🎉 ${done.length} 类数据汇总完成！可进入智能体02进行问题诊断`);
-
-  const btn = document.getElementById('mergeBtn');
-  btn.innerHTML = '✅ 已汇总，进入智能体02 →';
-  btn.onclick = () => notify('🔗 跳转智能体02（请将 agent02.html 上传至 GitHub）');
+async function mergeAll(){
+  const done=Object.keys(SRCS).filter(s=>cardData[s].status==='done');
+  if(!done.length){notify('请先完成单独分析');return;}
+  document.getElementById('bottomBar').style.display='flex';
+  const steps=['收集各类分析结果…','交叉验证问题优先级…','生成综合问题清单…','标注证据来源…','完成，准备传入智能体02'];
+  for(let i=0;i<steps.length;i++){document.getElementById('progLbl').textContent=steps[i];document.getElementById('progFill').style.width=((i+1)/steps.length*100)+'%';await delay(600);}
+  try{
+    const pts=done.map(s=>`【${SRCS[s].label}】\n${cardData[s].result.points.join('\n')}`).join('\n\n');
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:`以下多源分析结果，交叉比对生成综合诊断摘要（200字以内），**加粗**标注高优先级问题：\n\n${pts}`}]})});
+    const data=await res.json();
+    document.getElementById('progLbl').textContent='✅ 汇总完成 — '+(data.content?.[0]?.text||'').slice(0,40)+'…';
+  }catch(e){document.getElementById('progLbl').textContent=`✅ 汇总完成，${done.length}类数据已整合`;}
+  const btn=document.getElementById('mergeBtn');
+  btn.innerHTML='✅ 已汇总，进入智能体02 →';
+  notify(`🎉 ${done.length}类数据汇总完成！`);
 }
 
-// ── HELPERS ──
-function addUrl(src) {
-  const inp = document.getElementById('url-inp-'+src);
-  if (!inp) return;
-  let url = inp.value.trim();
-  if (!url) return;
-  if (!url.startsWith('http')) url = 'https://'+url;
-  cardData[src].urls.push({ id:Date.now()+Math.random(), url, name:url, mime:'url' });
-  if (cardData[src].status === 'empty') cardData[src].status = 'has';
-  inp.value = '';
-  updateCounts(); renderAll(); updateMergeBtn();
-  notify('🔗 链接已添加');
-}
+function addUrl(src){const inp=document.getElementById('url-inp-'+src);if(!inp)return;let url=inp.value.trim();if(!url)return;if(!url.startsWith('http'))url='https://'+url;cardData[src].urls.push({id:Date.now()+Math.random(),url,name:url,mime:'url'});if(cardData[src].status==='empty')cardData[src].status='has';inp.value='';updateCounts();renderAll();updateMergeBtn();notify('🔗 链接已添加');}
+function removeItem(src,id){cardData[src].files=cardData[src].files.filter(f=>f.id!==id);cardData[src].urls=cardData[src].urls.filter(f=>f.id!==id);const all=[...cardData[src].files,...cardData[src].urls];if(!all.length){cardData[src].status='empty';cardData[src].result=null;}else if(cardData[src].status==='done'){cardData[src].status='has';cardData[src].result=null;}updateCounts();renderAll();updateMergeBtn();}
+function toggleCard(src){cardData[src].open=!cardData[src].open;renderAll();}
+function dzOver(e,src){e.preventDefault();document.getElementById('dz-'+src)?.classList.add('over');}
+function dzOut(src){document.getElementById('dz-'+src)?.classList.remove('over');}
+function dzDrop(e,src){e.preventDefault();dzOut(src);if(e.dataTransfer.files.length){const dt=new DataTransfer();Array.from(e.dataTransfer.files).forEach(f=>dt.items.add(f));const fi=document.getElementById('fi-'+src);fi.files=dt.files;fi.dispatchEvent(new Event('change'));}}
+function updateCounts(){let t=0,d=0,p=0;Object.keys(SRCS).forEach(s=>{const n=[...cardData[s].files,...cardData[s].urls].length;t+=n;if(cardData[s].status==='done')d+=n;else if(n>0)p+=n;const el=document.getElementById('sb-'+s);if(el&&!['basic','culture'].includes(s))el.textContent=n||'';});document.getElementById('totalCount').textContent=t;document.getElementById('doneCount').textContent=d;document.getElementById('st-total').textContent=t;document.getElementById('st-pending').textContent=p;document.getElementById('st-done').textContent=d;}
+function updateMergeBtn(){document.getElementById('mergeBtn').disabled=!Object.keys(SRCS).some(s=>cardData[s].status==='done');}
+function clearAll(){if(!confirm('确认清空？'))return;Object.keys(SRCS).forEach(s=>{cardData[s]={files:[],urls:[],status:'empty',result:null,open:true};});updateCounts();renderAll();updateMergeBtn();document.getElementById('bottomBar').style.display='none';document.getElementById('mergeBtn').innerHTML='🔀 汇总分析结果';document.getElementById('mergeBtn').onclick=mergeAll;}
+function getIcon(n){const e=(n||'').split('.').pop().toLowerCase();return{pdf:'📄',docx:'📝',doc:'📝',xlsx:'📊',xls:'📊',csv:'📊',mp3:'🎵',m4a:'🎵',wav:'🎵',mp4:'🎬',mov:'🎬',txt:'📃',html:'🌐'}[e]||'📁';}
+function fmtSize(b){return b<1024?b+'B':b<1048576?(b/1024).toFixed(1)+'KB':(b/1048576).toFixed(1)+'MB';}
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+async function toBase64(url,mime){const b=await(await fetch(url)).blob();return new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result.split(',')[1]);fr.readAsDataURL(b);});}
+function notify(msg){const el=document.getElementById('notif');el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2800);}
 
-function removeItem(src, id) {
-  id = parseFloat(id);
-  cardData[src].files = cardData[src].files.filter(f => f.id !== id);
-  cardData[src].urls = cardData[src].urls.filter(f => f.id !== id);
-  const allItems = [...cardData[src].files, ...cardData[src].urls];
-  if (!allItems.length) { cardData[src].status = 'empty'; cardData[src].result = null; }
-  else if (cardData[src].status === 'done') { cardData[src].status = 'has'; cardData[src].result = null; }
-  updateCounts(); renderAll(); updateMergeBtn();
-}
-
-function toggleCard(src) { cardData[src].open = !cardData[src].open; renderAll(); }
-
-function scrollTo(src, btn) {
-  document.querySelectorAll('.sb-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  if (src === 'all') { document.getElementById('cardsScroll').scrollTop = 0; return; }
-  const el = document.getElementById('card-'+src);
-  if (el) el.scrollIntoView({ behavior:'smooth', block:'start' });
-}
-
-function dzOver(e,src){ e.preventDefault(); document.getElementById('dz-'+src)?.classList.add('over'); }
-function dzOut(src){ document.getElementById('dz-'+src)?.classList.remove('over'); }
-function dzDrop(e,src){ e.preventDefault(); dzOut(src); if(e.dataTransfer.files.length){ const fi=document.getElementById('fi-'+src); const dt=new DataTransfer(); Array.from(e.dataTransfer.files).forEach(f=>dt.items.add(f)); fi.files=dt.files; fi.dispatchEvent(new Event('change')); } }
-
-function updateCounts() {
-  let total=0, done=0, pending=0;
-  Object.keys(SRCS).forEach(src => {
-    const n = cardData[src].files.length + cardData[src].urls.length;
-    total += n;
-    if (cardData[src].status === 'done') done += n;
-    else if (n > 0) pending += n;
-    const el = document.getElementById('sb-'+src);
-    if (el) el.textContent = n || '';
-  });
-  document.getElementById('sb-all').textContent = total || '';
-  document.getElementById('totalCount').textContent = total;
-  document.getElementById('doneCount').textContent = done;
-  document.getElementById('st-total').textContent = total;
-  document.getElementById('st-pending').textContent = pending;
-  document.getElementById('st-done').textContent = done;
-}
-
-function updateMergeBtn() {
-  const hasDone = Object.keys(SRCS).some(s => cardData[s].status === 'done');
-  document.getElementById('mergeBtn').disabled = !hasDone;
-}
-
-function clearAll() {
-  if (!confirm('确认清空所有已导入素材？')) return;
-  Object.keys(SRCS).forEach(src => { cardData[src] = { files:[], urls:[], status:'empty', result:null, open:true }; });
-  updateCounts(); renderAll(); updateMergeBtn();
-  document.getElementById('bottomBar').style.display = 'none';
-  document.getElementById('mergeBtn').innerHTML = '🔀 汇总全部分析结果';
-  document.getElementById('mergeBtn').onclick = mergeAll;
-}
-
-function getIcon(name) {
-  const ext = (name||'').split('.').pop().toLowerCase();
-  return {pdf:'📄',docx:'📝',doc:'📝',xlsx:'📊',xls:'📊',csv:'📊',mp3:'🎵',m4a:'🎵',wav:'🎵',mp4:'🎬',mov:'🎬',txt:'📃',html:'🌐'}[ext] || '📁';
-}
-function fmtSize(b){ return b<1024?b+'B':b<1048576?(b/1024).toFixed(1)+'KB':(b/1048576).toFixed(1)+'MB'; }
-function delay(ms){ return new Promise(r=>setTimeout(r,ms)); }
-async function toBase64(url,mime){ const b=await(await fetch(url)).blob(); return new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result.split(',')[1]); r.readAsDataURL(b); }); }
-function notify(msg){ const el=document.getElementById('notif'); el.textContent=msg; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2800); }
-
-function togglePoints(src) {
-  const el = document.getElementById('ap-points-'+src);
-  const btn = document.getElementById('ap-toggle-'+src);
-  if (!el || !btn) return;
-  const isOpen = el.style.maxHeight === 'none';
-  el.style.maxHeight = isOpen ? '120px' : 'none';
-  btn.textContent = isOpen ? `▾ 展开全部` : `▴ 收起`;
-}
-
-// Init
 renderAll();
+loadSaved();
 
-// ── FORM CARD TOGGLE ──
-const formCardOpen = { basic: true, culture: true };
-function toggleFormCard(key) {
-  formCardOpen[key] = !formCardOpen[key];
-  const body = document.getElementById(key+'-body');
-  const chev = document.getElementById(key+'-chevron');
-  if (body) body.style.display = formCardOpen[key] ? 'block' : 'none';
-  if (chev) chev.textContent = formCardOpen[key] ? '▼' : '▶';
+// ── NAV SCREEN ──
+function showNavScreen() {
+  document.getElementById('navScreen').style.display = 'flex';
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('backToNav').classList.remove('visible');
 }
 
-// ── BASIC INFO ──
-function markBasic() {
-  const badge = document.getElementById('basic-badge');
-  if (badge) { badge.textContent = '● 填写中'; badge.style.background='var(--ol)'; badge.style.color='var(--c4)'; }
-}
-function saveBasic() {
-  const data = {
-    name: document.getElementById('bi-name')?.value,
-    city: document.getElementById('bi-city')?.value,
-    year: document.getElementById('bi-year')?.value,
-    area: document.getElementById('bi-area')?.value,
-    bldg: document.getElementById('bi-bldg')?.value,
-    households: document.getElementById('bi-households')?.value,
-    population: document.getElementById('bi-population')?.value,
-    elderly: document.getElementById('bi-elderly')?.value,
-    children: document.getElementById('bi-children')?.value,
-    budget: document.getElementById('bi-budget')?.value,
-    period: document.getElementById('bi-period')?.value,
-    bg: document.getElementById('bi-bg')?.value,
-    needs: document.getElementById('bi-needs')?.value,
-    gov: document.getElementById('bi-gov')?.value,
-  };
-  localStorage.setItem('nm_basic', JSON.stringify(data));
-  const badge = document.getElementById('basic-badge');
-  if (badge) { badge.textContent = '✅ 已保存'; badge.style.background='var(--c2l)'; badge.style.color='var(--c2)'; }
-  document.getElementById('basic-saved').style.display = 'flex';
-  document.getElementById('sb-basic').textContent = '✅';
-  notify('✅ 基本信息已保存');
+function enterAll() {
+  document.getElementById('navScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'flex';
+  document.getElementById('backToNav').classList.add('visible');
 }
 
-// ── CULTURE INFO ──
-function markCulture() {
-  const badge = document.getElementById('culture-badge');
-  if (badge) { badge.textContent = '● 填写中'; badge.style.background='var(--ol)'; badge.style.color='var(--c4)'; }
-}
-function saveCulture() {
-  const data = {
-    history: document.getElementById('cu-history')?.value,
-    character: document.getElementById('cu-character')?.value,
-    assets: document.getElementById('cu-assets')?.value,
-    memory: document.getElementById('cu-memory')?.value,
-  };
-  localStorage.setItem('nm_culture', JSON.stringify(data));
-  const badge = document.getElementById('culture-badge');
-  if (badge) { badge.textContent = '✅ 已保存'; badge.style.background='var(--gl)'; badge.style.color='var(--c2)'; }
-  document.getElementById('culture-saved').style.display = 'flex';
-  document.getElementById('sb-culture').textContent = '✅';
-  notify('✅ 历史文化信息已保存');
-}
-
-// ── LOAD SAVED DATA ON INIT ──
-function loadSavedFormData() {
-  try {
-    const basic = JSON.parse(localStorage.getItem('nm_basic') || 'null');
-    if (basic) {
-      Object.keys(basic).forEach(k => {
-        const el = document.getElementById('bi-'+k);
-        if (el && basic[k]) el.value = basic[k];
-      });
-      const badge = document.getElementById('basic-badge');
-      if (badge) { badge.textContent = '✅ 已保存'; badge.style.background='var(--c2l)'; badge.style.color='var(--c2)'; }
-      document.getElementById('basic-saved').style.display = 'flex';
-      document.getElementById('sb-basic').textContent = '✅';
+function navGoTo(id) {
+  enterAll();
+  setTimeout(() => {
+    // Try clicking the element or scrolling to it
+    const el = document.getElementById(id);
+    if (!el) return;
+    // For tabs
+    if (el.classList.contains('tab') || el.classList.contains('nav-item') || el.classList.contains('phase-card')) {
+      el.click();
+    } else {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-    const culture = JSON.parse(localStorage.getItem('nm_culture') || 'null');
-    if (culture) {
-      Object.keys(culture).forEach(k => {
-        const el = document.getElementById('cu-'+k);
-        if (el && culture[k]) el.value = culture[k];
-      });
-      const badge = document.getElementById('culture-badge');
-      if (badge) { badge.textContent = '✅ 已保存'; badge.style.background='var(--gl)'; badge.style.color='var(--c2)'; }
-      document.getElementById('culture-saved').style.display = 'flex';
-      document.getElementById('sb-culture').textContent = '✅';
+    // Switch tab if it's a panel
+    const tabId = id.replace('mod-','').replace('panel-','');
+    if (typeof switchTab === 'function' && ['macro','meso','micro'].includes(tabId)) {
+      switchTab(tabId);
     }
-  } catch(e) {}
+    if (typeof switchModule === 'function') {
+      switchModule(tabId, null);
+    }
+    if (typeof selectPhase === 'function' && ['concept','deepen','final'].includes(tabId)) {
+      selectPhase(tabId);
+    }
+  }, 100);
 }
 
-loadSavedFormData();
+// Show on mobile only - or always show
+(function() {
+  // On mobile always show nav first; on desktop skip
+  if (window.innerWidth <= 768) {
+    document.getElementById('navScreen').style.display = 'flex';
+    document.getElementById('mainApp').style.display = 'none';
+  } else {
+    document.getElementById('navScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'flex';
+  }
+})();
 
 </script>
+
+</div>
 </body>
-</html>
+</html>@media(max-width:800px){
+  .body{grid-template-columns:1fr;}
+  .sidebar{display:none;}
+  .card-cols{grid-template-columns:1fr;}
+  .card-col+.card-col{border-left:none;border-top:1px solid var(--border);}
+}
+
+/* ── RESPONSIVE MOBILE FULL ── */
+@media(max-width:768px){
+  /* body: scrollable, not fixed height */
+  body { height: auto !important; overflow-y: auto !important; }
+
+  /* topbar: compact, not overlapping content */
+  .topbar {
+    position: relative !important;
+    top: auto !important;
+    height: auto !important;
+    padding: 10px 14px !important;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .topbar-r { flex-wrap: wrap; gap: 6px; }
+  .topbar-r .btn { padding: 6px 10px !important; font-size: 11px !important; }
+  .count-chip { font-size: 11px !important; }
+
+  /* Main: fill full width */
+  .body { grid-template-columns: 1fr !important; overflow: visible !important; height: auto !important; }
+  .sidebar { display: none !important; }
+  .main { overflow-y: visible !important; height: auto !important; }
+
+  /* Toolbar: compact */
+  .toolbar { padding: 10px 14px !important; flex-wrap: wrap; gap: 8px; }
+  .search { min-width: 140px; }
+
+  /* Form cards: collapsible */
+  .form-card { margin: 0 14px 12px !important; }
+  .form-card-head { padding: 12px 14px !important; }
+  .form-card-body { padding: 14px !important; }
+  .form-grid { grid-template-columns: 1fr !important; }
+  .form-grid-3 { grid-template-columns: 1fr 1fr !important; }
+
+  /* Source cards */
+  #formCardsWrap { padding: 14px 14px 0 !important; }
+  .cards-scroll { padding: 0 14px 14px !important; }
+  .src-card { margin-bottom: 10px; }
+  .card-cols { grid-template-columns: 1fr !important; }
+  .card-col+.card-col { border-left: none; border-top: 1px solid var(--border); }
+
+  /* Bottom bar */
+  .bottom-bar { flex-wrap: wrap; gap: 8px; padding: 10px 14px !important; }
+}
