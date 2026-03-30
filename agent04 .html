@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeighborMind · 智能体04 · 设计方案</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f6fb;--white:#fff;--border:#e4e9f2;--text:#1a2235;--muted:#7a8aa0;
+  --accent:#1d4ed8;--al:#eff4ff;
+  --green:#059669;--gl:#ecfdf5;
+  --orange:#d97706;--ol:#fffbeb;
+  --purple:#7c3aed;--pl:#f5f3ff;
+  --red:#dc2626;
+  --shadow:0 2px 12px rgba(0,0,0,0.07);
+  --shadow-lg:0 8px 32px rgba(0,0,0,0.12);
+  --r:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* TOP BAR */
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 24px;height:54px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.logo{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px;}
+.logo em{color:var(--accent);font-style:normal;}
+.page-tag{font-size:13px;font-weight:500;display:flex;align-items:center;gap:7px;margin-left:12px;padding-left:12px;border-left:1px solid var(--border);}
+.chip{font-size:11px;padding:3px 8px;border-radius:6px;font-weight:500;background:var(--al);color:var(--accent);}
+.topbar-r{display:flex;gap:8px;}
+.btn{padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;font-weight:500;display:flex;align-items:center;gap:5px;transition:all 0.15s;border:none;}
+.btn-ghost{border:1px solid var(--border)!important;background:var(--white);color:var(--muted);}
+.btn-ghost:hover{color:var(--text);background:var(--bg);}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{opacity:0.88;}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* LAYOUT */
+.layout{flex:1;display:grid;grid-template-columns:220px 1fr;overflow:hidden;}
+
+/* LEFT NAV */
+.leftnav{background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:16px 12px;}
+.leftnav::-webkit-scrollbar{width:4px;}
+.leftnav::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+.nav-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:4px 8px 8px;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:10px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:'Noto Sans SC',sans-serif;font-size:13px;color:var(--muted);transition:all 0.15s;}
+.nav-item:hover{background:var(--bg);color:var(--text);}
+.nav-item.active{background:var(--al);color:var(--accent);font-weight:500;}
+.nav-icon{width:28px;height:28px;border-radius:7px;display:grid;place-items:center;font-size:14px;flex-shrink:0;}
+.nav-sub{display:flex;flex-direction:column;gap:2px;padding-left:10px;margin-top:2px;}
+.nav-sub-item{display:flex;align-items:center;gap:7px;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:12px;color:var(--muted);transition:all 0.15s;border:none;background:none;width:100%;text-align:left;font-family:'Noto Sans SC',sans-serif;}
+.nav-sub-item:hover{background:var(--bg);color:var(--text);}
+.nav-sub-item.active{color:var(--accent);background:var(--al);}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:var(--border);flex-shrink:0;}
+.nav-sub-item.active .nav-dot,.nav-sub-item.done .nav-dot{background:var(--green);}
+.nav-divider{height:1px;background:var(--border);margin:8px 0;}
+
+/* MAIN */
+.main{display:flex;flex-direction:column;overflow:hidden;}
+.main-head{background:var(--white);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.main-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;}
+.main-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.main-scroll{flex:1;overflow-y:auto;padding:24px;}
+.main-scroll::-webkit-scrollbar{width:5px;}
+.main-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:5px;}
+
+/* SECTION CARDS */
+.section-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:22px 24px;margin-bottom:16px;animation:up 0.35s ease forwards;}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.sc-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.sc-content{font-size:13px;line-height:1.9;color:var(--text);outline:none;border-radius:8px;padding:8px 10px;border:1px solid transparent;transition:all 0.15s;min-height:40px;width:100%;}
+.sc-content:hover{border-color:var(--border);background:var(--bg);}
+.sc-content:focus{border-color:var(--accent);background:var(--white);}
+.sc-content[placeholder]:empty::before{content:attr(placeholder);color:var(--muted);font-style:italic;}
+
+/* CHAT BOX */
+.chat-area{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);}
+.chat-row{display:flex;gap:8px;}
+.chat-inp{flex:1;padding:8px 11px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:'Noto Sans SC',sans-serif;outline:none;resize:none;height:36px;color:var(--text);transition:all 0.15s;line-height:1.5;}
+.chat-inp:focus{border-color:var(--accent);height:60px;}
+.chat-inp::placeholder{color:var(--muted);}
+.chat-btn{padding:8px 14px;border-radius:8px;background:var(--accent);color:#fff;border:none;font-size:12px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;font-weight:500;white-space:nowrap;flex-shrink:0;}
+.chat-btn:hover{opacity:0.88;}
+.chat-btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* COLOR PALETTE */
+.palette-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+.color-chip{display:flex;align-items:center;gap:7px;padding:7px 12px;border-radius:9px;border:1px solid var(--border);background:var(--bg);}
+.color-swatch{width:28px;height:28px;border-radius:6px;flex-shrink:0;cursor:pointer;border:2px solid rgba(0,0,0,0.08);}
+.color-name{font-size:12px;font-weight:500;outline:none;min-width:60px;}
+.color-role{font-size:10px;color:var(--muted);}
+
+/* UPLOAD AREA */
+.upload-area{border:2px dashed var(--border);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.upload-area:hover{border-color:var(--accent);background:var(--al);}
+.upload-area img{max-width:100%;max-height:400px;border-radius:10px;object-fit:contain;}
+.ua-icon{font-size:36px;}
+.ua-title{font-size:14px;font-weight:600;color:var(--text);}
+.ua-sub{font-size:12px;color:var(--muted);}
+
+/* CASE GRID */
+.case-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
+.case-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:all 0.2s;position:relative;}
+.case-card:hover{box-shadow:var(--shadow);transform:translateY(-2px);}
+.case-img{width:100%;aspect-ratio:4/3;object-fit:cover;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:32px;}
+.case-info{padding:10px 12px;}
+.case-name{font-size:12px;font-weight:600;margin-bottom:3px;}
+.case-desc{font-size:11px;color:var(--muted);line-height:1.5;}
+.case-add{border:2px dashed var(--border);background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:24px;font-size:28px;}
+.case-add-label{font-size:12px;color:var(--muted);}
+.case-add:hover{border-color:var(--accent);background:var(--al);}
+
+/* NODE PAGE */
+.node-page{display:none;}
+.node-page.active{display:block;}
+.node-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.node-num{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;}
+.node-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;}
+.node-cat{font-size:12px;color:var(--muted);margin-top:2px;}
+.node-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.node-img-box{border:2px dashed var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:all 0.2s;position:relative;}
+.node-img-box:hover{border-color:var(--accent);}
+.node-img-placeholder{aspect-ratio:4/3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--muted);}
+.node-img-placeholder .nip-icon{font-size:32px;}
+.node-img-box img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;}
+.node-img-label{position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,0.55);color:#fff;font-size:10px;padding:2px 8px;border-radius:5px;}
+.prompt-box{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+.prompt-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;}
+.prompt-text{font-size:12px;line-height:1.7;color:var(--text);outline:none;width:100%;background:none;border:none;resize:none;font-family:'Noto Sans SC',sans-serif;}
+.copy-btn{font-size:10px;padding:3px 8px;border-radius:5px;border:1px solid var(--border);background:var(--white);cursor:pointer;color:var(--muted);font-family:'Noto Sans SC',sans-serif;}
+.copy-btn:hover{color:var(--accent);border-color:var(--accent);}
+
+/* SPECIALIST TABS */
+.spec-item{background:var(--bg);border-radius:10px;padding:14px 16px;margin-bottom:10px;}
+.spec-item-name{font-size:13px;font-weight:600;margin-bottom:4px;}
+.spec-item-desc{font-size:12px;color:var(--muted);line-height:1.6;}
+.spec-item-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+
+.spec-img-placeholder{width:140px;height:100px;background:var(--bg);border:2px dashed var(--border);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;overflow:hidden;}
+.spec-img-placeholder:hover{border-color:var(--accent);background:var(--al);}
+.spec-tag{font-size:11px;padding:3px 8px;border-radius:6px;background:var(--white);border:1px solid var(--border);}
+
+/* GEN BUTTON */
+.gen-row{display:flex;gap:8px;align-items:center;margin-bottom:20px;}
+.gen-btn-full{flex:1;padding:11px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#4f46e5);color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans SC',sans-serif;display:flex;align-items:center;justify-content:center;gap:7px;transition:all 0.15s;}
+.gen-btn-full:hover{opacity:0.9;}
+.gen-btn-full:disabled{opacity:0.45;cursor:not-allowed;}
+
+/* FROM 03 BADGE */
+.from03{background:var(--gl);border:1px solid rgba(5,150,105,0.15);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--green);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+
+.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.25);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg)}}
+.notif{position:fixed;bottom:20px;right:24px;background:var(--text);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;box-shadow:var(--shadow-lg);transform:translateY(16px);opacity:0;transition:all 0.25s;z-index:300;}
+.notif.show{transform:translateY(0);opacity:1;}
+input[type=file]{display:none;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="display:flex;align-items:center;">
+    <div class="logo">🏘 Neighbor<em>Mind</em></div>
+    <div class="page-tag">🎨 设计方案 <span class="chip">智能体 04</span></div>
+  </div>
+  <div class="topbar-r">
+    <button class="btn btn-ghost" onclick="window.print()">📄 导出PDF</button>
+    <button class="btn btn-ghost" onclick="loadFromAgent03()">🔄 从智能体03读取</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- LEFT NAV -->
+  <div class="leftnav">
+    <div class="nav-label">设计模块</div>
+
+    <button class="nav-item active" id="nav-concept" onclick="switchModule('concept',this)">
+      <div class="nav-icon" style="background:#eff4ff;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#1d4ed8;">A</div>
+      <span style="font-weight:600;">总体构思</span>
+    </button>
+
+    <button class="nav-item" id="nav-plan" onclick="switchModule('plan',this)">
+      <div class="nav-icon" style="background:#ecfdf5;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#059669;">B</div>
+      <span style="font-weight:600;">总平面图</span>
+    </button>
+
+    <button class="nav-item" id="nav-cases" onclick="switchModule('cases',this)">
+      <div class="nav-icon" style="background:#fffbeb;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#d97706;">C</div>
+      <span style="font-weight:600;">案例意向</span>
+    </button>
+
+    <div class="nav-divider"></div>
+    <div class="nav-label" style="display:flex;align-items:center;gap:7px;">
+      <div style="width:22px;height:22px;background:#f5f3ff;border-radius:6px;display:grid;place-items:center;font-family:'Syne',sans-serif;font-weight:800;font-size:12px;color:#7c3aed;flex-shrink:0;">D</div>
+      效果图
+    </div>
+    <div class="nav-sub" id="nodeNav">
+      <div style="font-size:12px;color:var(--muted);padding:6px 10px;font-style:italic;">从智能体03读取节点…</div>
+    </div>
+    <div class="nav-divider"></div>
+
+    <button class="nav-item" id="nav-spec" onclick="switchModule('spec',this)">
+      <div class="nav-icon" style="background:#fef2f2;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#dc2626;">E</div>
+      <span style="font-weight:600;">专项设计</span>
+    </button>
+
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="main-head">
+      <div>
+        <div class="main-title" id="mainTitle">💡 总体构思</div>
+        <div class="main-sub" id="mainSub">设计理念、风格定位、色彩方案</div>
+      </div>
+      <div id="mainActions"></div>
+    </div>
+
+    <div class="main-scroll" id="mainScroll">
+
+      <!-- a: CONCEPT -->
+      <div id="mod-concept">
+        <div class="from03" id="from03Badge">
+          ✅ 已从智能体03读取策略数据，点击「AI生成构思」自动生成
+        </div>
+        <div class="gen-row">
+          <button class="gen-btn-full" id="genConceptBtn" onclick="genConcept()">
+            🤖 AI生成总体构思
+          </button>
+        </div>
+
+        <div class="section-card">
+          <div class="sc-label">设计理念
+            <button class="chat-btn" style="padding:4px 10px;font-size:11px;" onclick="refineSection('concept-idea')">✨ AI修改</button>
+          </div>
+          <div class="sc-content" id="concept-idea" contenteditable="true" placeholder="设计理念将由AI根据策略框架生成…"></div>
+          <div class="chat-area">
+            <div class="chat-row">
+              <textarea class="chat-inp" id="ci-concept-idea" placeholder="对设计理念有什么修改意见？"></textarea>
+              <button class="chat-btn" onclick="refineSection('concept-idea')">✨ 修改</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="sc-label">风格定位
+            <button class="chat-btn" style="padding:4px 10px;font-size:11px;" onclick="refineSection('concept-style')">✨ AI修改</button>
+          </div>
+          <div class="sc-content" id="concept-style" contenteditable="true" placeholder="风格定位将由AI生成…"></div>
+          <div class="chat-area">
+            <div class="chat-row">
+              <textarea class="chat-inp" id="ci-concept-style" placeholder="对风格定位有什么修改意见？"></textarea>
+              <button class="chat-btn" onclick="refineSection('concept-style')">✨ 修改</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="sc-label">色彩方案</div>
+          <div class="palette-row" id="paletteRow">
+            <div style="font-size:12px;color:var(--muted);font-style:italic;">AI生成后显示色彩方案…</div>
+          </div>
+          <div class="chat-area">
+            <div class="chat-row">
+              <textarea class="chat-inp" id="ci-concept-color" placeholder="对色彩方案有什么修改意见？如：主色改为暖灰色系…"></textarea>
+              <button class="chat-btn" onclick="refineSection('concept-color')">✨ 修改</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- b: PLAN -->
+      <div id="mod-plan" style="display:none;">
+        <div class="section-card">
+          <div class="sc-label">总平面图</div>
+          <div class="upload-area" id="planUpload" onclick="document.getElementById('fi-plan').click()"
+            ondragover="event.preventDefault();this.style.borderColor='var(--accent)'"
+            ondragleave="this.style.borderColor='var(--border)'"
+            ondrop="handlePlanDrop(event)">
+            <div class="ua-icon">🗺</div>
+            <div class="ua-title">点击上传总平面图</div>
+            <div class="ua-sub">支持 JPG · PNG · PDF · DWG截图</div>
+          </div>
+          <input type="file" id="fi-plan" accept="image/*,.pdf" onchange="uploadPlan(this)">
+        </div>
+        <div class="section-card">
+          <div class="sc-label">总平面图说明</div>
+          <div class="sc-content" id="plan-desc" contenteditable="true" placeholder="总体布局说明，主要功能分区、轴线关系、出入口组织…"></div>
+        </div>
+      </div>
+
+      <!-- c: CASES -->
+      <div id="mod-cases" style="display:none;">
+        <div class="gen-row">
+          <button class="gen-btn-full" id="genCasesBtn" onclick="genCases()">
+            🤖 AI推荐案例意向
+          </button>
+        </div>
+        <div class="section-card">
+          <div class="sc-label">案例意向方向</div>
+          <div class="sc-content" id="cases-direction" contenteditable="true" placeholder="AI将根据设计风格推荐案例方向…"></div>
+          <div class="chat-area">
+            <div class="chat-row">
+              <textarea class="chat-inp" id="ci-cases" placeholder="对案例方向有什么意见？如：偏向日式简约风格…"></textarea>
+              <button class="chat-btn" onclick="refineSection('cases-direction')">✨ 修改</button>
+            </div>
+          </div>
+        </div>
+        <div class="section-card">
+          <div class="sc-label">参考案例图片</div>
+          <div class="case-grid" id="caseGrid">
+            <div class="case-card case-add" onclick="addCaseImage()">
+              <span>＋</span>
+              <span class="case-add-label">添加参考图片</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- d: NODE PAGES (dynamically generated) -->
+      <div id="mod-nodes" style="display:none;">
+        <div id="nodePages"></div>
+      </div>
+
+      <!-- e: SPECIALIST -->
+      <div id="mod-spec" style="display:none;">
+        <div class="gen-row">
+          <button class="gen-btn-full" id="genSpecBtn" onclick="genSpec()">
+            🤖 AI生成专项设计建议
+          </button>
+        </div>
+        <!-- 4 big cards in grid -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" id="specCardGrid">
+          <div class="section-card" id="speccard-plant">
+            <div class="sc-label" style="font-size:13px;font-weight:700;color:var(--green);">🌱 种植专项</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div>
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">📝 文字说明</div>
+                <div id="spec-plant-text"></div>
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">🖼 图片示意</div>
+                <div id="spec-plant-imgs"></div>
+              </div>
+            </div>
+          </div>
+          <div class="section-card" id="speccard-pave">
+            <div class="sc-label" style="font-size:13px;font-weight:700;color:var(--orange);">🧱 铺装专项</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div>
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">📝 文字说明</div>
+                <div id="spec-pave-text"></div>
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">🖼 图片示意</div>
+                <div id="spec-pave-imgs"></div>
+              </div>
+            </div>
+          </div>
+          <div class="section-card" id="speccard-furniture">
+            <div class="sc-label" style="font-size:13px;font-weight:700;color:var(--purple);">🪑 小品专项</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div>
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">📝 文字说明</div>
+                <div id="spec-furniture-text"></div>
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">🖼 图片示意</div>
+                <div id="spec-furniture-imgs"></div>
+              </div>
+            </div>
+          </div>
+          <div class="section-card" id="speccard-light">
+            <div class="sc-label" style="font-size:13px;font-weight:700;color:var(--accent);">💡 照明专项</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div>
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">📝 文字说明</div>
+                <div id="spec-light-text"></div>
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">🖼 图片示意</div>
+                <div id="spec-light-imgs"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="notif" id="notif"></div>
+<input type="file" id="fi-case" accept="image/*" onchange="addCaseImageFile(this)">
+
+<script>
+// ══════════════════════════════
+// STATE
+// ══════════════════════════════
+let designData = {
+  projectName: '',
+  concept: { idea:'', style:'', colors:[] },
+  cases: { direction:'', images:[] },
+  nodes: [], // from agent03 microTasks
+  spec: { plant:[], pave:[], furniture:[], light:[] },
+};
+
+let currentModule = 'concept';
+let currentNodeIdx = 0;
+
+const MICRO_CATS = [
+  { key:'gate',     label:'大门景观',         icon:'🚪', color:'#1d4ed8' },
+  { key:'major',    label:'大型景观',         icon:'🌳', color:'#059669' },
+  { key:'node',     label:'节点景观',         icon:'📍', color:'#d97706' },
+  { key:'road',     label:'道路景观',         icon:'🛤',  color:'#7c3aed' },
+  { key:'carpark',  label:'机动车停车景观',   icon:'🚗', color:'#dc2626' },
+  { key:'bikepark', label:'非机动车停车景观', icon:'🚲', color:'#0284c7' },
+  { key:'trash',    label:'垃圾收集点景观',   icon:'🗑',  color:'#475569' },
+];
+
+// ══════════════════════════════
+// LOAD FROM AGENT03
+// ══════════════════════════════
+function loadFromAgent03() {
+  // Read from localStorage (agent03 saves there)
+  try {
+    const basic = JSON.parse(localStorage.getItem('nm_basic') || '{}');
+    designData.projectName = basic.name || '待命名社区';
+
+    // Try to get micro tasks and strategy from agent03
+    const a03data = JSON.parse(localStorage.getItem('nm_agent03') || 'null');
+    if (a03data) {
+      if (a03data.microTasks) designData.nodes = a03data.microTasks;
+      if (a03data.macro) designData.macro = a03data.macro;
+      if (a03data.mesoSystems) designData.meso = a03data.mesoSystems;
+    }
+  } catch(e) {}
+
+  // Build node nav and pages
+  if (designData.nodes.length > 0) {
+    renderNodeNav();
+    renderNodePages();
+    notify('✅ 已从智能体03读取 ' + designData.nodes.length + ' 个景观节点');
+  } else {
+    // Use demo nodes
+    designData.nodes = [
+      {id:1, cat:'gate',     name:'南门大门景观',   theme:'现代简洁社区门户', func:'出入管理·形象展示', notes:'与物业结合'},
+      {id:2, cat:'major',    name:'中心广场景观',   theme:'全龄活力社区客厅', func:'居民集会·休闲健身', notes:'保留大树'},
+      {id:3, cat:'node',     name:'组团入口节点',   theme:'温馨邻里角落',     func:'休憩·交流',         notes:''},
+      {id:4, cat:'carpark',  name:'地面停车区景观', theme:'有序绿色停车场',   func:'停车·绿化遮阴',     notes:'增设充电桩'},
+      {id:5, cat:'trash',    name:'垃圾收集站景观', theme:'隐蔽清洁垃圾站',   func:'垃圾分类收集',      notes:'遮蔽通风'},
+    ];
+    renderNodeNav();
+    renderNodePages();
+    notify('⚠️ 未找到智能体03数据，已使用示例节点');
+  }
+
+  document.getElementById('from03Badge').textContent = '✅ 项目：' + (designData.projectName || '待命名社区') + ' · ' + designData.nodes.length + ' 个景观节点';
+}
+
+// ══════════════════════════════
+// MODULE SWITCH
+// ══════════════════════════════
+const MODULE_TITLES = {
+  concept: { title:'💡 总体构思', sub:'设计理念、风格定位、色彩方案' },
+  plan:    { title:'🗺 总平面图', sub:'上传总平面图及说明' },
+  cases:   { title:'📷 案例意向', sub:'参考案例方向与意向图片' },
+  nodes:   { title:'🎨 效果图节点', sub:'各景观节点现状与改造效果图' },
+  spec:    { title:'🌿 专项设计', sub:'种植、铺装、小品、照明选型建议' },
+};
+
+function switchModule(mod, btn) {
+  currentModule = mod;
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.nav-sub-item').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  ['concept','plan','cases','nodes','spec'].forEach(m => {
+    document.getElementById('mod-'+m).style.display = m === mod ? 'block' : 'none';
+  });
+
+  const info = MODULE_TITLES[mod] || MODULE_TITLES.nodes;
+  document.getElementById('mainTitle').textContent = info.title;
+  document.getElementById('mainSub').textContent = info.sub;
+}
+
+function switchToNode(idx, btn) {
+  currentNodeIdx = idx;
+  currentModule = 'nodes';
+
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.nav-sub-item').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  ['concept','plan','cases','spec'].forEach(m => {
+    document.getElementById('mod-'+m).style.display = 'none';
+  });
+  document.getElementById('mod-nodes').style.display = 'block';
+
+  document.querySelectorAll('.node-page').forEach((p,i) => {
+    p.style.display = i === idx ? 'block' : 'none';
+  });
+
+  const node = designData.nodes[idx];
+  const cat = MICRO_CATS.find(c=>c.key===node.cat) || MICRO_CATS[2];
+  document.getElementById('mainTitle').textContent = cat.icon + ' ' + node.name;
+  document.getElementById('mainSub').textContent = cat.label + ' · ' + (node.theme||'');
+}
+
+// ══════════════════════════════
+// NODE NAV & PAGES
+// ══════════════════════════════
+function renderNodeNav() {
+  const nav = document.getElementById('nodeNav');
+  nav.innerHTML = designData.nodes.map((node, i) => {
+    const cat = MICRO_CATS.find(c=>c.key===node.cat) || MICRO_CATS[2];
+    return '<button class="nav-item" id="nodenav-' + i + '" onclick="switchToNode(' + i + ',this)" style="padding:7px 10px;">'
+      + '<div class="nav-icon" style="background:' + cat.color + '18;font-size:13px;width:24px;height:24px;border-radius:6px;">' + cat.icon + '</div>'
+      + '<span style="font-size:12px;">' + node.name + '</span>'
+      + '</button>';
+  }).join('');
+}
+
+function renderNodePages() {
+  const container = document.getElementById('nodePages');
+  container.innerHTML = designData.nodes.map((node, i) => {
+    const cat = MICRO_CATS.find(c=>c.key===node.cat) || MICRO_CATS[2];
+    return '<div class="node-page" id="nodepage-' + i + '" style="display:' + (i===0?'block':'none') + ';">'
+      + '<div class="node-header">'
+      + '<div class="node-num" style="background:' + cat.color + '">' + (i+1) + '</div>'
+      + '<div><div class="node-title">' + node.name + '</div><div class="node-cat">' + cat.label + ' · ' + (node.theme||'') + '</div></div>'
+      + '</div>'
+
+      // Image pair FIRST
+      + '<div class="node-grid">'
+      + '<div>'
+      + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;">现状照片</div>'
+      + '<div class="node-img-box" onclick="uploadNodeImg(' + i + ',&quot;before&quot;)">'
+      + '<div class="node-img-placeholder"><div class="nip-icon">📷</div><div style="font-size:12px;">上传现状照片</div></div>'
+      + '<div class="node-img-label">现状</div>'
+      + '</div>'
+      + '</div>'
+      + '<div>'
+      + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;">改造效果图</div>'
+      + '<div class="node-img-box" onclick="uploadNodeImg(' + i + ',&quot;after&quot;)">'
+      + '<div class="node-img-placeholder"><div class="nip-icon">🎨</div><div style="font-size:12px;">上传效果图</div><div style="font-size:11px;opacity:0.6;">或用AI提示词生成</div></div>'
+      + '<div class="node-img-label">效果图</div>'
+      + '</div>'
+      + '</div>'
+      + '</div>'
+
+      // Task brief AFTER images
+      + '<div class="section-card" style="padding:14px 18px;margin-bottom:14px;">'
+      + '<div class="sc-label" style="margin-bottom:8px;">📋 设计任务书要点 <span style="font-size:10px;font-weight:400;color:var(--muted);">· 作为生图提示词前提依据</span></div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">'
+      + '<div style="background:var(--al);border-radius:8px;padding:8px 10px;">'
+        + '<div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">主题定位</div>'
+        + '<div id="node-theme-' + i + '" style="font-size:12px;line-height:1.6;outline:none;" contenteditable="true">' + (node.theme||'待填写') + '</div>'
+      + '</div>'
+      + '<div style="background:var(--gl);border-radius:8px;padding:8px 10px;">'
+        + '<div style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">功能</div>'
+        + '<div id="node-func-' + i + '" style="font-size:12px;line-height:1.6;outline:none;" contenteditable="true">' + (node.func||'待填写') + '</div>'
+      + '</div>'
+      + '<div style="background:var(--ol);border-radius:8px;padding:8px 10px;">'
+        + '<div style="font-size:10px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">注意事项</div>'
+        + '<div id="node-notes-' + i + '" style="font-size:12px;line-height:1.6;outline:none;" contenteditable="true">' + (node.notes||'待补充') + '</div>'
+      + '</div>'
+      + '</div>'
+      + '</div>'
+
+      // Prompt box + feedback
+      + '<div class="section-card">'
+      + '<div class="sc-label">AI生图提示词'
+      + '<div style="display:flex;gap:6px;">'
+      + '<button class="copy-btn" onclick="copyPrompt(' + i + ')">📋 复制</button>'
+      + '<button class="chat-btn" style="padding:4px 10px;font-size:11px;" onclick="genNodePrompt(' + i + ')">🤖 生成提示词</button>'
+      + '</div></div>'
+      + '<div class="prompt-box" style="margin-bottom:10px;"><textarea class="prompt-text" id="prompt-' + i + '" rows="4" placeholder="点击「生成提示词」，系统自动读取上方任务书要点，生成可用于各类AI生图软件的提示词…"></textarea></div>'
+      + '<div style="border-top:1px dashed var(--border);padding-top:10px;">'
+      + '<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">对提示词提修改意见</div>'
+      + '<div style="display:flex;gap:8px;">'
+      + '<textarea id="prompt-fb-' + i + '" class="chat-inp" placeholder="如：改为夜景效果、换成鸟瞰视角、增加儿童活动元素…" style="height:36px;"></textarea>'
+      + '<button class="chat-btn" onclick="refinePrompt(' + i + ')">✨ 修改</button>'
+      + '</div>'
+      + '</div>'
+      + '</div>'
+
+      // Navigation
+      + '<div style="display:flex;justify-content:space-between;margin-top:16px;">'
+      + (i > 0 ? '<button data-nav="' + (i-1) + '" onclick="navToNode(this)" style="padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--white);cursor:pointer;font-family:sans-serif;font-size:12px;">← 上一个</button>' : '<div></div>')
+      + (i < designData.nodes.length-1 ? '<button data-nav="' + (i+1) + '" onclick="navToNode(this)" style="padding:8px 16px;border-radius:8px;background:var(--accent);color:#fff;border:none;cursor:pointer;font-family:sans-serif;font-size:12px;">下一个 →</button>' : '<div style="font-size:12px;color:var(--muted);">最后一个节点</div>')
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+// ══════════════════════════════
+// AI GENERATE
+// ══════════════════════════════
+async function callClaude(prompt) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{role:'user',content:prompt}] })
+  });
+  const d = await res.json();
+  return d.content?.[0]?.text || '';
+}
+
+async function genConcept() {
+  const btn = document.getElementById('genConceptBtn');
+  btn.disabled = true; btn.innerHTML = '<div class="spin"></div> 生成中…';
+
+  const name = designData.projectName || '社区微更新项目';
+  const macro = designData.macro || {};
+  const vision = macro.vision || '';
+  const principles = (macro.principles||[]).map(p=>p.name).join('、');
+
+  try {
+    const res = await callClaude(
+      '你是景观设计师。根据以下项目信息，生成设计方案总体构思，只返回JSON（无其他内容）：\n'
+      + '{"idea":"设计理念（60字，有诗意有内涵）","style":"风格定位（40字，具体说明风格特征）","colors":[{"role":"主色调","hex":"#颜色","name":"颜色名称"},{"role":"辅助色","hex":"#颜色","name":"颜色名称"},{"role":"点缀色","hex":"#颜色","name":"颜色名称"},{"role":"材质色","hex":"#颜色","name":"颜色名称"}]}\n'
+      + '项目：' + name + '，愿景：' + vision + '，设计原则：' + principles
+    );
+    const data = JSON.parse(res.replace(/```json|```/g,'').trim());
+
+    document.getElementById('concept-idea').innerText = data.idea || '';
+    document.getElementById('concept-style').innerText = data.style || '';
+    designData.concept.colors = data.colors || [];
+    renderPalette(data.colors || []);
+    notify('✅ 总体构思已生成');
+  } catch(e) {
+    // Demo
+    document.getElementById('concept-idea').innerText = '以"岁月温情·共生家园"为设计理念，尊重居民生活记忆与场所精神，通过精细化、人性化的微更新，将社区改造为兼具历史温度与现代活力的宜居家园。';
+    document.getElementById('concept-style').innerText = '新中式简约风格，融合传统院落空间意象与现代简洁线条，材料以暖灰色系自然石材为主，辅以木质元素，营造温暖、亲切、有归属感的社区氛围。';
+    const demoColors = [
+      {role:'主色调', hex:'#8B7355', name:'暖灰棕'},
+      {role:'辅助色', hex:'#6B8E5A', name:'自然绿'},
+      {role:'点缀色', hex:'#C8A876', name:'米金黄'},
+      {role:'材质色', hex:'#F5F0E8', name:'米白'},
+    ];
+    designData.concept.colors = demoColors;
+    renderPalette(demoColors);
+    notify('⚠️ API未连接，已使用示例内容');
+  }
+
+  btn.disabled = false; btn.innerHTML = '🔄 重新生成';
+}
+
+function renderPalette(colors) {
+  const row = document.getElementById('paletteRow');
+  if (!colors.length) return;
+  row.innerHTML = colors.map(c =>
+    '<div class="color-chip">'
+    + '<div class="color-swatch" style="background:' + c.hex + ';" title="' + c.hex + '" onclick="copyText(\'' + c.hex + '\')"></div>'
+    + '<div><div class="color-name" contenteditable="true">' + c.name + '</div>'
+    + '<div class="color-role">' + c.role + ' · ' + c.hex + '</div></div>'
+    + '</div>'
+  ).join('');
+}
+
+async function genCases() {
+  const btn = document.getElementById('genCasesBtn');
+  btn.disabled = true; btn.innerHTML = '<div class="spin"></div> 生成中…';
+
+  const style = document.getElementById('concept-style').innerText || '现代简约';
+  try {
+    const res = await callClaude(
+      '你是景观设计师。根据"' + style + '"的设计风格，推荐3-4个案例参考方向，只返回文字内容（不需要JSON），每个方向一段，说明参考什么、为什么参考、重点借鉴哪些元素。'
+    );
+    document.getElementById('cases-direction').innerText = res;
+    notify('✅ 案例意向已生成');
+  } catch(e) {
+    document.getElementById('cases-direction').innerText = '1. 北京劲松老旧小区改造案例——重点借鉴其停车系统重组与绿化提升的一体化策略，以及社区商业微更新的运营模式。\n\n2. 上海曹杨新村更新项目——参考其对历史文化脉络的保护与延续方式，以及全龄友好公共空间的设计手法。\n\n3. 日式生活街道改造——借鉴其精细化的材料运用、低矮植物搭配与座椅设施的人性化细节设计。';
+    notify('⚠️ API未连接，已使用示例内容');
+  }
+  btn.disabled = false; btn.innerHTML = '🔄 重新生成';
+}
+
+async function genNodePrompt(idx) {
+  const node = designData.nodes[idx];
+  const style = document.getElementById('concept-style')?.innerText || '现代简约';
+  const colors = designData.concept.colors.map(c=>c.name).join('、') || '暖灰色系';
+  // Read from editable task fields
+  const theme = document.getElementById('node-theme-' + idx)?.innerText || node.theme || '';
+  const func  = document.getElementById('node-func-'  + idx)?.innerText || node.func  || '';
+  const notes = document.getElementById('node-notes-' + idx)?.innerText || node.notes || '';
+
+  try {
+    const res = await callClaude(
+      '你是景观设计AI提示词专家。根据以下任务书要点，生成高质量AI生图提示词（英文），可用于各类AI生图软件，直接输出提示词，不要解释，50-80词：\n'
+      + '节点名称：' + node.name + '\n'
+      + '主题定位：' + theme + '\n'
+      + '功能：' + func + '\n'
+      + '注意事项：' + notes + '\n'
+      + '设计风格：' + style + '\n'
+      + '色彩方案：' + colors + '\n'
+      + '要求：包含风格、材质、光线、视角等关键词，适合生成高质量景观效果图'
+    );
+    const ta = document.getElementById('prompt-' + idx);
+    if (ta) ta.value = res;
+    notify('✅ 提示词已生成');
+  } catch(e) {
+    const ta = document.getElementById('prompt-' + idx);
+    if (ta) ta.value = 'Community micro-renewal landscape design, ' + node.name + ', ' + theme + ', modern Chinese minimalist style, warm gray stone pavement, natural green plants, soft afternoon sunlight, eye-level perspective, high quality architectural rendering, 4k, photorealistic';
+    notify('⚠️ API未连接，已使用示例提示词');
+  }
+}
+
+async function refinePrompt(idx) {
+  const ta  = document.getElementById('prompt-' + idx);
+  const inp = document.getElementById('prompt-fb-' + idx);
+  const btn = inp?.nextElementSibling;
+  if (!ta || !inp) return;
+  const fb = inp.value.trim();
+  if (!fb) { notify('请填写修改意见'); inp.focus(); return; }
+  if (!ta.value.trim()) { notify('请先生成提示词'); return; }
+  if (btn) { btn.disabled=true; btn.innerHTML='<div class="spin" style="border-top-color:#fff;"></div>'; }
+  try {
+    const res = await callClaude(
+      '当前AI生图提示词：「' + ta.value + '」\n'
+      + '修改意见：「' + fb + '」\n'
+      + '请直接输出修改后的英文提示词，不要解释，保持50-80词。'
+    );
+    ta.value = res;
+    inp.value = '';
+    notify('✅ 提示词已修改');
+  } catch(e) { notify('⚠️ 修改失败'); }
+  if (btn) { btn.disabled=false; btn.innerHTML='✨ 修改'; }
+}
+
+async function genSpec() {
+  const btn = document.getElementById('genSpecBtn');
+  btn.disabled = true; btn.innerHTML = '<div class="spin"></div> 生成中…';
+
+  const style = document.getElementById('concept-style')?.innerText || '现代简约';
+  const name = designData.projectName || '社区';
+
+  try {
+    const res = await callClaude(
+      '你是景观设计师。为"' + name + '"生成专项设计建议，只返回JSON（无其他内容）：\n'
+      + '{"plant":[{"name":"植物名","desc":"设计说明","tags":["标签1","标签2"]}],"pave":[{"name":"铺装名","desc":"适用场景","tags":[]}],"furniture":[{"name":"设施名","desc":"选型说明","tags":[]}],"light":[{"name":"灯具类型","desc":"布置说明","tags":[]}]}\n'
+      + '每类3-4项，风格：' + style + '，重点考虑老旧社区实际情况'
+    );
+    const data = JSON.parse(res.replace(/```json|```/g,'').trim());
+    renderSpec(data);
+    notify('✅ 专项设计建议已生成');
+  } catch(e) {
+    renderSpec({
+      plant:[
+        {name:'乡土宿根植物组合', desc:'选用鸢尾、萱草、麦冬等低维护本地植物，减少养护成本，季相变化丰富', tags:['低维护','本土','四季']},
+        {name:'遮阴大乔木', desc:'保留现有大树，补植国槐、银杏等本土乔木，为停车区和活动区提供遮阴', tags:['遮阴','乡土','保留']},
+        {name:'花境组合', desc:'入口节点设置低矮花境，以观叶植物为主，色彩协调统一', tags:['入口','观赏','花境']},
+      ],
+      pave:[
+        {name:'透水混凝土', desc:'停车区和主要道路采用透水混凝土，颜色选暖灰色，与建筑协调', tags:['透水','环保','耐用']},
+        {name:'仿石材砖', desc:'步行区和入口广场选用仿石材砖，防滑耐磨，质感好', tags:['防滑','美观','步行']},
+        {name:'防腐木铺板', desc:'休闲节点和儿童活动区局部采用防腐木，增加亲切感', tags:['木质','休闲','儿童']},
+      ],
+      furniture:[
+        {name:'无障碍坐凳', desc:'全区设置带靠背扶手的无障碍坐凳，满足老年人使用需求，间距不超过30m', tags:['无障碍','适老','全龄']},
+        {name:'组合健身器材', desc:'更换老旧健身器材，选用符合GB标准的全龄健身设备，安全耐用', tags:['健身','安全','标准']},
+        {name:'自行车停放架', desc:'各组团入口设置嵌入式自行车架，整洁美观，不占用通道', tags:['停车','整洁','嵌入']},
+      ],
+      light:[
+        {name:'庭院灯', desc:'主要道路和广场采用3.5m庭院灯，光源选暖白色LED，照度≥10lux', tags:['主路','LED','节能']},
+        {name:'草坪灯', desc:'绿化带边缘和步行道设置0.6m草坪灯，营造温馨夜间氛围', tags:['绿化','氛围','低矮']},
+        {name:'壁灯', desc:'楼门入口安装感应壁灯，节能安全，方便居民夜间出行', tags:['感应','楼门','安全']},
+      ],
+    });
+    notify('⚠️ API未连接，已使用示例内容');
+  }
+  btn.disabled = false; btn.innerHTML = '🔄 重新生成';
+}
+
+function renderSpec(data) {
+  const SPEC_CONFIGS = {
+    plant:     { label:'种植设计',   icon:'🌱', color:'#059669', bg:'#ecfdf5' },
+    pave:      { label:'铺装设计',   icon:'🧱', color:'#d97706', bg:'#fffbeb' },
+    furniture: { label:'小品设计',   icon:'🪑', color:'#7c3aed', bg:'#f5f3ff' },
+    light:     { label:'照明设计',   icon:'💡', color:'#1d4ed8', bg:'#eff4ff' },
+  };
+
+  Object.entries(SPEC_CONFIGS).forEach(([key, cfg]) => {
+    const items = data[key] || [];
+    const container = document.getElementById('spec-' + key);
+    if (!container) return;
+
+    container.innerHTML =
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">'
+      // LEFT: text
+      + '<div>'
+        + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid '+cfg.color+'40;">📝 文字说明</div>'
+        + items.map(item =>
+            '<div style="background:var(--white);border:1px solid var(--border);border-radius:11px;padding:13px 15px;margin-bottom:10px;border-left:3px solid '+cfg.color+';">'
+            + '<div style="font-size:13px;font-weight:700;color:'+cfg.color+';margin-bottom:4px;">'+item.name+'</div>'
+            + '<div style="font-size:12px;color:var(--text);line-height:1.7;">'+item.desc+'</div>'
+            + '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:7px;">'
+            + (item.tags||[]).map(t=>'<span class="spec-tag">'+t+'</span>').join('')
+            + '</div>'
+            + '</div>'
+          ).join('')
+      + '</div>'
+      // RIGHT: images
+      + '<div>'
+        + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid '+cfg.color+'40;">🖼 图片示意</div>'
+        + items.map((item,i) =>
+            '<div style="margin-bottom:10px;">'
+            + '<div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">'+item.name+'</div>'
+            + '<div class="spec-img-placeholder" onclick="uploadSpecImg(this)" style="width:100%;height:120px;border-color:'+cfg.color+'40;">'
+              + '<div style="font-size:24px;margin-bottom:4px;">'+cfg.icon+'</div>'
+              + '<div style="font-size:11px;color:var(--muted);">点击上传示意图</div>'
+              + '<div style="font-size:10px;color:var(--muted);opacity:0.6;">后期从资料库调取</div>'
+            + '</div>'
+            + '</div>'
+          ).join('')
+      + '</div>'
+      + '</div>';
+  });
+}
+
+function uploadSpecImg(el) {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'image/*';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    el.innerHTML = '<img src="' + url + '" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">';
+    el.onclick = null;
+  };
+  input.click();
+}
+
+
+
+// ══════════════════════════════
+// REFINE SECTION
+// ══════════════════════════════
+async function refineSection(id) {
+  const el = document.getElementById(id);
+  const inp = document.getElementById('ci-' + id);
+  if (!el) return;
+  const fb = inp ? inp.value.trim() : '';
+  if (!fb) { notify('请填写修改意见'); if(inp) inp.focus(); return; }
+
+  const btn = inp?.nextElementSibling;
+  if (btn) { btn.disabled=true; btn.innerHTML='<div class="spin"></div>'; }
+
+  try {
+    const cur = el.innerText || el.textContent || '';
+    const res = await callClaude('当前内容：「' + cur + '」\n修改意见：「' + fb + '」\n请直接输出修改后的内容，不要解释。');
+    el.innerText = res;
+    if (inp) inp.value = '';
+    notify('✅ 已修改');
+  } catch(e) { notify('⚠️ 修改失败'); }
+
+  if (btn) { btn.disabled=false; btn.innerHTML='✨ 修改'; }
+}
+
+// ══════════════════════════════
+// IMAGE UPLOAD
+// ══════════════════════════════
+function uploadPlan(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const area = document.getElementById('planUpload');
+  area.innerHTML = '<img src="' + url + '" style="max-width:100%;border-radius:10px;" onclick="document.getElementById(\'fi-plan\').click()">';
+  notify('✅ 总平面图已上传');
+}
+
+function handlePlanDrop(e) {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const dt = new DataTransfer(); dt.items.add(file);
+  document.getElementById('fi-plan').files = dt.files;
+  uploadPlan(document.getElementById('fi-plan'));
+}
+
+function uploadNodeImg(idx, type) {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'image/*';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const cleanType = type.replace(/&quot;/g,'');
+    const box = document.querySelectorAll('#nodepage-' + idx + ' .node-img-box')[cleanType==='before'?0:1];
+    if (!box) return;
+    const label = box.querySelector('.node-img-label').outerHTML;
+    box.innerHTML = '<img src="' + url + '" style="width:100%;aspect-ratio:4/3;object-fit:cover;">' + label;
+    notify('✅ 图片已上传');
+  };
+  input.click();
+}
+
+function addCaseImage() { document.getElementById('fi-case').click(); }
+
+function addCaseImageFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const grid = document.getElementById('caseGrid');
+  const addBtn = grid.querySelector('.case-add');
+  const card = document.createElement('div');
+  card.className = 'case-card';
+  card.innerHTML = '<div class="case-img"><img src="' + url + '" style="width:100%;height:100%;object-fit:cover;"></div>'
+    + '<div class="case-info"><div class="case-name" contenteditable="true">参考案例</div><div class="case-desc" contenteditable="true">来源说明…</div></div>'
+    + '<button onclick="this.closest(\'.case-card\').remove()" style="position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(220,38,38,0.8);color:#fff;border:none;cursor:pointer;font-size:12px;">×</button>';
+  grid.insertBefore(card, addBtn);
+  input.value = '';
+}
+
+// ══════════════════════════════
+// UTILS
+// ══════════════════════════════
+
+function navToNode(btn) {
+  const idx = parseInt(btn.getAttribute('data-nav'));
+  const navBtn = document.getElementById('nodenav-' + idx);
+  switchToNode(idx, navBtn);
+}
+
+function copyPrompt(idx) {
+  const ta = document.getElementById('prompt-' + idx);
+  if (!ta || !ta.value) { notify('请先生成提示词'); return; }
+  navigator.clipboard.writeText(ta.value).then(() => notify('📋 提示词已复制'));
+}
+
+function copyText(txt) {
+  navigator.clipboard.writeText(txt).then(() => notify('📋 已复制：' + txt));
+}
+
+function notify(msg) {
+  const el = document.getElementById('notif');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._t); el._t = setTimeout(()=>el.classList.remove('show'), 2800);
+}
+
+// ══════════════════════════════
+// INIT
+// ══════════════════════════════
+loadFromAgent03();
+</script>
+</body>
+</html>
