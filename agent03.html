@@ -4,8 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NeighborMind · 智能体03 · 策略框架</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"><script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -193,6 +192,14 @@ body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text
 /* ── MAP (micro) ── */
 #microMap{height:280px;border-radius:10px;overflow:hidden;border:1px solid var(--border);}
 
+
+/* MACRO NAV SIDEBAR */
+.macro-layout{display:grid;grid-template-columns:140px 1fr;gap:16px;}
+.macro-nav{position:sticky;top:0;height:fit-content;}
+.macro-nav-item{display:flex;align-items:center;gap:7px;padding:8px 10px;border-radius:9px;cursor:pointer;font-size:12px;color:var(--muted);transition:all 0.15s;border:none;background:none;width:100%;text-align:left;font-family:'Noto Sans SC',sans-serif;}
+.macro-nav-item:hover{background:var(--bg);color:var(--text);}
+.macro-nav-item.active{background:var(--al);color:var(--accent);font-weight:500;}
+.macro-nav-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
 .spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.25);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;}
 .spin-b{display:inline-block;width:12px;height:12px;border:2px solid rgba(29,78,216,0.15);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;}
 @keyframes sp{to{transform:rotate(360deg)}}
@@ -352,12 +359,10 @@ const MESO_CATS = {
     curLabel:'现状设施分布', planLabel:'规划设施补齐',
     curDesc:'现状设施缺失…', planDesc:'规划补齐方案…',
     data:[{label:'现状设施点',unit:'处'},{label:'规划新增',unit:'处'}] },
-  building: { name:'建筑风貌',   icon:'🏘', color:'#dc2626', bg:'#fef2f2', type:'nomap',
-    fields:[
-      { key:'style',    label:'建筑风貌', ph:'现状风貌特征，是否需要改造…' },
-      { key:'color',    label:'色彩策略', ph:'主色调、辅助色、点缀色建议…' },
-      { key:'material', label:'材质建议', ph:'外立面材质、改造范围和方式…' },
-    ]},
+  building: { name:'建筑风貌',   icon:'🏘', color:'#dc2626', bg:'#fef2f2', type:'compare',
+    curLabel:'现状建筑风貌', planLabel:'规划建筑风貌',
+    curDesc:'现状风貌特征：色彩、材质、立面问题…', planDesc:'规划策略：风貌改造方向、色彩策略、材质建议…',
+    data:[{label:'需改造楼栋',unit:'栋'},{label:'立面改造面积',unit:'㎡'}] },
   municipal:{ name:'市政设施',   icon:'🔧', color:'#0284c7', bg:'#f0f9ff', type:'compare',
     curLabel:'现状市政设施点位', planLabel:'规划市政设施点位',
     curDesc:'现状点位问题，垃圾收集点位置不合理…', planDesc:'规划点位调整方案…',
@@ -445,6 +450,28 @@ async function generate() {
 
   const input = collectInput();
 
+  // Test API connectivity first
+  let apiOk = false;
+  try {
+    const test = await Promise.race([
+      fetch('https://api.anthropic.com/v1/messages', {method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}),
+      new Promise((_,r) => setTimeout(() => r(new Error('timeout')), 4000))
+    ]);
+    apiOk = test.status !== undefined;
+  } catch(e) { apiOk = false; }
+
+  if (!apiOk) {
+    setProg('API不可用，使用示例数据…', 80);
+    await delay(600);
+    useDemoData(input);
+    restorePanels();
+    renderAll();
+    finishGenerate();
+    btn.disabled = false; btn.innerHTML = '🔄 重新生成';
+    notify('⚠️ 网络受限，已使用示例数据');
+    return;
+  }
+
   try {
     setProg('生成宏观战略定位…', 20);
     const macro = await callClaude(macroPrompt(input));
@@ -469,24 +496,32 @@ async function generate() {
     })) : [];
 
     fwData = { macro, input };
+    restorePanels();
     renderAll();
 
     document.getElementById('tabBar').style.display = 'flex';
     document.getElementById('pdfBtn').style.display = 'flex';
     document.getElementById('pdfBtn2').style.display = 'flex';
     document.getElementById('fwStatus').innerHTML = '<span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;"></span> 已生成 · 可编辑迭代';
+    finishGenerate();
 
   } catch(e) {
     console.error(e);
     useDemoData(input);
+    restorePanels();
     renderAll();
-    document.getElementById('tabBar').style.display = 'flex';
-    document.getElementById('pdfBtn2').style.display = 'flex';
-    notify('⚠️ API未连接，已使用示例数据');
+    finishGenerate();
+    notify('⚠️ API异常，已使用示例数据');
   }
 
   btn.disabled = false; btn.innerHTML = '🔄 重新生成';
-  document.getElementById('rightScroll').querySelector('#emptyState') && (document.getElementById('emptyState').style.display='none');
+  switchTab('macro');
+}
+
+function finishGenerate() {
+  document.getElementById('tabBar').style.display = 'flex';
+  document.getElementById('pdfBtn2').style.display = 'flex';
+  document.getElementById('fwStatus').innerHTML = '<span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;"></span> 已生成 · 可编辑迭代';
   switchTab('macro');
 }
 
@@ -593,17 +628,44 @@ function renderMacro() {
   const necessity = Array.isArray(m.necessity) ? m.necessity : [m.necessity];
   const significance = Array.isArray(m.significance) ? m.significance : [m.significance];
 
-  document.getElementById('panel-macro').innerHTML = `
-    ${macBlock('定位','🎯','positioning', `<div class="editable" contenteditable="true" id="mac-positioning">${m.positioning||''}</div>`, '对定位有什么修改意见？')}
+  const NAV_ITEMS = [
+    {key:'positioning', icon:'🎯', label:'项目定位', color:'#1d4ed8'},
+    {key:'vision',      icon:'🌟', label:'愿景目标', color:'#059669'},
+    {key:'necessity',   icon:'📌', label:'必要性',   color:'#d97706'},
+    {key:'significance',icon:'✨', label:'项目意义', color:'#7c3aed'},
+    {key:'principles',  icon:'🧭', label:'设计原则', color:'#dc2626'},
+  ];
+
+  const navHTML = `<div class="macro-nav">
+    <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:4px 10px 8px;">导引</div>
+    ${NAV_ITEMS.map(n=>`
+      <button class="macro-nav-item" onclick="scrollToMacBlock('${n.key}')">
+        <div class="macro-nav-dot" style="background:${n.color}"></div>
+        ${n.icon} ${n.label}
+      </button>`).join('')}
+  </div>`;
+
+  const blocksHTML = `<div>
+    ${macBlock('项目定位','🎯','positioning', `<div class="editable" contenteditable="true" id="mac-positioning">${m.positioning||''}</div>`, '对定位有什么修改意见？')}
     ${macBlock('愿景目标','🌟','vision', `<div class="editable" contenteditable="true" id="mac-vision" style="font-size:15px;font-weight:600;color:var(--accent);">${m.vision||''}</div>`, '对愿景有什么修改意见？')}
     ${macBlock('项目必要性','📌','necessity', necessity.map((n,i)=>`<div class="editable" contenteditable="true" id="mac-necessity-${i}">• ${n}</div>`).join(''), '对必要性有什么修改意见？')}
     ${macBlock('项目意义','✨','significance', significance.map((s,i)=>`<div class="editable" contenteditable="true" id="mac-significance-${i}">• ${s}</div>`).join(''), '对意义有什么修改意见？')}
     ${macBlock('设计原则','🧭','principles', `<div class="principles-row">${(m.principles||[]).map((p,i)=>`<div class="principle-tag" contenteditable="true" id="mac-principle-${i}" style="background:${p.color}18;color:${p.color};border-color:${p.color}40;">${p.name}</div>`).join('')}</div>`, '对设计原则有什么修改意见？')}
-  `;
+  </div>`;
+
+  document.getElementById('panel-macro').innerHTML =
+    `<div class="macro-layout">${navHTML}${blocksHTML}</div>`;
+}
+
+function scrollToMacBlock(key) {
+  const block = document.getElementById('macblock-'+key);
+  if (block) block.scrollIntoView({behavior:'smooth', block:'start'});
+  document.querySelectorAll('.macro-nav-item').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
 }
 
 function macBlock(label, icon, key, bodyHTML, placeholder) {
-  return `<div class="mac-block" style="animation-delay:${['positioning','vision','necessity','significance','principles'].indexOf(key)*0.07}s;">
+  return `<div class="mac-block" id="macblock-${key}" style="animation-delay:${['positioning','vision','necessity','significance','principles'].indexOf(key)*0.07}s;">
     <div class="mac-label">${icon} ${label}
       <button class="mac-del" onclick="this.closest('.mac-block').remove()">×</button>
     </div>
@@ -806,22 +868,29 @@ function renderMicro() {
         return `<div class="fw-card" style="animation-delay:${i*0.06}s;" onclick="openMicroCat('${cat.key}')">
           <div class="fw-card-icon" style="background:${cat.color}18">${cat.icon}</div>
           <div class="fw-card-name" style="color:${cat.color}">${cat.label}</div>
-          <div class="fw-card-sub">${tasks.length} 个点位${tasks.filter(t=>t.lat).length?' · '+tasks.filter(t=>t.lat).length+'已标注':''}</div>
+          <div class="fw-card-sub">${tasks.length} 个点位${tasks.filter(t=>t.lat||t.address).length?' · '+tasks.filter(t=>t.lat||t.address).length+'已标注':''}</div>
           <div class="fw-card-arrow">→ 查看 / 添加</div>
         </div>`;
       }).join('')}
     </div>
     <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;">
-      <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;">📍 点位标注地图</div>
-        <div style="display:flex;gap:8px;align-items:center;">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <label style="padding:5px 12px;border-radius:7px;background:var(--bg);border:1px solid var(--border);font-size:11px;cursor:pointer;color:var(--muted);">
+            🖼 上传总平图替代地图
+            <input type="file" accept="image/*" onchange="uploadPlanMap(this)" style="display:none;">
+          </label>
           <select id="markCat" style="padding:5px 8px;border:1px solid var(--border);border-radius:7px;font-size:11px;outline:none;font-family:'Noto Sans SC',sans-serif;">
-            ${MICRO_CATS.map(c=>`<option value="${c.key}">${c.icon} ${c.label}</option>`).join('')}
+            ${MICRO_CATS.map(c=>'<option value="'+c.key+'">'+c.icon+' '+c.label+'</option>').join('')}
           </select>
           <button onclick="setMarkMode(true)" id="markBtn" style="padding:5px 14px;border-radius:7px;background:var(--accent);color:#fff;border:none;font-size:11px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;">✚ 点击标注</button>
         </div>
       </div>
-      <div id="microMap" style="height:300px;"></div>
+      <div id="microMapWrap" style="position:relative;">
+        <div id="microMap" style="height:300px;"></div>
+        <img id="planMapImg" style="display:none;width:100%;max-height:300px;object-fit:contain;cursor:crosshair;" onclick="planMapClick(event)">
+      </div>
     </div>`;
 }
 
@@ -835,56 +904,19 @@ function openMicroCat(catKey) {
   document.getElementById('modalSubtabs').style.display = 'none';
 
   document.getElementById('modalBody').innerHTML = `
-    <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:14px;">
       <button onclick="addMicroTask('${catKey}')"
         style="padding:7px 16px;border-radius:8px;background:${cat.color}18;color:${cat.color};border:1px solid ${cat.color}40;font-size:12px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;font-weight:500;">
         ＋ 添加${cat.label}
       </button>
     </div>
-    ${tasks.length===0 ? `<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">暂无点位</div>` :
-      tasks.map((t,i) => microItemHTML(t, i, cat)).join('')}`;
+    ${tasks.length===0
+      ? `<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">暂无点位，点击上方按钮添加</div>`
+      : tasks.map((t,i) => microItemHTML(t, i, cat)).join('')}`;
 
   document.getElementById('modal').classList.add('open');
 }
 
-function microItemHTML(t, i, cat) {
-  return `<div class="micro-item" id="mi-${t.id}">
-    <div class="micro-item-hd" onclick="toggleMicroItem('${t.id}')">
-      <div class="micro-num" style="background:${cat.color}">${i+1}</div>
-      <div class="micro-name" contenteditable="true" onclick="event.stopPropagation()">${t.name}</div>
-      ${t.lat ? `<span class="micro-located" style="background:${cat.color}15;color:${cat.color};">📍 已标注</span>` : `<span style="font-size:10px;color:var(--muted);">未标注</span>`}
-      <button class="micro-del" onclick="event.stopPropagation();deleteMicroTask('${t.id}','${cat.key}')">×</button>
-      <span class="micro-chev" id="mchev-${t.id}">▼</span>
-    </div>
-    <div class="micro-body" id="mbody-${t.id}" style="display:none;">
-      <div class="micro-field">
-        <div class="mf-label">主题</div>
-        <div class="mf-val" contenteditable="true" placeholder="主题定位…" oninput="updateMicro('${t.id}','theme',this.innerText)">${t.theme}</div>
-      </div>
-      <div class="micro-field">
-        <div class="mf-label">功能</div>
-        <div class="mf-val" contenteditable="true" placeholder="主要功能…" oninput="updateMicro('${t.id}','func',this.innerText)">${t.func}</div>
-      </div>
-      <div class="micro-field micro-full">
-        <div class="mf-label">注意事项</div>
-        <div class="mf-val" contenteditable="true" placeholder="设计约束、注意事项…" oninput="updateMicro('${t.id}','notes',this.innerText)">${t.notes}</div>
-      </div>
-      <div class="micro-field micro-full">
-        <div class="mf-label">位置描述</div>
-        <input class="mf-input" type="text" value="${t.address}" placeholder="如：南侧主入口大门处" oninput="updateMicro('${t.id}','address',this.value)">
-      </div>
-    </div>
-  </div>`;
-}
-
-function toggleMicroItem(id) {
-  const body = document.getElementById('mbody-'+id);
-  const chev = document.getElementById('mchev-'+id);
-  if (!body) return;
-  const open = body.style.display!=='none';
-  body.style.display = open?'none':'grid';
-  if (chev) chev.classList.toggle('open',!open);
-}
 
 function addMicroTask(catKey) {
   const cat = MICRO_CATS.find(c=>c.key===catKey);
@@ -930,6 +962,8 @@ function initMicroMap() {
     addMapPin(t);
     renderMicro();
     setMarkMode(false);
+    // Force map redraw
+    setTimeout(() => { if(microMap) microMap.invalidateSize(); }, 100);
     notify('✅ 已标注：'+name);
   });
   microTasks.filter(t=>t.lat).forEach(t=>addMapPin(t));
@@ -943,6 +977,75 @@ function addMapPin(t) {
   });
   const marker = L.marker([t.lat,t.lng],{icon}).addTo(microMap).bindPopup(`<b>${t.name}</b>`);
   mapMarkers.push({id:t.id,marker});
+}
+
+
+
+
+function updateMicroCardCounts() {
+  MICRO_CATS.forEach(cat => {
+    const tasks = microTasks.filter(t=>t.cat===cat.key);
+    const cards = document.querySelectorAll('#microGrid .fw-card');
+    cards.forEach(card => {
+      const nameEl = card.querySelector('.fw-card-name');
+      if (nameEl && nameEl.textContent.trim() === cat.label) {
+        const sub = card.querySelector('.fw-card-sub');
+        if (sub) sub.textContent = tasks.length + ' 个点位' + (tasks.filter(t=>t.lat).length ? ' · '+tasks.filter(t=>t.lat).length+'已标注' : '');
+      }
+    });
+  });
+}
+
+function uploadPlanMap(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const img = document.getElementById('planMapImg');
+  const map = document.getElementById('microMap');
+  if (img && map) {
+    img.src = url;
+    img.style.display = 'block';
+    map.style.display = 'none';
+  }
+  notify('✅ 总平图已上传，点击图片标注点位');
+}
+
+function planMapClick(e) {
+  if (!markMode) return;
+  const img = e.currentTarget;
+  const rect = img.getBoundingClientRect();
+  const x = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
+  const y = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
+  const catKey = document.getElementById('markCat')?.value || 'node';
+  const cat = MICRO_CATS.find(c=>c.key===catKey);
+  const num = microTasks.filter(t=>t.cat===catKey).length+1;
+  const name = prompt('标注名称：', cat.label+num);
+  if (!name) return;
+  const t = {id:Date.now(),cat:catKey,name,theme:'',func:'',notes:'',lat:null,lng:null,address:`平面图坐标(${x}%,${y}%)`};
+  microTasks.push(t);
+
+  // Add dot on plan map
+  const dot = document.createElement('div');
+  dot.style.cssText = `position:absolute;left:${x}%;top:${y}%;transform:translate(-50%,-50%);width:24px;height:24px;border-radius:50%;background:${cat.color};color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,0.3);border:2px solid #fff;pointer-events:none;`;
+  dot.textContent = cat.icon;
+  document.getElementById('microMapWrap').appendChild(dot);
+
+  renderMicro();
+  setMarkMode(false);
+  notify('✅ 已标注：'+name);
+}
+
+function setMarkModeFor(taskId, catKey) {
+  closeModal();
+  setTimeout(() => {
+    switchTab('micro');
+    setTimeout(() => {
+      const sel = document.getElementById('markCat');
+      if (sel) sel.value = catKey;
+      setMarkMode(true);
+      notify('📍 在地图上点击标注位置，标注后回到任务书查看');
+    }, 300);
+  }, 200);
 }
 
 function setMarkMode(on) {
@@ -1007,4 +1110,45 @@ function delay(ms){return new Promise(r=>setTimeout(r,ms));}
 function notify(msg){const el=document.getElementById('notif');el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2800);}
 </script>
 </body>
-</html>
+</html>function microItemHTML(t, i, cat) {
+  return `<div class="micro-item" id="mi-${t.id}" style="margin-bottom:14px;">
+    <div style="padding:10px 14px;display:flex;align-items:center;gap:9px;background:${cat.color}08;border-bottom:1px solid var(--border);">
+      <div class="micro-num" style="background:${cat.color}">${i+1}</div>
+      <div contenteditable="true" style="flex:1;font-size:13px;font-weight:600;outline:none;padding:2px 4px;border-radius:4px;"
+        oninput="updateMicro('${t.id}','name',this.innerText)">${t.name}</div>
+      ${t.lat||t.address ? `<span style="font-size:10px;padding:2px 7px;border-radius:8px;background:${cat.color}15;color:${cat.color};font-weight:500;">📍 已标注</span>` : `<span style="font-size:10px;color:var(--muted);">未标注</span>`}
+      <button class="micro-del" onclick="deleteMicroTask('${t.id}','${cat.key}')">×</button>
+    </div>
+    <div style="padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div>
+        <div class="mf-label">主题</div>
+        <div class="mf-val" contenteditable="true" placeholder="主题定位…"
+          oninput="updateMicro('${t.id}','theme',this.innerText)">${t.theme||''}</div>
+      </div>
+      <div>
+        <div class="mf-label">功能</div>
+        <div class="mf-val" contenteditable="true" placeholder="主要功能…"
+          oninput="updateMicro('${t.id}','func',this.innerText)">${t.func||''}</div>
+      </div>
+      <div style="grid-column:1/-1;">
+        <div class="mf-label">注意事项</div>
+        <div class="mf-val" contenteditable="true" placeholder="设计约束条件、注意事项…"
+          oninput="updateMicro('${t.id}','notes',this.innerText)">${t.notes||''}</div>
+      </div>
+      <div style="grid-column:1/-1;">
+        <div class="mf-label">位置标注</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input class="mf-input" style="flex:1;min-width:140px;" type="text" value="${t.address||''}"
+            placeholder="文字描述位置，如：南侧主入口处"
+            oninput="updateMicro('${t.id}','address',this.value)">
+          <button onclick="setMarkModeFor('${t.id}','${cat.key}')"
+            style="padding:5px 10px;border-radius:7px;background:var(--al);color:var(--accent);border:1px solid rgba(29,78,216,0.2);font-size:11px;cursor:pointer;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">
+            📍 地图标注
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+
