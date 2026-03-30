@@ -671,6 +671,15 @@ loadAgent01();
 // ══════════════════════════════
 // GENERATE
 // ══════════════════════════════
+
+function finishGenerate() {
+  document.getElementById('tabBar').style.display = 'flex';
+  document.getElementById('pdfBtn2').style.display = 'flex';
+  document.getElementById('fwStatus').innerHTML = '<span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;"></span> 已生成 · 可编辑迭代';
+  document.getElementById('emptyState').style.display = 'none';
+  switchTab(currentTab);
+}
+
 async function generate() {
   const btn = document.getElementById('genBtn');
   btn.disabled = true;
