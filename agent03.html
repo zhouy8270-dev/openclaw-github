@@ -1087,9 +1087,16 @@ function renderMicro() {
           <button onclick="setMarkMode(true)" id="markBtn" style="padding:5px 14px;border-radius:7px;background:var(--accent);color:#fff;border:none;font-size:11px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;">✚ 点击标注</button>
         </div>
       </div>
+      <!-- Distribution stats bar -->
+      <div id="microDistStats" style="display:none;padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);margin-right:4px;">点位分布：</div>
+        <div id="distStatChips"></div>
+        <button onclick="fitMapToMarkers()" style="margin-left:auto;padding:4px 12px;border-radius:7px;background:var(--accent);color:#fff;border:none;font-size:11px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;">🗺 显示全部点位</button>
+        <button onclick="exportMapView()" style="padding:4px 12px;border-radius:7px;background:var(--bg);border:1px solid var(--border);font-size:11px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;">📷 截图导出</button>
+      </div>
       <div id="microMapWrap" style="position:relative;">
-        <div id="microMap" style="height:300px;"></div>
-        <img id="planMapImg" style="display:none;width:100%;max-height:300px;object-fit:contain;cursor:crosshair;" onclick="planMapClick(event)">
+        <div id="microMap" style="height:340px;"></div>
+        <img id="planMapImg" style="display:none;width:100%;max-height:340px;object-fit:contain;cursor:crosshair;" onclick="planMapClick(event)">
       </div>
     </div>`;
 }
@@ -1360,6 +1367,70 @@ const _origRenderMacro = renderMacro;
 function renderMacro() {
   _origRenderMacro();
   setTimeout(initMobileCollapse, 50);
+}
+
+
+// ── MICRO MAP DISTRIBUTION ──
+function updateDistStats() {
+  const located = microTasks.filter(t => t.lat || t.address);
+  const total = microTasks.length;
+
+  const statsBar = document.getElementById('microDistStats');
+  const chips = document.getElementById('distStatChips');
+  if (!statsBar || !chips) return;
+
+  if (total === 0) { statsBar.style.display = 'none'; return; }
+  statsBar.style.display = 'flex';
+
+  // Count by category
+  const counts = {};
+  MICRO_CATS.forEach(c => { counts[c.key] = microTasks.filter(t=>t.cat===c.key).length; });
+
+  chips.innerHTML = MICRO_CATS
+    .filter(cat => counts[cat.key] > 0)
+    .map(cat => {
+      const locatedCount = microTasks.filter(t=>t.cat===cat.key&&t.lat).length;
+      return '<span style="font-size:11px;padding:3px 9px;border-radius:12px;background:'+cat.color+'18;color:'+cat.color+';font-weight:500;">'
+        + cat.icon + ' ' + cat.label + ' ' + counts[cat.key]
+        + (locatedCount > 0 ? ' <span style="opacity:0.6;">('+locatedCount+'已标注)</span>' : '')
+        + '</span>';
+    }).join('');
+}
+
+function fitMapToMarkers() {
+  if (!microMap || mapMarkers.length === 0) {
+    notify('暂无已标注点位');
+    return;
+  }
+  const group = L.featureGroup(mapMarkers.map(m => m.marker));
+  microMap.fitBounds(group.getBounds().pad(0.2));
+  notify('✅ 已显示全部标注点位');
+}
+
+function exportMapView() {
+  notify('📷 请使用截图工具截取地图区域（手机：截屏；电脑：Shift+Cmd+4）');
+}
+
+// Override renderMicro to also update stats
+const _origRenderMicro = renderMicro;
+function renderMicro() {
+  _origRenderMicro();
+  setTimeout(updateDistStats, 100);
+}
+
+// Also update stats after each map pin added
+const _origAddMapPin = addMapPin;
+function addMapPin(t) {
+  _origAddMapPin(t);
+  updateDistStats();
+  // Auto fit map when first pin added
+  if (mapMarkers.length === 1) {
+    setTimeout(() => {
+      if (microMap) microMap.setView([t.lat, t.lng], 17);
+    }, 300);
+  } else if (mapMarkers.length > 1) {
+    setTimeout(fitMapToMarkers, 300);
+  }
 }
 
 function delay(ms){return new Promise(r=>setTimeout(r,ms));}
