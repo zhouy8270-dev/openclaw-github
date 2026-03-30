@@ -446,6 +446,7 @@ input[type=file]{display:none;}
     <div class="page-tag">🧭 策略框架生成 <span class="chip">智能体 03</span></div>
   </div>
   <div class="topbar-r">
+    <button class="btn btn-ghost" onclick="saveToAgent04()" id="saveBtn" style="display:none;">💾 保存至04</button>
     <button class="btn btn-ghost" onclick="window.print()" id="pdfBtn" style="display:none;">📄 导出PDF</button>
     <button class="btn btn-ghost" onclick="resetAll()">↺ 重置</button>
   </div>
@@ -697,14 +698,46 @@ function loadAgent01() {
     const culture = JSON.parse(localStorage.getItem('nm_culture')||'null');
     if (!basic && !culture) return;
     let html = '';
-    if (basic) html += `<b>${basic.name||''}</b> · ${basic.city||''} · ${basic.year||''}<br>${basic.households||''} ${basic.population||''} · 老龄化${basic.elderly||'-'}<br>`;
-    if (culture?.history) html += `🏛 ${culture.history.slice(0,60)}…`;
+    if (basic) html += '<b>'+(basic.name||'')+'</b> · '+(basic.city||'')+' · '+(basic.year||'')+'<br>'+(basic.households||'')+' '+(basic.population||'')+' · 老龄化'+(basic.elderly||'-')+'<br>';
+    if (culture && culture.history) html += '🏛 '+culture.history.slice(0,60)+'…';
     document.getElementById('agent01Empty').style.display = 'none';
     document.getElementById('agent01Content').style.display = 'block';
     document.getElementById('agent01Content').innerHTML = html;
   } catch(e) {}
 }
+
+function loadAgent02() {
+  try {
+    const a02 = JSON.parse(localStorage.getItem('nm_agent02')||'null');
+    if (!a02) return;
+
+    // Show agent02 diagnosis summary in left panel
+    const existing = document.getElementById('agent02Summary');
+    if (existing) existing.remove();
+
+    const div = document.createElement('div');
+    div.id = 'agent02Summary';
+    div.style.cssText = 'background:var(--rl);border:1px solid rgba(220,38,38,0.15);border-radius:10px;padding:12px;margin-top:10px;font-size:12px;';
+    div.innerHTML = '<div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:6px;display:flex;align-items:center;gap:5px;">'
+      + '⚠️ 已从智能体02读取诊断结果</div>'
+      + '<div style="color:var(--text);line-height:1.8;">'
+      + '共发现 <b>'+a02.total+'</b> 处问题 · '
+      + '高严重度 <b style="color:var(--red);">'+(a02.severity['高']||0)+'</b> 处'
+      + '</div>'
+      + (a02.categories||[]).map(function(cat) {
+          return '<div style="color:var(--muted);font-size:11px;">'+cat.icon+' '+cat.name+' '+cat.count+'处</div>';
+        }).join('')
+      + '</div>';
+
+    // Append after agent01 box
+    const agent01box = document.getElementById('agent01Box');
+    if (agent01box && agent01box.parentNode) {
+      agent01box.parentNode.insertBefore(div, agent01box.nextSibling);
+    }
+  } catch(e) {}
+}
 loadAgent01();
+loadAgent02();
 
 // ══════════════════════════════
 // GENERATE
@@ -721,12 +754,39 @@ function restorePanels() {
     + '<div id="panel-micro" style="display:none;"></div>';
 }
 
+
+function saveToAgent04() {
+  try {
+    var data = {
+      projectName: (fwData && fwData.input) ? fwData.input.name : '',
+      macro: fwData ? {
+        positioning: fwData.macro ? fwData.macro.positioning : '',
+        vision:      fwData.macro ? fwData.macro.vision : '',
+        principles:  fwData.macro ? fwData.macro.principles : [],
+      } : {},
+      microTasks: microTasks.map(function(t) {
+        return { id:t.id, cat:t.cat, name:t.name, theme:t.theme, func:t.func, notes:t.notes, lat:t.lat, lng:t.lng, address:t.address };
+      }),
+      mesoSystems: mesoActiveSystems.map(function(s) {
+        return { key:s.key, name:s.name, current:s.current, strategy:s.strategy };
+      }),
+      savedAt: new Date().toISOString(),
+    };
+    localStorage.setItem('nm_agent03', JSON.stringify(data));
+    notify('✅ 数据已保存，可在智能体04读取');
+  } catch(e) {
+    console.error('saveToAgent04 error:', e);
+  }
+}
+
 function finishGenerate() {
   document.getElementById('tabBar').style.display = 'flex';
   document.getElementById('pdfBtn2').style.display = 'flex';
+  var sb=document.getElementById('saveBtn'); if(sb) sb.style.display='flex';
   document.getElementById('fwStatus').innerHTML = '<span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;"></span> 已生成 · 可编辑迭代';
   document.getElementById('emptyState').style.display = 'none';
   switchTab(currentTab);
+  saveToAgent04();
 }
 
 async function generate() {
@@ -816,13 +876,18 @@ function collectInput() {
 }
 
 function macroPrompt(inp) {
-  return `你是城市社区微更新规划师。根据以下项目信息生成宏观战略，只返回JSON（无其他内容）：
-{"positioning":"项目定位（40字）","vision":"愿景目标（25字）",
-"necessity":["必要性1（20字）","必要性2","必要性3"],
-"significance":["意义1（20字）","意义2","意义3"],
-"principles":[{"name":"原则名","desc":"说明（15字）","color":"#hex"}]}
-项目：${inp.name}，${inp.city}，${inp.year}建成，${inp.area}㎡，${inp.households}户${inp.population}人，老龄化${inp.elderly}
-背景：${inp.bg}，文化：${inp.culture}，上位规划：${inp.planning}，政策：${inp.policy}`;
+  var a02 = null;
+  try { a02 = JSON.parse(localStorage.getItem('nm_agent02')||'null'); } catch(e){}
+  var diagSummary = a02 ? ('问题诊断：共'+a02.total+'处问题，高严重度'+(a02.severity['高']||0)+'处，主要问题：'+(a02.categories||[]).slice(0,3).map(function(c){return c.name+c.count+'处';}).join('、')) : '';
+
+  return '你是城市社区微更新规划师。根据以下项目信息生成宏观战略，只返回JSON（无其他内容）：\n'
+    + '{"positioning":"项目定位（40字）","vision":"愿景目标（25字）",'
+    + '"necessity":["必要性1（20字）","必要性2","必要性3"],'
+    + '"significance":["意义1（20字）","意义2","意义3"],'
+    + '"principles":[{"name":"原则名","desc":"说明（15字）","color":"#hex"}]}\n'
+    + '项目：'+inp.name+'，'+inp.city+'，'+inp.year+'建成，'+inp.area+'㎡，'+inp.households+'户'+inp.population+'人，老龄化'+inp.elderly+'\n'
+    + '背景：'+inp.bg+'，文化：'+inp.culture+'，上位规划：'+inp.planning+'，政策：'+inp.policy+'\n'
+    + diagSummary;
 }
 
 function mesoPrompt(inp) {

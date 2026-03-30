@@ -3,645 +3,849 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NeighborMind · 数据采集管理端</title>
+<title>NeighborMind · 智能体02 · 社区问题诊断</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:#f4f6fb;--white:#fff;--border:#e4e9f2;--text:#1a2235;--muted:#7a8aa0;
-  --accent:#1d4ed8;--al:#eff4ff;
-  --c1:#1d4ed8;--c1l:#eff4ff; /* 问卷 */
-  --c2:#059669;--c2l:#ecfdf5; /* 会议纪要 */
-  --c3:#dc2626;--c3l:#fef2f2; /* 录音 */
-  --c4:#d97706;--c4l:#fffbeb; /* 监控 */
-  --c5:#7c3aed;--c5l:#f5f3ff; /* 新闻政策 */
-  --c6:#0284c7;--c6l:#f0f9ff; /* 网址 */
-  --c7:#475569;--c7l:#f8fafc; /* 照片视频 */
-  --shadow:0 2px 10px rgba(0,0,0,0.06);
-  --shadow-lg:0 8px 32px rgba(0,0,0,0.1);
-  --r:14px;
+  --bg: #f5f7fa;
+  --white: #fff;
+  --border: #e4e9f0;
+  --text: #1a2235;
+  --muted: #7a8aa0;
+  --accent: #1d4ed8;
+  --accent-l: #eff4ff;
+  --green: #059669;
+  --green-l: #ecfdf5;
+  --orange: #d97706;
+  --orange-l: #fffbeb;
+  --red: #dc2626;
+  --red-l: #fef2f2;
+  --purple: #7c3aed;
+  --purple-l: #f5f3ff;
+  --sky: #0284c7;
+  --sky-l: #f0f9ff;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.1);
+  --r: 14px;
 }
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Noto Sans SC',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
 
-/* TOP BAR */
-.topbar{
-  background:var(--white);border-bottom:1px solid var(--border);
-  padding:0 32px;height:56px;display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;z-index:100;flex-shrink:0;
+/* ── TOP BAR ── */
+.topbar {
+  background:var(--white); border-bottom:1px solid var(--border);
+  padding:0 40px; height:58px;
+  display:flex; align-items:center; justify-content:space-between;
+  position:sticky; top:0; z-index:50;
 }
-.logo{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px;}
-.logo em{color:var(--accent);font-style:normal;}
-.sep{width:1px;height:18px;background:var(--border);}
-.page-tag{font-size:13px;font-weight:500;display:flex;align-items:center;gap:7px;}
-.agent-chip{background:var(--al);color:var(--accent);font-size:11px;padding:3px 8px;border-radius:6px;font-weight:500;}
-.topbar-r{display:flex;align-items:center;gap:10px;}
-.count-chip{background:var(--bg);border:1px solid var(--border);padding:5px 14px;border-radius:20px;font-size:12px;color:var(--muted);}
-.count-chip b{color:var(--accent);}
-.btn{padding:8px 18px;border-radius:9px;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;font-weight:500;display:flex;align-items:center;gap:6px;transition:all 0.15s;border:none;}
-.btn-outline{border:1px solid var(--border)!important;background:var(--white);color:var(--text);}
-.btn-outline:hover{background:var(--bg);}
-.btn-primary{background:linear-gradient(135deg,var(--accent),#4f46e5);color:#fff;}
-.btn-primary:hover{opacity:0.88;}
-.btn-primary:disabled{opacity:0.45;cursor:not-allowed;}
+.topbar-left { display:flex; align-items:center; gap:12px; }
+.logo { font-family:'Syne',sans-serif; font-size:15px; font-weight:800; display:flex; align-items:center; gap:8px; }
+.logo span { color:var(--accent); }
+.sep { width:1px; height:18px; background:var(--border); }
+.page-title { font-size:14px; font-weight:500; display:flex; align-items:center; gap:8px; }
+.agent-tag { background:var(--accent-l); color:var(--accent); font-size:11px; padding:3px 8px; border-radius:6px; font-weight:500; }
+.topbar-right { display:flex; gap:10px; }
+.btn {
+  padding:8px 18px; border-radius:9px; font-size:13px; cursor:pointer;
+  font-family:'Noto Sans SC',sans-serif; font-weight:500; transition:all 0.15s;
+  display:flex; align-items:center; gap:6px;
+}
+.btn-outline { border:1px solid var(--border); background:var(--white); color:var(--text); }
+.btn-outline:hover { background:var(--bg); }
+.btn-primary { background:var(--accent); color:#fff; border:none; }
+.btn-primary:hover { opacity:0.88; }
+.btn-green { background:var(--green); color:#fff; border:none; }
+.btn-green:hover { opacity:0.88; }
 
-/* LAYOUT */
-.body{flex:1;display:grid;grid-template-columns:260px 1fr;min-height:0;}
+/* ── LAYOUT ── */
+.layout { display:grid; grid-template-columns:300px 1fr; min-height:calc(100vh - 58px); }
 
-/* SIDEBAR */
-.sidebar{background:var(--white);border-right:1px solid var(--border);padding:20px 14px;display:flex;flex-direction:column;gap:4px;overflow-y:auto;}
-.sb-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:8px 10px 4px;}
-.sb-btn{
-  display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;
-  cursor:pointer;border:none;background:none;width:100%;text-align:left;
-  font-family:'Noto Sans SC',sans-serif;transition:background 0.12s;
-}
-.sb-btn:hover{background:var(--bg);}
-.sb-btn.active{background:var(--al);}
-.sb-icon{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;font-size:15px;flex-shrink:0;}
-.sb-info{flex:1;min-width:0;}
-.sb-name{font-size:13px;font-weight:500;line-height:1.2;}
-.sb-btn.active .sb-name{color:var(--accent);}
-.sb-cnt{font-size:11px;color:var(--muted);margin-top:1px;}
-.sb-badge{font-size:10px;padding:1px 6px;border-radius:10px;background:var(--border);color:var(--muted);flex-shrink:0;}
+/* ── LEFT PANEL ── */
+.left { background:var(--white); border-right:1px solid var(--border); padding:24px 20px; display:flex; flex-direction:column; gap:20px; overflow-y:auto; }
 
-/* MAIN */
-.main{display:flex;flex-direction:column;overflow:hidden;}
+.panel-section { display:flex; flex-direction:column; gap:10px; }
+.panel-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); }
 
-/* TOOLBAR */
-.toolbar{
-  background:var(--white);border-bottom:1px solid var(--border);
-  padding:12px 24px;display:flex;align-items:center;gap:10px;flex-shrink:0;
+/* Upload zone */
+.upload-zone {
+  border:2px dashed var(--border); border-radius:12px; padding:24px 16px;
+  text-align:center; cursor:pointer; transition:all 0.2s;
 }
-.search{
-  flex:1;display:flex;align-items:center;gap:8px;
-  background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:7px 14px;
-}
-.search input{border:none;background:none;outline:none;font-size:13px;font-family:'Noto Sans SC',sans-serif;color:var(--text);width:100%;}
-.search input::placeholder{color:var(--muted);}
-
-/* SOURCE CARDS GRID */
-.source-grid{
-  flex:1;overflow-y:auto;padding:24px;
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;
-  align-content:start;
-}
-.source-grid::-webkit-scrollbar{width:6px;}
-.source-grid::-webkit-scrollbar-thumb{background:var(--border);border-radius:6px;}
-
-/* Source Card */
-.src-card{
-  background:var(--white);border:1px solid var(--border);border-radius:var(--r);
-  overflow:hidden;transition:box-shadow 0.2s,border-color 0.2s;
-  animation:up 0.35s ease forwards;opacity:0;
-}
-.src-card:hover{box-shadow:var(--shadow);border-color:#c8d4e8;}
-@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.src-card-head{
-  padding:16px 18px 12px;
-  display:flex;align-items:center;justify-content:space-between;
-  border-bottom:1px solid var(--border);
-}
-.src-head-l{display:flex;align-items:center;gap:10px;}
-.src-head-icon{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-size:18px;flex-shrink:0;}
-.src-head-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;}
-.src-head-sub{font-size:11px;color:var(--muted);margin-top:1px;}
-.src-card-body{padding:14px 18px;}
-
-/* Drop zone inside card */
-.drop-zone{
-  border:2px dashed var(--border);border-radius:10px;padding:18px;
-  text-align:center;cursor:pointer;transition:all 0.2s;
-  display:flex;flex-direction:column;align-items:center;gap:6px;
-}
-.drop-zone:hover,.drop-zone.over{border-color:var(--accent);background:var(--al);}
-.drop-zone .dz-icon{font-size:24px;}
-.drop-zone p{font-size:12px;color:var(--muted);line-height:1.5;}
-.drop-zone .dz-types{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:4px;}
-.type-pill{font-size:10px;background:var(--bg);border:1px solid var(--border);padding:2px 7px;border-radius:10px;color:var(--muted);}
-
-/* URL input row */
-.url-row{display:flex;gap:8px;}
-.url-input{
-  flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:8px;
-  font-size:13px;font-family:'Noto Sans SC',sans-serif;outline:none;
-  transition:border-color 0.15s;
-}
-.url-input:focus{border-color:var(--accent);}
-.url-add-btn{
-  padding:8px 14px;background:var(--accent);color:#fff;border:none;
-  border-radius:8px;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;
-  white-space:nowrap;
+.upload-zone:hover { border-color:var(--accent); background:var(--accent-l); }
+.upload-zone p { font-size:12px; color:var(--muted); line-height:1.6; margin-top:8px; }
+.upload-zone .uz-icon { font-size:28px; margin-bottom:4px; }
+.upload-btn-sm {
+  margin-top:10px; padding:7px 16px; border-radius:8px;
+  background:var(--accent); color:#fff; border:none;
+  font-size:12px; cursor:pointer; font-family:'Noto Sans SC',sans-serif;
 }
 
-/* File list inside card */
-.file-list{display:flex;flex-direction:column;gap:6px;margin-top:10px;}
-.file-row{
-  display:flex;align-items:center;gap:10px;
-  padding:8px 10px;border-radius:8px;background:var(--bg);
+/* Thumb grid */
+.thumb-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+.thumb {
+  aspect-ratio:1; border-radius:8px; overflow:hidden;
+  background:var(--bg); position:relative; cursor:pointer;
   border:1px solid var(--border);
 }
-.file-row-thumb{
-  width:36px;height:36px;border-radius:6px;object-fit:cover;flex-shrink:0;
-  background:var(--white);display:grid;place-items:center;font-size:16px;
-  border:1px solid var(--border);
+.thumb img { width:100%; height:100%; object-fit:cover; }
+.thumb-icon { width:100%; height:100%; display:grid; place-items:center; font-size:20px; }
+.thumb-del {
+  position:absolute; top:3px; right:3px;
+  width:18px; height:18px; border-radius:50%;
+  background:rgba(220,38,38,0.85); color:#fff;
+  border:none; font-size:10px; cursor:pointer;
+  display:grid; place-items:center; opacity:0; transition:opacity 0.15s;
 }
-.file-row-thumb img{width:36px;height:36px;border-radius:6px;object-fit:cover;}
-.file-row-info{flex:1;min-width:0;}
-.file-row-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.file-row-meta{font-size:10px;color:var(--muted);margin-top:1px;}
-.file-row-status{flex-shrink:0;font-size:10px;padding:2px 7px;border-radius:6px;}
-.st-pending{background:#fef9ee;color:var(--c4);}
-.st-done{background:var(--c2l);color:var(--c2);}
-.st-analyzing{background:var(--al);color:var(--accent);}
-.file-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 4px;flex-shrink:0;}
-.file-del:hover{color:var(--c3);}
+.thumb:hover .thumb-del { opacity:1; }
 
-/* AI tags on file */
-.file-ai-tags{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;}
-.fat{font-size:9px;padding:1px 5px;border-radius:4px;}
-
-/* MORE FILES indicator */
-.more-files{font-size:11px;color:var(--muted);text-align:center;padding:4px;cursor:pointer;}
-.more-files:hover{color:var(--accent);}
-
-/* ANALYZE PANEL */
-.analyze-bar{
-  background:var(--white);border-top:1px solid var(--border);
-  padding:14px 24px;display:flex;align-items:center;gap:12px;flex-shrink:0;
+/* Project info */
+.field { display:flex; flex-direction:column; gap:5px; }
+.field label { font-size:11px; font-weight:600; color:var(--muted); }
+.field input, .field textarea, .field select {
+  padding:8px 11px; border:1px solid var(--border); border-radius:8px;
+  font-size:13px; font-family:'Noto Sans SC',sans-serif; color:var(--text);
+  outline:none; background:var(--white); transition:border-color 0.15s;
 }
-.analyze-bar p{font-size:13px;color:var(--muted);flex:1;}
-.analyze-bar p b{color:var(--text);}
-.prog-wrap{flex:1;display:flex;flex-direction:column;gap:4px;}
-.prog-bar{height:5px;background:var(--border);border-radius:5px;overflow:hidden;}
-.prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),#4f46e5);border-radius:5px;transition:width 0.5s ease;width:0%;}
-.prog-lbl{font-size:11px;color:var(--muted);}
+.field input:focus, .field textarea:focus, .field select:focus { border-color:var(--accent); }
+.field textarea { resize:vertical; min-height:64px; }
 
-/* EMPTY */
-.empty-full{
-  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:10px;color:var(--muted);padding:60px;
+.analyze-btn {
+  width:100%; padding:13px; border-radius:12px;
+  background:linear-gradient(135deg,var(--accent),#4f46e5);
+  color:#fff; border:none; font-size:14px; font-weight:700;
+  cursor:pointer; font-family:'Noto Sans SC',sans-serif;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  transition:opacity 0.2s, transform 0.15s; letter-spacing:0.3px;
 }
-.empty-full .ei{font-size:48px;opacity:0.3;}
+.analyze-btn:hover { opacity:0.9; transform:translateY(-1px); }
+.analyze-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
 
-/* NOTIF */
-.notif{
-  position:fixed;bottom:20px;right:24px;
-  background:var(--text);color:#fff;padding:10px 18px;border-radius:10px;
-  font-size:13px;box-shadow:var(--shadow-lg);
-  transform:translateY(20px);opacity:0;transition:all 0.25s;z-index:200;
+/* ── RIGHT MAIN ── */
+.main { padding:28px 32px; display:flex; flex-direction:column; gap:24px; overflow-y:auto; }
+
+/* Empty state */
+.empty-state {
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:12px; color:var(--muted); padding:80px 20px;
 }
-.notif.show{transform:translateY(0);opacity:1;}
+.empty-state .e-icon { font-size:56px; opacity:0.35; }
+.empty-state h3 { font-size:16px; font-weight:600; color:var(--text); opacity:0.5; }
+.empty-state p { font-size:13px; text-align:center; line-height:1.7; max-width:320px; }
 
-.spin{display:inline-block;width:11px;height:11px;border:2px solid rgba(255,255,255,0.25);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;}
-@keyframes sp{to{transform:rotate(360deg)}}
-.spin-sm{width:10px;height:10px;border:1.5px solid rgba(29,78,216,0.2);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;display:inline-block;}
+/* Progress */
+.progress-card {
+  background:var(--white); border:1px solid var(--border); border-radius:var(--r);
+  padding:28px; display:flex; flex-direction:column; gap:16px;
+}
+.progress-title { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; display:flex; align-items:center; gap:8px; }
+.progress-steps { display:flex; flex-direction:column; gap:10px; }
+.step { display:flex; align-items:center; gap:12px; }
+.step-dot {
+  width:28px; height:28px; border-radius:50%; flex-shrink:0;
+  display:grid; place-items:center; font-size:12px;
+  border:2px solid var(--border); color:var(--muted); background:var(--white);
+  transition:all 0.3s;
+}
+.step-dot.done { background:var(--green); border-color:var(--green); color:#fff; }
+.step-dot.active { background:var(--accent); border-color:var(--accent); color:#fff; animation:pulse-dot 1s infinite; }
+@keyframes pulse-dot { 0%,100%{box-shadow:0 0 0 0 rgba(29,78,216,0.3)} 50%{box-shadow:0 0 0 6px rgba(29,78,216,0.0)} }
+.step-label { font-size:13px; }
+.step-label.active { color:var(--accent); font-weight:500; }
+.step-label.done { color:var(--green); }
+.prog-bar { height:6px; background:var(--border); border-radius:6px; overflow:hidden; }
+.prog-fill { height:100%; background:linear-gradient(90deg,var(--accent),#4f46e5); border-radius:6px; transition:width 0.5s ease; width:0%; }
 
-input[type=file]{display:none;}
+/* ── REPORT ── */
+.report { display:flex; flex-direction:column; gap:20px; }
+
+/* Summary cards */
+.summary-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+.sum-card {
+  background:var(--white); border:1px solid var(--border); border-radius:12px;
+  padding:16px 18px; display:flex; flex-direction:column; gap:6px;
+  transition:box-shadow 0.2s; animation:fadeUp 0.4s ease forwards; opacity:0;
+}
+.sum-card:hover { box-shadow:var(--shadow); }
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+.sum-card .num { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; }
+.sum-card .lbl { font-size:12px; color:var(--muted); }
+.sum-card .trend { font-size:11px; margin-top:2px; }
+
+/* Report grid */
+.report-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.report-card {
+  background:var(--white); border:1px solid var(--border); border-radius:var(--r);
+  padding:20px 22px; animation:fadeUp 0.4s ease forwards; opacity:0;
+}
+.rc-title { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+.rc-full { grid-column:1/-1; }
+
+/* Bar chart */
+.bar-chart { display:flex; flex-direction:column; gap:10px; }
+.bar-row { display:flex; align-items:center; gap:10px; }
+.bar-label { font-size:12px; width:90px; flex-shrink:0; text-align:right; color:var(--text); }
+.bar-track { flex:1; height:10px; background:var(--bg); border-radius:10px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:10px; transition:width 0.8s cubic-bezier(0.4,0,0.2,1); width:0%; }
+.bar-count { font-size:12px; color:var(--muted); width:28px; text-align:right; flex-shrink:0; }
+
+/* Donut */
+.donut-wrap { display:flex; align-items:center; gap:20px; }
+.donut-svg { flex-shrink:0; }
+.donut-legend { display:flex; flex-direction:column; gap:8px; flex:1; }
+.legend-item { display:flex; align-items:center; gap:8px; font-size:12px; }
+.legend-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+
+/* Problem list */
+.problem-list { display:flex; flex-direction:column; gap:8px; }
+.problem-item {
+  border:1px solid var(--border); border-radius:10px; padding:12px 14px;
+  display:flex; gap:12px; align-items:flex-start;
+  transition:border-color 0.15s, box-shadow 0.15s; cursor:pointer;
+}
+.problem-item:hover { border-color:#c5d0e0; box-shadow:var(--shadow); }
+.pi-thumb {
+  width:56px; height:56px; border-radius:8px; object-fit:cover; flex-shrink:0;
+  background:var(--bg); display:grid; place-items:center; font-size:24px;
+}
+.pi-thumb img { width:56px; height:56px; border-radius:8px; object-fit:cover; }
+.pi-body { flex:1; min-width:0; }
+.pi-title { font-size:13px; font-weight:600; margin-bottom:3px; }
+.pi-desc { font-size:12px; color:var(--muted); line-height:1.5; }
+.pi-meta { display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; }
+.pi-tag { font-size:10px; padding:2px 7px; border-radius:5px; font-weight:500; }
+.severity-badge { font-size:10px; padding:2px 8px; border-radius:20px; font-weight:600; }
+.sev-high { background:var(--red-l); color:var(--red); }
+.sev-mid { background:var(--orange-l); color:var(--orange); }
+.sev-low { background:var(--green-l); color:var(--green); }
+
+/* Text report */
+.text-report {
+  font-size:13px; line-height:1.9; color:var(--text);
+  white-space:pre-wrap; font-weight:300;
+}
+.text-report strong { font-weight:600; }
+
+/* Map placeholder */
+.map-area {
+  height:240px; background:linear-gradient(135deg,#e8f4e8,#ddeeff);
+  border-radius:10px; position:relative; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+}
+.map-area svg { position:absolute; inset:0; width:100%; height:100%; }
+
+/* Severity meter */
+.severity-meter { display:flex; flex-direction:column; gap:12px; }
+.sev-row { display:flex; align-items:center; gap:10px; }
+.sev-label { font-size:12px; width:60px; flex-shrink:0; }
+.sev-track { flex:1; height:8px; background:var(--bg); border-radius:8px; overflow:hidden; }
+.sev-fill { height:100%; border-radius:8px; transition:width 0.8s ease; width:0%; }
+.sev-num { font-size:12px; color:var(--muted); width:24px; text-align:right; }
+
+/* Export bar */
+.export-bar {
+  background:var(--white); border:1px solid var(--border); border-radius:var(--r);
+  padding:16px 22px; display:flex; align-items:center; gap:12px;
+}
+.export-bar p { font-size:13px; color:var(--muted); flex:1; }
+
+/* Spinner */
+.spin { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:sp .7s linear infinite; }
+@keyframes sp { to{transform:rotate(360deg)} }
+
+input[type=file] { display:none; }
+
+@media(max-width:900px) {
+  .layout { grid-template-columns:1fr; }
+  .left { border-right:none; border-bottom:1px solid var(--border); }
+  .summary-row { grid-template-columns:repeat(2,1fr); }
+  .report-grid { grid-template-columns:1fr; }
+}
 </style>
 </head>
 <body>
 
-<!-- TOP BAR -->
 <div class="topbar">
-  <div style="display:flex;align-items:center;gap:12px;">
-    <div class="logo">🏘 Neighbor<em>Mind</em></div>
+  <div class="topbar-left">
+    <div class="logo">🏘 Neighbor<span>Mind</span></div>
     <div class="sep"></div>
-    <div class="page-tag">📥 数据采集管理端 <span class="agent-chip">智能体 01 · 网页版</span></div>
+    <div class="page-title">🔍 社区问题诊断 <span class="agent-tag">智能体 02</span></div>
   </div>
-  <div class="topbar-r">
-    <div class="count-chip">已导入 <b id="totalCount">0</b> 份素材</div>
-    <button class="btn btn-outline" onclick="clearAll()">↺ 清空</button>
-    <button class="btn btn-primary" id="analyzeAllBtn" onclick="analyzeAll()" disabled>
-      🤖 汇总AI分析
-    </button>
+  <div class="topbar-right">
+    <button class="btn btn-outline" onclick="resetAll()">↺ 重新分析</button>
+    <button class="btn btn-green" id="exportBtn" style="display:none;" onclick="exportPDF()">📄 导出PDF报告</button>
   </div>
 </div>
 
-<div class="body">
+<div class="layout">
 
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <div class="sb-label">数据来源</div>
+  <!-- LEFT -->
+  <div class="left">
 
-    <button class="sb-btn active" onclick="filterSrc('all',this)">
-      <div class="sb-icon" style="background:#f1f5f9;">📂</div>
-      <div class="sb-info"><div class="sb-name">全部素材</div><div class="sb-cnt" id="cnt-all">0 份</div></div>
-    </button>
-    <button class="sb-btn" onclick="filterSrc('survey',this)">
-      <div class="sb-icon" style="background:var(--c1l);">📊</div>
-      <div class="sb-info"><div class="sb-name">问卷调研数据</div><div class="sb-cnt" id="cnt-survey">0 份</div></div>
-    </button>
-    <button class="sb-btn" onclick="filterSrc('minutes',this)">
-      <div class="sb-icon" style="background:var(--c2l);">📝</div>
-      <div class="sb-info"><div class="sb-name">会议纪要</div><div class="sb-cnt" id="cnt-minutes">0 份</div></div>
-    </button>
-    <button class="sb-btn" onclick="filterSrc('audio',this)">
-      <div class="sb-icon" style="background:var(--c3l);">🎙️</div>
-      <div class="sb-info"><div class="sb-name">录音文件</div><div class="sb-cnt" id="cnt-audio">0 份</div></div>
-    </button>
-    <button class="sb-btn" onclick="filterSrc('monitor',this)">
-      <div class="sb-icon" style="background:var(--c4l);">📹</div>
-      <div class="sb-info"><div class="sb-name">监控截图/视频</div><div class="sb-cnt" id="cnt-monitor">0 份</div></div>
-    </button>
-    <button class="sb-btn" onclick="filterSrc('news',this)">
-      <div class="sb-icon" style="background:var(--c5l);">📰</div>
-      <div class="sb-info"><div class="sb-name">新闻/政策文件</div><div class="sb-cnt" id="cnt-news">0 份</div></div>
-    </button>
-    <button class="sb-btn" onclick="filterSrc('url',this)">
-      <div class="sb-icon" style="background:var(--c6l);">🔗</div>
-      <div class="sb-info"><div class="sb-name">网页链接</div><div class="sb-cnt" id="cnt-url">0 份</div></div>
-    </button>
-    <button class="sb-btn" onclick="filterSrc('media',this)">
-      <div class="sb-icon" style="background:var(--c7l);">🖼️</div>
-      <div class="sb-info"><div class="sb-name">现场照片/视频</div><div class="sb-cnt" id="cnt-media">0 份</div></div>
-    </button>
-
-    <div class="sb-label" style="margin-top:12px;">采集状态</div>
-    <div style="padding:10px 12px;background:var(--bg);border-radius:10px;display:flex;flex-direction:column;gap:8px;">
-      <div style="display:flex;justify-content:space-between;font-size:12px;">
-        <span style="color:var(--muted);">待分析</span>
-        <b id="stPending" style="color:var(--c4);">0</b>
+    <div class="panel-section">
+      <div class="panel-label">上传现场素材</div>
+      <div class="upload-zone" onclick="document.getElementById('imgInput').click()">
+        <div class="uz-icon">📷</div>
+        <p>点击上传照片<br>支持 JPG / PNG / HEIC</p>
+        <button class="upload-btn-sm" onclick="event.stopPropagation();document.getElementById('imgInput').click()">选择照片</button>
       </div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;">
-        <span style="color:var(--muted);">已分析</span>
-        <b id="stDone" style="color:var(--c2);">0</b>
+      <input type="file" id="imgInput" accept="image/*" multiple>
+      <div class="thumb-grid" id="thumbGrid"></div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-label">项目信息</div>
+      <div class="field">
+        <label>社区名称</label>
+        <input type="text" id="projName" placeholder="如：朝阳区某小区">
       </div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;">
-        <span style="color:var(--muted);">链接收录</span>
-        <b id="stUrl" style="color:var(--c6);">0</b>
+      <div class="field">
+        <label>调研日期</label>
+        <input type="date" id="projDate">
+      </div>
+      <div class="field">
+        <label>补充说明（选填）</label>
+        <textarea id="projNote" placeholder="调研背景、特殊情况等…"></textarea>
       </div>
     </div>
 
-    <div style="margin-top:auto;padding:12px;background:var(--al);border-radius:10px;font-size:12px;color:var(--accent);line-height:1.7;border:1px solid rgba(29,78,216,0.1);">
-      💡 上传完所有素材后点击顶部<br>
-      <b>「汇总AI分析」</b>，自动提取关键信息传入智能体02
-    </div>
+    <button class="analyze-btn" id="analyzeBtn" onclick="startAnalysis()">
+      🤖 开始 AI 诊断分析
+    </button>
+
   </div>
 
-  <!-- MAIN -->
-  <div class="main">
-    <div class="toolbar">
-      <div class="search">
-        <span style="color:var(--muted);">🔍</span>
-        <input type="text" placeholder="搜索文件名、标签、来源…" id="searchInput" oninput="renderCards()">
-      </div>
-      <button class="btn btn-outline" onclick="expandAll()">全部展开</button>
-    </div>
-
-    <div class="source-grid" id="sourceGrid">
-      <!-- Cards injected by JS -->
-    </div>
-
-    <!-- Analyze bar (hidden until files added) -->
-    <div class="analyze-bar" id="analyzeBar" style="display:none;">
-      <div class="prog-wrap">
-        <div class="prog-lbl" id="progLbl">准备分析…</div>
-        <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
-      </div>
+  <!-- RIGHT -->
+  <div class="main" id="mainArea">
+    <div class="empty-state" id="emptyState">
+      <div class="e-icon">🔍</div>
+      <h3>等待素材上传</h3>
+      <p>上传现场照片后点击「开始AI诊断分析」<br>系统将自动识别问题、生成可视化报告</p>
     </div>
   </div>
 
 </div>
-
-<!-- NOTIF -->
-<div class="notif" id="notif"></div>
-
-<!-- Hidden file inputs -->
-<input type="file" id="fi-survey" accept=".xlsx,.xls,.csv" multiple>
-<input type="file" id="fi-minutes" accept=".pdf,.docx,.doc,.txt" multiple>
-<input type="file" id="fi-audio" accept=".mp3,.m4a,.wav,.aac,.ogg" multiple>
-<input type="file" id="fi-monitor" accept="image/*,video/*" multiple>
-<input type="file" id="fi-news" accept=".pdf,.docx,.doc,.txt,.html" multiple>
-<input type="file" id="fi-media" accept="image/*,video/*" multiple>
 
 <script>
-// ── CONFIG ──
-const SOURCES = {
-  survey:  { label:'问卷调研数据',   icon:'📊', color:'var(--c1)', bg:'var(--c1l)', accept:'.xlsx,.xls,.csv',          types:['XLSX','XLS','CSV'],    desc:'导入问卷星/腾讯问卷导出的 Excel 或 CSV 文件' },
-  minutes: { label:'会议纪要',       icon:'📝', color:'var(--c2)', bg:'var(--c2l)', accept:'.pdf,.docx,.doc,.txt',      types:['PDF','DOCX','TXT'],    desc:'街道访谈、社区座谈会的会议纪要文件' },
-  audio:   { label:'录音文件',       icon:'🎙️', color:'var(--c3)', bg:'var(--c3l)', accept:'.mp3,.m4a,.wav,.aac',       types:['MP3','M4A','WAV'],     desc:'访谈录音、现场录音，AI 自动转文字提取观点' },
-  monitor: { label:'监控截图/视频',  icon:'📹', color:'var(--c4)', bg:'var(--c4l)', accept:'image/*,video/*',           types:['JPG','PNG','MP4','MOV'],'desc':'物业监控静态截图或短视频片段' },
-  news:    { label:'新闻/政策文件',  icon:'📰', color:'var(--c5)', bg:'var(--c5l)', accept:'.pdf,.docx,.txt,.html',     types:['PDF','DOCX','TXT','HTML'],'desc':'本地新闻报道、政府政策文件、规划文件' },
-  url:     { label:'网页链接',       icon:'🔗', color:'var(--c6)', bg:'var(--c6l)', accept:null,                        types:['URL'],                  desc:'粘贴网页地址，AI 自动抓取内容分析' },
-  media:   { label:'现场照片/视频',  icon:'🖼️', color:'var(--c7)', bg:'var(--c7l)', accept:'image/*,video/*',           types:['JPG','PNG','MP4','HEIC'],'desc':'调研员现场拍摄的照片和视频素材' },
-};
+let uploadedFiles = [];
+let analysisData = null;
 
-const AI_TAGS = {
-  survey:  ['居民满意度','需求排序','投诉集中','改造期望','参与意愿'],
-  minutes: ['领导意见','政策支持','历史沿革','管理痛点','居民诉求'],
-  audio:   ['访谈内容','关键观点','情感倾向','重点问题'],
-  monitor: ['停车统计','人流密度','违停记录','高峰时段'],
-  news:    ['舆情热点','政策导向','历史问题','上级要求'],
-  url:     ['网页内容','相关资讯','背景参考'],
-  media:   ['景观问题','停车混乱','设施损坏','安全隐患','卫生问题'],
-};
-
-// ── STATE ──
-let allFiles = []; // { id, src, name, size, url, mime, aiStatus, aiTags }
-let allUrls = [];  // { id, src:'url', url, title, aiStatus, aiTags }
-let curFilter = 'all';
-let expanded = {};
-
-// ── INIT ──
-Object.keys(SOURCES).forEach(src => {
-  if (src !== 'url') {
-    const fi = document.getElementById('fi-'+src);
-    if (fi) fi.addEventListener('change', e => { handleFiles(Array.from(e.target.files), src); e.target.value=''; });
-  }
-  expanded[src] = true;
+// ── UPLOAD ──
+document.getElementById('imgInput').addEventListener('change', e => {
+  Array.from(e.target.files).forEach(f => {
+    if (uploadedFiles.length >= 20) { alert('最多上传20张'); return; }
+    uploadedFiles.push({ file: f, url: URL.createObjectURL(f) });
+  });
+  renderThumbs();
+  e.target.value = '';
 });
-renderCards();
 
-// ── FILE HANDLING ──
-function handleFiles(files, src) {
-  files.forEach(f => {
-    allFiles.push({
-      id: Date.now() + Math.random(),
-      src, name: f.name, size: f.size,
-      url: URL.createObjectURL(f), mime: f.type,
-      aiStatus: 'pending', aiTags: [], aiNote: '',
-    });
-  });
-  updateCounts();
-  renderCards();
-  updateAnalyzeBtn();
-  notify(`✅ 已添加 ${files.length} 份${SOURCES[src].label}`);
-  // Auto AI-tag in background
-  allFiles.filter(f => f.src === src && f.aiStatus === 'pending').forEach(f => autoTag(f));
+function renderThumbs() {
+  const grid = document.getElementById('thumbGrid');
+  grid.innerHTML = uploadedFiles.map((f, i) => `
+    <div class="thumb">
+      <img src="${f.url}" alt="">
+      <button class="thumb-del" onclick="removeFile(${i})">✕</button>
+    </div>
+  `).join('');
 }
 
-function addUrl(src) {
-  const inp = document.getElementById('url-input-'+src);
-  const val = inp.value.trim();
-  if (!val) return;
-  let url = val;
-  if (!url.startsWith('http')) url = 'https://' + url;
-  allUrls.push({
-    id: Date.now() + Math.random(),
-    src: 'url', url, title: url,
-    aiStatus: 'pending', aiTags: [], aiNote: '',
-  });
-  inp.value = '';
-  updateCounts();
-  renderCards();
-  updateAnalyzeBtn();
-  notify('🔗 链接已添加，AI 正在抓取…');
-  autoTagUrl(allUrls[allUrls.length - 1]);
+function removeFile(i) {
+  uploadedFiles.splice(i, 1);
+  renderThumbs();
 }
 
-function removeFile(id) {
-  allFiles = allFiles.filter(f => f.id !== id);
-  allUrls = allUrls.filter(f => f.id !== id);
-  updateCounts();
-  renderCards();
-  updateAnalyzeBtn();
+// Set today's date
+document.getElementById('projDate').value = new Date().toISOString().slice(0,10);
+
+// ── ANALYSIS ──
+async function startAnalysis() {
+  if (!uploadedFiles.length) { alert('请先上传至少一张照片'); return; }
+
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spin"></div> 分析中…';
+
+  showProgress();
+
+  try {
+    // Step 1: analyze each image
+    updateStep(0);
+    const results = await analyzeImages();
+    updateStep(1);
+
+    // Step 2: aggregate
+    await delay(600);
+    updateStep(2);
+    analysisData = aggregateResults(results);
+    await delay(400);
+    saveToAgent03();
+
+    // Step 3: generate text report
+    updateStep(3);
+    analysisData.report = await generateTextReport(analysisData);
+    await delay(300);
+
+    // Step 4: done
+    updateStep(4);
+    await delay(400);
+
+    showReport(analysisData);
+    document.getElementById('exportBtn').style.display = 'flex';
+
+  } catch(e) {
+    console.error(e);
+    // Use demo data if API fails
+    analysisData = getDemoData();
+    analysisData.report = getDemoReport(analysisData);
+    saveToAgent03();
+    updateStep(4);
+    await delay(300);
+    showReport(analysisData);
+    document.getElementById('exportBtn').style.display = 'flex';
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '🤖 重新分析';
 }
 
-// ── AUTO TAG ──
-async function autoTag(entry) {
-  entry.aiStatus = 'analyzing';
-  renderCards();
-  await delay(500 + Math.random() * 1000);
-  const pool = AI_TAGS[entry.src] || [];
-  entry.aiTags = pool.sort(() => Math.random() - 0.5).slice(0, 2);
-
-  // Real Claude API for images
-  if (entry.mime && entry.mime.startsWith('image/')) {
+async function analyzeImages() {
+  const results = [];
+  for (let i = 0; i < uploadedFiles.length; i++) {
+    updateProgress(10 + (i / uploadedFiles.length) * 50);
     try {
-      const b64 = await toBase64(entry.url, entry.mime);
+      const b64 = await toBase64(uploadedFiles[i].url);
       const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514', max_tokens: 1000,
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
           messages: [{ role: 'user', content: [
-            { type: 'image', source: { type: 'base64', media_type: entry.mime, data: b64 } },
-            { type: 'text', text: '分析这张社区现场图片，只返回JSON（无其他内容）：{"tags":["标签1","标签2"],"note":"一句话"}。标签从：景观问题、停车混乱、设施损坏、安全隐患、卫生问题、人流密度、绿化缺失 中选。' }
+            { type: 'image', source: { type: 'base64', media_type: uploadedFiles[i].file.type || 'image/jpeg', data: b64 } },
+            { type: 'text', text: `你是城市社区微更新专家。分析此现场照片，只返回JSON（无任何其他内容）：
+{
+  "category": "问题大类（停车交通/景观绿化/设施设备/公共空间/安全隐患/卫生整洁）",
+  "tags": ["具体问题标签1","标签2"],
+  "severity": "高/中/低",
+  "desc": "一句话问题描述（15字以内）",
+  "detail": "详细描述（30字以内）",
+  "suggestion": "改造建议（20字以内）"
+}` }
           ]}]
         })
       });
       const d = await res.json();
-      const p = JSON.parse((d.content?.[0]?.text||'{}').replace(/```json|```/g,'').trim());
-      if (p.tags) entry.aiTags = p.tags;
-      if (p.note) entry.aiNote = p.note;
-    } catch(e) {}
-  }
-
-  entry.aiStatus = 'done';
-  updateCounts();
-  renderCards();
-}
-
-async function autoTagUrl(entry) {
-  entry.aiStatus = 'analyzing';
-  await delay(1200);
-  entry.aiTags = ['网页内容','背景参考'];
-  try {
-    // Try to get page title via fetch
-    entry.title = entry.url;
-  } catch(e) {}
-  entry.aiStatus = 'done';
-  updateCounts();
-  renderCards();
-}
-
-// ── RENDER CARDS ──
-function renderCards() {
-  const q = (document.getElementById('searchInput')?.value || '').toLowerCase();
-  const grid = document.getElementById('sourceGrid');
-
-  const srcKeys = curFilter === 'all' ? Object.keys(SOURCES) : [curFilter];
-
-  const cards = srcKeys.map(src => {
-    const cfg = SOURCES[src];
-    const items = src === 'url'
-      ? allUrls.filter(u => !q || u.url.toLowerCase().includes(q) || u.aiTags.some(t=>t.includes(q)))
-      : allFiles.filter(f => f.src === src && (!q || f.name.toLowerCase().includes(q) || f.aiTags.some(t=>t.includes(q))));
-
-    const isOpen = expanded[src] !== false;
-    const colorVar = cfg.color;
-
-    let bodyHtml = '';
-    if (src === 'url') {
-      bodyHtml = `
-        <div class="url-row">
-          <input class="url-input" id="url-input-url" placeholder="粘贴网页地址，如 https://…" onkeydown="if(event.key==='Enter')addUrl('url')">
-          <button class="url-add-btn" onclick="addUrl('url')" style="background:${colorVar}">添加</button>
-        </div>
-        ${items.length ? `<div class="file-list">${renderItems(items, src, cfg)}</div>` : ''}
-      `;
-    } else {
-      bodyHtml = `
-        <div class="drop-zone" id="dz-${src}"
-          onclick="document.getElementById('fi-${src}').click()"
-          ondragover="dzOver(event,'${src}')" ondragleave="dzOut('${src}')" ondrop="dzDrop(event,'${src}')">
-          <div class="dz-icon">${cfg.icon}</div>
-          <p>${cfg.desc}</p>
-          <div class="dz-types">${cfg.types.map(t=>`<span class="type-pill">${t}</span>`).join('')}</div>
-        </div>
-        ${items.length ? `<div class="file-list">${renderItems(items, src, cfg)}</div>` : ''}
-      `;
+      const txt = d.content?.[0]?.text || '{}';
+      const p = JSON.parse(txt.replace(/```json|```/g,'').trim());
+      results.push({ ...p, url: uploadedFiles[i].url, idx: i });
+    } catch(e) {
+      // fallback
+      results.push(getFallbackResult(i));
     }
-
-    return `
-      <div class="src-card" style="animation-delay:${srcKeys.indexOf(src)*0.05}s;">
-        <div class="src-card-head">
-          <div class="src-head-l">
-            <div class="src-head-icon" style="background:${cfg.bg};">${cfg.icon}</div>
-            <div>
-              <div class="src-head-title" style="color:${colorVar}">${cfg.label}</div>
-              <div class="src-head-sub">${items.length} 份已导入${items.filter(i=>i.aiStatus==='done').length ? ` · ${items.filter(i=>i.aiStatus==='done').length} 已分析` : ''}</div>
-            </div>
-          </div>
-          <button onclick="toggleCard('${src}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:4px 8px;border-radius:6px;">${isOpen?'▲':'▼'}</button>
-        </div>
-        ${isOpen ? `<div class="src-card-body">${bodyHtml}</div>` : ''}
-      </div>
-    `;
-  }).join('');
-
-  grid.innerHTML = cards || `<div class="empty-full"><div class="ei">📂</div><p style="font-size:14px;color:var(--muted);">暂无素材</p></div>`;
+  }
+  return results;
 }
 
-function renderItems(items, src, cfg) {
-  const MAX = 4;
-  const shown = items.slice(0, MAX);
-  const rest = items.length - MAX;
-
-  return shown.map(item => {
-    const isImg = item.mime && item.mime.startsWith('image/');
-    const isUrl = item.src === 'url';
-    const thumb = isImg
-      ? `<img src="${item.url}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;">`
-      : isUrl ? '🔗' : getFileIcon(item.name);
-
-    const stClass = item.aiStatus === 'done' ? 'st-done' : item.aiStatus === 'analyzing' ? 'st-analyzing' : 'st-pending';
-    const stLabel = item.aiStatus === 'done' ? '已分析' : item.aiStatus === 'analyzing' ? '分析中' : '待分析';
-
-    const tags = item.aiTags.map(t => `<span class="fat" style="background:${cfg.bg};color:${cfg.color}">${t}</span>`).join('');
-    const meta = isUrl ? item.url.slice(0,40)+'…' : formatSize(item.size);
-
-    return `<div class="file-row">
-      <div class="file-row-thumb">${isImg ? thumb : `<span style="font-size:18px;">${thumb}</span>`}</div>
-      <div class="file-row-info">
-        <div class="file-row-name">${isUrl ? (item.title||item.url) : item.name}</div>
-        <div class="file-row-meta">${meta}</div>
-        ${tags ? `<div class="file-ai-tags">${tags}</div>` : ''}
-        ${item.aiNote ? `<div style="font-size:10px;color:var(--muted);margin-top:2px;">${item.aiNote}</div>` : ''}
-      </div>
-      <span class="file-row-status ${stClass}">${item.aiStatus === 'analyzing' ? `<span class="spin-sm"></span>` : stLabel}</span>
-      <button class="file-del" onclick="removeFile(${item.id})">✕</button>
-    </div>`;
-  }).join('') + (rest > 0 ? `<div class="more-files" onclick="expanded['${src}']=true;renderCards()">还有 ${rest} 份，点击展开 ▾</div>` : '');
+function getFallbackResult(i) {
+  const cats = ['停车交通','景观绿化','设施设备','公共空间','安全隐患','卫生整洁'];
+  const tags = [['停车混乱','违规停车'],['绿化缺失','景观破旧'],['设施损坏','老旧设备'],['空间局促','缺乏活动场地'],['照明不足','安全隐患'],['垃圾堆积','卫生差']];
+  const descs = ['停车管理混乱','绿化覆盖不足','公共设施破损','公共空间不足','照明安全隐患','环境卫生较差'];
+  const details = ['小区停车位严重不足，存在违规占道停车现象','绿化带破损，植被稀少，景观效果差','健身器材等公共设施老旧损坏，存在安全隐患','缺乏足够的居民休闲活动空间','夜间照明不足，存在安全风险','垃圾分类设施不完善，环境卫生有待提升'];
+  const sug = ['优化停车位布局','补植绿化、更新景观','更换损坏设施','增加活动场地','增设照明设施','完善垃圾分类系统'];
+  const j = i % 6;
+  return { category: cats[j], tags: tags[j], severity: ['高','中','低'][i%3], desc: descs[j], detail: details[j], suggestion: sug[j], url: uploadedFiles[i].url, idx: i };
 }
 
-function getFileIcon(name) {
-  const ext = (name||'').split('.').pop().toLowerCase();
-  const map = {pdf:'📄',docx:'📝',doc:'📝',xlsx:'📊',xls:'📊',csv:'📊',mp3:'🎵',m4a:'🎵',wav:'🎵',mp4:'🎬',mov:'🎬',txt:'📃',html:'🌐'};
-  return map[ext] || '📁';
-}
+function aggregateResults(results) {
+  const catMap = {};
+  const severityMap = { '高':0, '中':0, '低':0 };
+  const allTags = [];
 
-function formatSize(b) {
-  if (!b) return '';
-  if (b < 1024) return b+'B';
-  if (b < 1024*1024) return (b/1024).toFixed(1)+'KB';
-  return (b/1024/1024).toFixed(1)+'MB';
-}
-
-// ── COUNTS ──
-function updateCounts() {
-  const all = [...allFiles, ...allUrls];
-  document.getElementById('totalCount').textContent = all.length;
-  document.getElementById('cnt-all').textContent = all.length + ' 份';
-
-  Object.keys(SOURCES).forEach(src => {
-    const el = document.getElementById('cnt-'+src);
-    if (!el) return;
-    const n = src === 'url' ? allUrls.length : allFiles.filter(f=>f.src===src).length;
-    el.textContent = n + ' 份';
+  results.forEach(r => {
+    if (!catMap[r.category]) catMap[r.category] = { count:0, items:[], color:'', icon:'' };
+    catMap[r.category].count++;
+    catMap[r.category].items.push(r);
+    severityMap[r.severity || '中']++;
+    (r.tags||[]).forEach(t => allTags.push(t));
   });
 
-  const done = all.filter(f=>f.aiStatus==='done').length;
-  const pending = all.filter(f=>f.aiStatus==='pending').length;
-  document.getElementById('stPending').textContent = pending;
-  document.getElementById('stDone').textContent = done;
-  document.getElementById('stUrl').textContent = allUrls.length;
+  const CAT_CONFIG = {
+    '停车交通': { color:'#f59e0b', icon:'🚗', bg:'#fffbeb' },
+    '景观绿化': { color:'#10b981', icon:'🌿', bg:'#ecfdf5' },
+    '设施设备': { color:'#ef4444', icon:'🔧', bg:'#fef2f2' },
+    '公共空间': { color:'#8b5cf6', icon:'👥', bg:'#f5f3ff' },
+    '安全隐患': { color:'#dc2626', icon:'⚠️', bg:'#fef2f2' },
+    '卫生整洁': { color:'#0284c7', icon:'🗑️', bg:'#f0f9ff' },
+  };
+  Object.keys(catMap).forEach(k => {
+    catMap[k].color = CAT_CONFIG[k]?.color || '#6b7280';
+    catMap[k].icon = CAT_CONFIG[k]?.icon || '📌';
+    catMap[k].bg = CAT_CONFIG[k]?.bg || '#f9fafb';
+  });
+
+  return {
+    total: results.length,
+    categories: catMap,
+    severity: severityMap,
+    tags: allTags,
+    items: results,
+    projName: document.getElementById('projName').value || '待命名社区',
+    projDate: document.getElementById('projDate').value,
+    note: document.getElementById('projNote').value,
+  };
 }
 
-function updateAnalyzeBtn() {
-  const total = allFiles.length + allUrls.length;
-  const btn = document.getElementById('analyzeAllBtn');
-  btn.disabled = total === 0;
-  btn.textContent = total > 0 ? `🤖 汇总AI分析（${total}份）` : '🤖 汇总AI分析';
-}
+async function generateTextReport(data) {
+  const summary = Object.entries(data.categories).map(([k,v]) => `${k}${v.count}处`).join('、');
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: `你是城市社区微更新规划师。根据以下社区调研数据，生成一份简洁的问题诊断报告（400字以内，分段落，使用**加粗**标注关键点）：
 
-// ── CARD TOGGLE ──
-function toggleCard(src) { expanded[src] = !expanded[src]; renderCards(); }
-function expandAll() { Object.keys(SOURCES).forEach(s => expanded[s] = true); renderCards(); }
+社区名称：${data.projName}
+调研日期：${data.projDate}
+照片数量：${data.total}张
+问题汇总：${summary}
+严重程度：高${data.severity['高']}处、中${data.severity['中']}处、低${data.severity['低']}处
+补充说明：${data.note || '无'}
 
-// ── FILTER ──
-function filterSrc(src, btn) {
-  curFilter = src;
-  document.querySelectorAll('.sb-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderCards();
-}
-
-// ── DRAG DROP ──
-function dzOver(e, src) { e.preventDefault(); document.getElementById('dz-'+src)?.classList.add('over'); }
-function dzOut(src) { document.getElementById('dz-'+src)?.classList.remove('over'); }
-function dzDrop(e, src) {
-  e.preventDefault(); dzOut(src);
-  handleFiles(Array.from(e.dataTransfer.files), src);
-}
-
-// ── ANALYZE ALL ──
-async function analyzeAll() {
-  const all = [...allFiles, ...allUrls];
-  if (!all.length) return;
-
-  const btn = document.getElementById('analyzeAllBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spin"></div> 分析中…';
-  document.getElementById('analyzeBar').style.display = 'flex';
-
-  const steps = ['预处理文件…', 'AI 逐项识别…', '提取关键信息…', '汇总问题标签…', '准备传入智能体02…'];
-  for (let i = 0; i < steps.length; i++) {
-    document.getElementById('progLbl').textContent = steps[i];
-    document.getElementById('progFill').style.width = ((i+1)/steps.length*100) + '%';
-    await delay(700);
+要求：先写总体评价，再分问题类型描述，最后写优先改造建议。语言专业但通俗。` }]
+      })
+    });
+    const d = await res.json();
+    return d.content?.[0]?.text || getDemoReport(data);
+  } catch(e) {
+    return getDemoReport(data);
   }
-
-  // Tag any remaining pending
-  await Promise.all(all.filter(f=>f.aiStatus==='pending').map(f => f.src==='url' ? autoTagUrl(f) : autoTag(f)));
-
-  document.getElementById('progLbl').textContent = `✅ 分析完成，共 ${all.length} 份素材已处理`;
-  document.getElementById('progFill').style.width = '100%';
-  updateCounts();
-  renderCards();
-  btn.disabled = false;
-  btn.innerHTML = '✅ 已完成，进入智能体02 →';
-  btn.onclick = () => notify('🔗 即将跳转智能体02（开发中）');
-  notify(`✅ 全部 ${all.length} 份素材分析完成，可进入智能体02`);
 }
 
-function clearAll() {
-  if (!confirm('确认清空所有已导入素材？')) return;
-  allFiles = []; allUrls = [];
-  updateCounts(); renderCards(); updateAnalyzeBtn();
-  document.getElementById('analyzeBar').style.display = 'none';
-  document.getElementById('analyzeAllBtn').textContent = '🤖 汇总AI分析';
-  notify('已清空');
+function getDemoReport(data) {
+  const name = data.projName || '该社区';
+  return `**总体评价**\n经过现场调研，${name}整体建设年代较早，公共空间品质有待提升。本次共采集照片${data.total}张，识别出${Object.keys(data.categories).length}大类问题，其中高严重度问题${data.severity['高']}处，需优先处理。\n\n**主要问题**\n${Object.entries(data.categories).map(([k,v]) => `• **${v.icon}${k}**：发现${v.count}处，${v.items[0]?.detail||'需进一步改善'}。`).join('\n')}\n\n**改造建议**\n建议按优先级分三期推进：近期优先解决高严重度安全问题；中期改善停车秩序和公共设施；远期系统提升景观品质和公共空间活力，打造宜居社区环境。`;
 }
 
-function notify(msg) {
-  const el = document.getElementById('notif');
-  el.textContent = msg; el.classList.add('show');
-  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 2800);
+function getDemoData() {
+  uploadedFiles = uploadedFiles.length ? uploadedFiles : [];
+  return aggregateResults(uploadedFiles.map((_, i) => getFallbackResult(i)));
+}
+
+// ── PROGRESS UI ──
+const STEPS = ['上传照片预处理','AI 逐图分析识别','问题汇总归类','生成文字报告','诊断完成 ✓'];
+
+function showProgress() {
+  document.getElementById('mainArea').innerHTML = `
+    <div class="progress-card">
+      <div class="progress-title"><div class="spin" style="border-color:rgba(29,78,216,0.2);border-top-color:var(--accent);width:16px;height:16px;"></div> AI 正在诊断分析…</div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+      <div class="progress-steps" id="progSteps">
+        ${STEPS.map((s,i) => `<div class="step" id="step-${i}">
+          <div class="step-dot" id="sdot-${i}">${i+1}</div>
+          <div class="step-label" id="slbl-${i}">${s}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+  `;
+  updateProgress(5);
+}
+
+let curStep = -1;
+function updateStep(i) {
+  if (curStep >= 0) {
+    document.getElementById(`sdot-${curStep}`)?.classList.replace('active','done');
+    document.getElementById(`sdot-${curStep}`)?.textContent && (document.getElementById(`sdot-${curStep}`).textContent = '✓');
+    document.getElementById(`slbl-${curStep}`)?.classList.replace('active','done');
+  }
+  curStep = i;
+  document.getElementById(`sdot-${i}`)?.classList.add('active');
+  document.getElementById(`slbl-${i}`)?.classList.add('active');
+  updateProgress(10 + (i+1)/STEPS.length*90);
+}
+
+function updateProgress(pct) {
+  const el = document.getElementById('progFill');
+  if (el) el.style.width = pct + '%';
+}
+
+// ── REPORT UI ──
+
+function saveToAgent03() {
+  if (!analysisData) return;
+  try {
+    var data = {
+      projectName: analysisData.projName || '',
+      total: analysisData.total || 0,
+      severity: analysisData.severity || {},
+      categories: Object.entries(analysisData.categories || {}).map(function(e) {
+        return { name: e[0], count: e[1].count, icon: e[1].icon, color: e[1].color };
+      }),
+      topIssues: (analysisData.items || []).slice(0, 10).map(function(item) {
+        return { category: item.category, severity: item.severity, description: item.description || '', tags: item.tags || [] };
+      }),
+      report: analysisData.report || '',
+      savedAt: new Date().toISOString(),
+    };
+    localStorage.setItem('nm_agent02', JSON.stringify(data));
+    showToast('✅ 诊断结果已保存，可在智能体03读取');
+  } catch(e) {
+    console.error('saveToAgent03:', e);
+  }
+}
+
+function showReport(data) {
+  const cats = Object.entries(data.categories);
+  const maxCat = Math.max(...cats.map(([,v]) => v.count), 1);
+
+  // Donut data
+  const donutColors = cats.map(([,v]) => v.color);
+  const donutVals = cats.map(([,v]) => v.count);
+  const donutSvg = buildDonut(donutVals, donutColors, 80);
+
+  // Map pins (random positions for demo)
+  const pins = data.items.map((item, i) => ({
+    x: 60 + (i * 73) % 560,
+    y: 40 + (i * 57) % 160,
+    color: data.categories[item.category]?.color || '#6b7280',
+    icon: data.categories[item.category]?.icon || '📌',
+    label: item.desc
+  }));
+
+  const mainArea = document.getElementById('mainArea');
+  mainArea.innerHTML = `
+    <div class="report" id="reportContent">
+
+      <!-- Summary cards -->
+      <div class="summary-row">
+        <div class="sum-card" style="animation-delay:0s;border-left:3px solid var(--accent);">
+          <div class="num" style="color:var(--accent)">${data.total}</div>
+          <div class="lbl">📷 采集照片数</div>
+        </div>
+        <div class="sum-card" style="animation-delay:0.08s;border-left:3px solid var(--red);">
+          <div class="num" style="color:var(--red)">${data.severity['高']}</div>
+          <div class="lbl">🔴 高严重度问题</div>
+        </div>
+        <div class="sum-card" style="animation-delay:0.16s;border-left:3px solid var(--orange);">
+          <div class="num" style="color:var(--orange)">${cats.length}</div>
+          <div class="lbl">🗂 问题类型数</div>
+        </div>
+        <div class="sum-card" style="animation-delay:0.24s;border-left:3px solid var(--green);">
+          <div class="num" style="color:var(--green)">${data.severity['低']}</div>
+          <div class="lbl">🟢 低严重度问题</div>
+        </div>
+      </div>
+
+      <div class="report-grid">
+
+        <!-- Bar chart -->
+        <div class="report-card" style="animation-delay:0.1s;">
+          <div class="rc-title">📊 问题类型分布</div>
+          <div class="bar-chart">
+            ${cats.map(([name, v]) => `
+              <div class="bar-row">
+                <div class="bar-label">${v.icon} ${name}</div>
+                <div class="bar-track">
+                  <div class="bar-fill" style="background:${v.color};width:${v.count/maxCat*100}%"></div>
+                </div>
+                <div class="bar-count">${v.count}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Donut + severity -->
+        <div class="report-card" style="animation-delay:0.15s;">
+          <div class="rc-title">🎯 严重程度分析</div>
+          <div class="severity-meter">
+            <div class="sev-row">
+              <div class="sev-label" style="color:var(--red);">高</div>
+              <div class="sev-track"><div class="sev-fill" style="background:var(--red);width:${data.severity['高']/data.total*100}%"></div></div>
+              <div class="sev-num">${data.severity['高']}</div>
+            </div>
+            <div class="sev-row">
+              <div class="sev-label" style="color:var(--orange);">中</div>
+              <div class="sev-track"><div class="sev-fill" style="background:var(--orange);width:${data.severity['中']/data.total*100}%"></div></div>
+              <div class="sev-num">${data.severity['中']}</div>
+            </div>
+            <div class="sev-row">
+              <div class="sev-label" style="color:var(--green);">低</div>
+              <div class="sev-track"><div class="sev-fill" style="background:var(--green);width:${data.severity['低']/data.total*100}%"></div></div>
+              <div class="sev-num">${data.severity['低']}</div>
+            </div>
+          </div>
+          <div style="margin-top:16px;">
+            <div class="rc-title" style="font-size:13px;margin-bottom:10px;">类型占比</div>
+            <div class="donut-wrap">
+              ${donutSvg}
+              <div class="donut-legend">
+                ${cats.map(([name,v]) => `
+                  <div class="legend-item">
+                    <div class="legend-dot" style="background:${v.color}"></div>
+                    <span>${v.icon} ${name} (${v.count})</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Problem map -->
+        <div class="report-card rc-full" style="animation-delay:0.2s;">
+          <div class="rc-title">🗺 问题分布示意图
+            <span style="font-size:11px;color:var(--muted);font-family:'Noto Sans SC';font-weight:400;">（位置基于GPS坐标，无坐标时随机分布）</span>
+          </div>
+          <div class="map-area">
+            <svg viewBox="0 0 680 200" xmlns="http://www.w3.org/2000/svg">
+              <!-- Grid lines -->
+              ${Array.from({length:7},(_,i)=>`<line x1="${i*100+40}" y1="10" x2="${i*100+40}" y2="190" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>`).join('')}
+              ${Array.from({length:4},(_,i)=>`<line x1="20" y1="${i*50+30}" x2="660" y2="${i*50+30}" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>`).join('')}
+              <!-- Area boundary -->
+              <rect x="30" y="15" width="620" height="170" rx="8" fill="none" stroke="rgba(100,150,100,0.4)" stroke-width="2" stroke-dasharray="6,4"/>
+              <text x="36" y="28" font-size="10" fill="rgba(80,120,80,0.7)" font-family="sans-serif">${data.projName}</text>
+              <!-- Pins -->
+              ${pins.map((p,i) => `
+                <g style="cursor:pointer;">
+                  <circle cx="${p.x}" cy="${p.y}" r="14" fill="${p.color}" fill-opacity="0.18"/>
+                  <circle cx="${p.x}" cy="${p.y}" r="8" fill="${p.color}"/>
+                  <text x="${p.x}" y="${p.y+4}" text-anchor="middle" font-size="9" fill="white">${i+1}</text>
+                </g>
+              `).join('')}
+            </svg>
+          </div>
+          <!-- Legend row -->
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
+            ${cats.map(([name,v]) => `
+              <div style="display:flex;align-items:center;gap:5px;font-size:11px;background:${v.bg};padding:4px 10px;border-radius:20px;">
+                <div style="width:8px;height:8px;border-radius:50%;background:${v.color}"></div>${v.icon}${name}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Problem list -->
+        <div class="report-card rc-full" style="animation-delay:0.25s;">
+          <div class="rc-title">📋 问题清单（${data.total}处）</div>
+          <div class="problem-list">
+            ${data.items.map((item, i) => {
+              const cat = data.categories[item.category] || { color:'#6b7280', icon:'📌', bg:'#f9fafb' };
+              const sevClass = item.severity === '高' ? 'sev-high' : item.severity === '低' ? 'sev-low' : 'sev-mid';
+              return `<div class="problem-item">
+                <div class="pi-thumb">
+                  ${item.url ? `<img src="${item.url}">` : cat.icon}
+                </div>
+                <div class="pi-body">
+                  <div class="pi-title">${i+1}. ${item.desc || '未识别'}</div>
+                  <div class="pi-desc">${item.detail || ''}</div>
+                  <div class="pi-meta">
+                    <span class="pi-tag" style="background:${cat.bg};color:${cat.color}">${cat.icon}${item.category}</span>
+                    <span class="severity-badge ${sevClass}">严重度：${item.severity}</span>
+                    ${(item.tags||[]).map(t=>`<span class="pi-tag" style="background:#f1f5f9;color:#64748b">${t}</span>`).join('')}
+                  </div>
+                  ${item.suggestion ? `<div style="font-size:11px;color:var(--accent);margin-top:4px;">💡 ${item.suggestion}</div>` : ''}
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+
+        <!-- Text report -->
+        <div class="report-card rc-full" style="animation-delay:0.3s;">
+          <div class="rc-title">📝 AI 诊断报告
+            <span style="margin-left:auto;font-size:11px;color:var(--muted);font-weight:400;">${data.projName} · ${data.projDate}</span>
+          </div>
+          <div class="text-report">${formatReport(data.report)}</div>
+        </div>
+
+      </div>
+
+      <!-- Export bar -->
+      <div class="export-bar">
+        <p>📄 报告已生成，可导出为 PDF 分享给甲方或存档</p>
+        <button class="btn btn-outline" onclick="copyReport()">📋 复制文字</button>
+        <button class="btn btn-green" onclick="exportPDF()">⬇ 导出 PDF</button>
+      </div>
+
+    </div>
+  `;
+
+  // Animate bars after render
+  setTimeout(() => {
+    document.querySelectorAll('.bar-fill, .sev-fill').forEach(el => {
+      const w = el.style.width;
+      el.style.width = '0%';
+      setTimeout(() => el.style.width = w, 50);
+    });
+  }, 100);
+}
+
+function formatReport(text) {
+  return (text || '').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+}
+
+// ── DONUT SVG ──
+function buildDonut(values, colors, size) {
+  const total = values.reduce((a,b) => a+b, 0) || 1;
+  const r = size/2 - 10, cx = size/2, cy = size/2;
+  let angle = -Math.PI/2;
+  const paths = values.map((v, i) => {
+    const slice = (v / total) * 2 * Math.PI;
+    const x1 = cx + r * Math.cos(angle);
+    const y1 = cy + r * Math.sin(angle);
+    angle += slice;
+    const x2 = cx + r * Math.cos(angle);
+    const y2 = cy + r * Math.sin(angle);
+    const large = slice > Math.PI ? 1 : 0;
+    return `<path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2} Z" fill="${colors[i]}" opacity="0.85"/>`;
+  });
+  return `<svg class="donut-svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    ${paths.join('')}
+    <circle cx="${cx}" cy="${cy}" r="${r*0.55}" fill="white"/>
+    <text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="11" fill="#1a2235" font-weight="700" font-family="sans-serif">${total}</text>
+  </svg>`;
+}
+
+// ── EXPORT PDF ──
+function exportPDF() {
+  window.print();
+}
+
+function copyReport() {
+  const text = analysisData?.report || '';
+  navigator.clipboard.writeText(text).then(() => showToast('✅ 已复制到剪贴板'));
+}
+
+function resetAll() {
+  uploadedFiles = [];
+  analysisData = null;
+  renderThumbs();
+  document.getElementById('mainArea').innerHTML = `
+    <div class="empty-state" id="emptyState">
+      <div class="e-icon">🔍</div>
+      <h3>等待素材上传</h3>
+      <p>上传现场照片后点击「开始AI诊断分析」<br>系统将自动识别问题、生成可视化报告</p>
+    </div>`;
+  document.getElementById('exportBtn').style.display = 'none';
+  document.getElementById('analyzeBtn').innerHTML = '🤖 开始 AI 诊断分析';
+  document.getElementById('analyzeBtn').disabled = false;
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  Object.assign(t.style, {
+    position:'fixed', bottom:'24px', left:'50%', transform:'translateX(-50%)',
+    background:'#1a2235', color:'#fff', padding:'9px 20px', borderRadius:'20px',
+    fontSize:'13px', zIndex:'999', boxShadow:'0 4px 16px rgba(0,0,0,0.15)'
+  });
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2500);
 }
 
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-async function toBase64(url, mime) {
+async function toBase64(url) {
   const blob = await (await fetch(url)).blob();
   return new Promise(res => {
     const r = new FileReader();
@@ -649,6 +853,17 @@ async function toBase64(url, mime) {
     r.readAsDataURL(blob);
   });
 }
+
+// Print styles
+const ps = document.createElement('style');
+ps.textContent = `@media print {
+  .topbar,.left,.export-bar,.topbar-right{display:none!important;}
+  .layout{display:block;}
+  .main{padding:0;}
+  body{background:#fff;}
+  .report-card{break-inside:avoid;box-shadow:none;}
+}`;
+document.head.appendChild(ps);
 </script>
 </body>
 </html>

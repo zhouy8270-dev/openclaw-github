@@ -388,6 +388,7 @@ input[type=file]{display:none;}
     <div class="page-tag">🎨 设计方案 <span class="chip">智能体 04</span></div>
   </div>
   <div class="topbar-r">
+    <button class="btn btn-ghost" onclick="saveToAgent05()">💾 保存至05</button>
     <button class="btn btn-ghost" onclick="window.print()">📄 导出PDF</button>
     <button class="btn btn-ghost" onclick="loadFromAgent03()">🔄 从智能体03读取</button>
   </div>
@@ -647,19 +648,18 @@ const MICRO_CATS = [
 // LOAD FROM AGENT03
 // ══════════════════════════════
 function loadFromAgent03() {
-  // Read from localStorage (agent03 saves there)
   try {
     const basic = JSON.parse(localStorage.getItem('nm_basic') || '{}');
-    designData.projectName = basic.name || '待命名社区';
+    const a03 = JSON.parse(localStorage.getItem('nm_agent03') || 'null');
 
-    // Try to get micro tasks and strategy from agent03
-    const a03data = JSON.parse(localStorage.getItem('nm_agent03') || 'null');
-    if (a03data) {
-      if (a03data.microTasks) designData.nodes = a03data.microTasks;
-      if (a03data.macro) designData.macro = a03data.macro;
-      if (a03data.mesoSystems) designData.meso = a03data.mesoSystems;
+    designData.projectName = (a03 && a03.projectName) || basic.name || '待命名社区';
+
+    if (a03) {
+      if (a03.microTasks && a03.microTasks.length > 0) designData.nodes = a03.microTasks;
+      if (a03.macro) designData.macro = a03.macro;
+      if (a03.mesoSystems) designData.meso = a03.mesoSystems;
     }
-  } catch(e) {}
+  } catch(e) { console.error('loadFromAgent03:', e); }
 
   // Build node nav and pages
   if (designData.nodes.length > 0) {
@@ -1189,6 +1189,27 @@ function switchToNode(idx, btn) {
     return;
   }
   _origSwitchToNode(idx, btn);
+}
+
+
+function saveToAgent05() {
+  try {
+    var data = {
+      projectName: designData.projectName || '',
+      concept: {
+        idea:   document.getElementById('concept-idea')  ? document.getElementById('concept-idea').innerText  : '',
+        style:  document.getElementById('concept-style') ? document.getElementById('concept-style').innerText : '',
+        colors: designData.concept ? designData.concept.colors : [],
+      },
+      casesDirection: document.getElementById('cases-direction') ? document.getElementById('cases-direction').innerText : '',
+      nodes: designData.nodes || [],
+      savedAt: new Date().toISOString(),
+    };
+    localStorage.setItem('nm_agent04', JSON.stringify(data));
+    notify('✅ 设计方案已保存，可在智能体05读取');
+  } catch(e) {
+    console.error('saveToAgent05:', e);
+  }
 }
 
 // ══════════════════════════════

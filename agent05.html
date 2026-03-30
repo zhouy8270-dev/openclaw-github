@@ -866,14 +866,24 @@ function exportZip() {
 // INIT
 // ══════════════════════════════
 function init() {
-  // Load project name
   try {
+    // Try agent04 data first, fallback to agent01
+    const a04 = JSON.parse(localStorage.getItem('nm_agent04') || 'null');
     const basic = JSON.parse(localStorage.getItem('nm_basic') || '{}');
-    if (basic.name) document.getElementById('f-name').value = basic.name;
+
+    const name = (a04 && a04.projectName) || basic.name || '';
+    if (name) document.getElementById('f-name').value = name;
+
+    // Show data source indicator
+    if (a04) {
+      const badge = document.createElement('div');
+      badge.style.cssText = 'font-size:11px;color:var(--green);background:var(--gl);padding:4px 10px;border-radius:6px;margin-top:6px;';
+      badge.textContent = '✅ 已读取智能体04设计方案';
+      document.getElementById('f-name').parentNode.appendChild(badge);
+    }
   } catch(e) {}
-  // Set today's date
+
   document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
-  // Mark first phase as active
   selectPhase('concept');
 }
 
