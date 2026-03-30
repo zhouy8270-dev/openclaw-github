@@ -305,7 +305,7 @@ input[type=file]{display:none;}
 #navScreen {
   position: fixed; inset: 0; z-index: 1000;
   background: var(--bg);
-  display: flex; flex-direction: column;
+  display: none; flex-direction: column;
   overflow-y: auto;
 }
 .nav-screen-hero {
@@ -438,7 +438,8 @@ input[type=file]{display:none;}
 
 
 <!-- TOP BAR -->
-<div id="mainApp" style="display:none;flex-direction:column;height:100vh;">
+
+<div id="mainApp" style="display:flex;flex-direction:column;height:100vh;">
 <div class="topbar">
   <div style="display:flex;align-items:center;">
     <div class="logo">🏘 Neighbor<em>Mind</em></div>
@@ -551,7 +552,44 @@ input[type=file]{display:none;}
 
 <div class="notif" id="notif"></div>
 
+
 <script>
+
+// ── NAV SCREEN FUNCTIONS ──
+function navGoTo(id) {
+  document.getElementById('navScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'flex';
+  document.getElementById('backToNav').classList.add('visible');
+  setTimeout(function() {
+    if (id === 'tab-macro') switchTab('macro');
+    else if (id === 'tab-meso') switchTab('meso');
+    else if (id === 'tab-micro') switchTab('micro');
+  }, 100);
+}
+
+function showNavScreen() {
+  document.getElementById('navScreen').style.display = 'flex';
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('backToNav').classList.remove('visible');
+}
+
+function enterAll() {
+  document.getElementById('navScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'flex';
+  document.getElementById('backToNav').classList.add('visible');
+}
+
+// Init on load
+window.addEventListener('DOMContentLoaded', function() {
+  if (window.innerWidth <= 768) {
+    document.getElementById('navScreen').style.display = 'flex';
+    document.getElementById('mainApp').style.display = 'none';
+  } else {
+    document.getElementById('navScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'flex';
+  }
+});
+
 // ══════════════════════════════
 // STATE
 // ══════════════════════════════
@@ -672,6 +710,17 @@ loadAgent01();
 // GENERATE
 // ══════════════════════════════
 
+
+function restorePanels() {
+  var scroll = document.getElementById('rightScroll');
+  if (!scroll) return;
+  scroll.innerHTML =
+    '<div id="emptyState" class="empty" style="display:none;"></div>'
+    + '<div id="panel-macro" style="display:none;"></div>'
+    + '<div id="panel-meso" style="display:none;"></div>'
+    + '<div id="panel-micro" style="display:none;"></div>';
+}
+
 function finishGenerate() {
   document.getElementById('tabBar').style.display = 'flex';
   document.getElementById('pdfBtn2').style.display = 'flex';
@@ -682,22 +731,52 @@ function finishGenerate() {
 
 async function generate() {
   const btn = document.getElementById('genBtn');
+  if (!btn) { console.error('genBtn not found'); return; }
   btn.disabled = true;
   btn.innerHTML = '<div class="spin"></div> 生成中…';
 
-  const input = collectInput();
-
-  // 立即显示演示数据，不等待网络
-  useDemoData(input);
-  restorePanels();
-  renderAll();
-  finishGenerate();
-  btn.disabled = false;
-  btn.innerHTML = '🔄 重新生成';
-  notify('已生成示例框架');
-
-  // 后台尝试API优化（不阻塞UI）
   try {
+    const input = collectInput();
+    console.log('step1: collectInput done', input.name);
+
+    useDemoData(input);
+    console.log('step2: useDemoData done', !!fwData);
+
+    restorePanels();
+    console.log('step3: restorePanels done');
+
+    renderAll();
+    console.log('step4: renderAll done');
+
+    // Show tabs
+    const tabBar = document.getElementById('tabBar');
+    if (tabBar) tabBar.style.display = 'flex';
+    const pdfBtn = document.getElementById('pdfBtn2');
+    if (pdfBtn) pdfBtn.style.display = 'flex';
+    const fwStatus = document.getElementById('fwStatus');
+    if (fwStatus) fwStatus.innerHTML = '<span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;"></span> 已生成 · 可编辑迭代';
+    const emptyState = document.getElementById('emptyState');
+    if (emptyState) emptyState.style.display = 'none';
+    console.log('step5: UI updated');
+
+    switchTab(currentTab);
+    console.log('step6: switchTab done');
+
+    btn.disabled = false;
+    btn.innerHTML = '🔄 重新生成';
+    notify('✅ 已生成示例框架');
+    console.log('step7: complete');
+
+  } catch(err) {
+    console.error('generate() error:', err);
+    btn.disabled = false;
+    btn.innerHTML = '⚠️ 重试';
+    notify('生成失败：' + err.message);
+  }
+
+  // 后台尝试API（不阻塞）
+  try {
+    const input = collectInput();
     const controller = new AbortController();
     setTimeout(() => controller.abort(), 8000);
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -711,10 +790,13 @@ async function generate() {
       const txt = d.content?.[0]?.text || '';
       const macro = JSON.parse(txt.replace(/```json|```/g,'').trim());
       fwData.macro = macro;
-      restorePanels(); renderAll(); finishGenerate();
+      restorePanels(); renderAll();
+      const tabBar = document.getElementById('tabBar');
+      if (tabBar) tabBar.style.display = 'flex';
+      switchTab(currentTab);
       notify('✅ AI已优化内容');
     }
-  } catch(e) { /* 静默失败，演示数据已显示 */ }
+  } catch(e) { /* 静默失败 */ }
 }
 
 
@@ -785,32 +867,56 @@ async function callClaude(prompt) {
 }
 
 function useDemoData(inp) {
-  fwData = { input:inp, macro:{
-    positioning:`将${inp.name}打造为安全宜居、文化传承的示范性社区微更新项目`,
-    vision:'让居民住得更安全、更舒适、更有归属感',
-    necessity:['现有设施老旧，安全隐患突出，亟需系统整治','停车矛盾尖锐，公共空间不足，居民诉求强烈','政策窗口期明确，资金来源有保障，改造条件成熟'],
-    significance:['提升居民生活品质，增强社区凝聚力','形成可复制推广的老旧社区更新模式','落实上级老旧小区改造政策，发挥示范引领作用'],
-    principles:[
-      {name:'安全优先',desc:'消除安全隐患为首要任务',color:'#dc2626'},
-      {name:'问题导向',desc:'聚焦居民核心诉求',color:'#d97706'},
-      {name:'系统思维',desc:'统筹考虑各系统协同',color:'#1d4ed8'},
-      {name:'文化传承',desc:'保留社区记忆与场所精神',color:'#7c3aed'},
-      {name:'全龄友好',desc:'兼顾老人儿童各类人群',color:'#059669'},
+  const name = (inp && inp.name) ? inp.name : '劲松一区';
+  fwData = { input: inp||{}, macro:{
+    positioning: '将' + name + '打造为安全宜居、文化传承的示范性社区微更新项目',
+    vision: '让居民住得更安全、更舒适、更有归属感',
+    necessity: [
+      '现有设施老旧，安全隐患突出，亟需系统整治',
+      '停车矛盾尖锐，公共空间不足，居民诉求强烈',
+      '政策窗口期明确，资金来源有保障，改造条件成熟'
+    ],
+    significance: [
+      '提升居民生活品质，增强社区凝聚力',
+      '形成可复制推广的老旧社区更新模式',
+      '落实上级老旧小区改造政策，发挥示范引领作用'
+    ],
+    principles: [
+      {name:'安全优先', desc:'消除安全隐患为首要任务', color:'#dc2626'},
+      {name:'问题导向', desc:'聚焦居民核心诉求',       color:'#d97706'},
+      {name:'系统思维', desc:'统筹考虑各系统协同',     color:'#1d4ed8'},
+      {name:'文化传承', desc:'保留社区记忆与场所精神', color:'#7c3aed'},
+      {name:'全龄友好', desc:'兼顾老人儿童各类人群',   color:'#059669'},
     ]
   }};
   mesoActiveSystems = Object.entries(MESO_CATS).map(([key,cfg]) => ({
     key, ...cfg,
-    current: {spatial:'',traffic:'停车位严重不足，道路组织混乱',landscape:'绿化带破损，景观品质低',facility:'健身设施老旧，缺少儿童场地',building:'',municipal:'照明不足，管线老化'}[key]||'',
-    strategy: {spatial:'构建"主轴-组团-节点"空间结构',traffic:'优化停车布局，推行错时停车，打通慢步道',landscape:'修复绿化带，打造入口节点景观',facility:'补充全龄化服务设施',building:'统一色彩风貌，体现地域特色',municipal:'先地下后地上，补齐照明安防'}[key]||''
+    current: {
+      spatial:   '',
+      traffic:   '停车位严重不足，道路组织混乱',
+      landscape: '绿化带破损，景观品质低',
+      facility:  '健身设施老旧，缺少儿童场地',
+      building:  '外立面老旧，风貌杂乱',
+      municipal: '照明不足，管线老化'
+    }[key] || '',
+    strategy: {
+      spatial:   '构建主轴-组团-节点空间结构',
+      traffic:   '优化停车布局，推行错时停车，打通慢步道',
+      landscape: '修复绿化带，打造入口节点景观',
+      facility:  '补充全龄化服务设施',
+      building:  '统一色彩风貌，体现地域特色',
+      municipal: '先地下后地上，补齐照明安防'
+    }[key] || ''
   }));
   microTasks = [
-    {id:1,cat:'gate',name:'南门大门景观',theme:'现代简洁社区门户',func:'出入管理·形象展示',notes:'与物业管理结合',lat:null,lng:null,address:''},
-    {id:2,cat:'major',name:'中心广场景观',theme:'全龄活力社区客厅',func:'居民集会·休闲健身',notes:'保留现有大树',lat:null,lng:null,address:''},
-    {id:3,cat:'node',name:'组团入口节点1',theme:'温馨邻里角落',func:'休憩·交流',notes:'',lat:null,lng:null,address:''},
-    {id:4,cat:'carpark',name:'地面停车区景观',theme:'有序绿色停车场',func:'停车·绿化遮阴',notes:'增设充电桩',lat:null,lng:null,address:''},
-    {id:5,cat:'trash',name:'垃圾收集站景观',theme:'隐蔽清洁垃圾站',func:'垃圾分类收集',notes:'做好遮蔽和通风',lat:null,lng:null,address:''},
+    {id:1, cat:'gate',    name:'南门大门景观',   theme:'现代简洁社区门户', func:'出入管理·形象展示', notes:'与物业结合',  lat:null, lng:null, address:''},
+    {id:2, cat:'major',   name:'中心广场景观',   theme:'全龄活力社区客厅', func:'居民集会·休闲健身', notes:'保留大树',    lat:null, lng:null, address:''},
+    {id:3, cat:'node',    name:'组团入口节点',   theme:'温馨邻里角落',     func:'休憩·交流',         notes:'',            lat:null, lng:null, address:''},
+    {id:4, cat:'carpark', name:'地面停车区景观', theme:'有序绿色停车场',   func:'停车·绿化遮阴',     notes:'增设充电桩',  lat:null, lng:null, address:''},
+    {id:5, cat:'trash',   name:'垃圾收集站景观', theme:'隐蔽清洁垃圾站',   func:'垃圾分类收集',      notes:'遮蔽通风',    lat:null, lng:null, address:''},
   ];
 }
+
 
 // ══════════════════════════════
 // RENDER ALL
@@ -825,243 +931,243 @@ function renderAll() {
 // MACRO
 // ══════════════════════════════
 function renderMacro() {
-  const m = fwData?.macro;
+  const m = fwData && fwData.macro;
   if (!m) return;
   const necessity = Array.isArray(m.necessity) ? m.necessity : [m.necessity];
   const significance = Array.isArray(m.significance) ? m.significance : [m.significance];
 
-  const NAV_ITEMS = [
-    {key:'positioning', icon:'🎯', label:'项目定位', color:'#1d4ed8'},
-    {key:'vision',      icon:'🌟', label:'愿景目标', color:'#059669'},
-    {key:'necessity',   icon:'📌', label:'必要性',   color:'#d97706'},
-    {key:'significance',icon:'✨', label:'项目意义', color:'#7c3aed'},
-    {key:'principles',  icon:'🧭', label:'设计原则', color:'#dc2626'},
-  ];
+  const navHTML = '<div class="macro-nav">'
+    + '<div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:4px 10px 8px;">导引</div>'
+    + [
+        {key:'positioning', icon:'🎯', label:'项目定位', color:'#1d4ed8'},
+        {key:'vision',      icon:'🌟', label:'愿景目标', color:'#059669'},
+        {key:'necessity',   icon:'📌', label:'必要性',   color:'#d97706'},
+        {key:'significance',icon:'✨', label:'项目意义', color:'#7c3aed'},
+        {key:'principles',  icon:'🧭', label:'设计原则', color:'#dc2626'},
+      ].map(n =>
+        '<button class="macro-nav-item" onclick="scrollToMacBlock(\''+n.key+'\')">'
+        + '<div class="macro-nav-dot" style="background:'+n.color+'"></div>'
+        + n.icon + ' ' + n.label
+        + '</button>'
+      ).join('')
+    + '</div>';
 
-  const navHTML = `<div class="macro-nav">
-    <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:4px 10px 8px;">导引</div>
-    ${NAV_ITEMS.map(n=>`
-      <button class="macro-nav-item" onclick="scrollToMacBlock('${n.key}')">
-        <div class="macro-nav-dot" style="background:${n.color}"></div>
-        ${n.icon} ${n.label}
-      </button>`).join('')}
-  </div>`;
+  const necessityItems = necessity.map((n,i) =>
+    '<div class="editable" contenteditable="true" id="mac-necessity-'+i+'">• '+n+'</div>'
+  ).join('');
 
-  const blocksHTML = `<div>
-    ${macBlock('项目定位','🎯','positioning', `<div class="editable" contenteditable="true" id="mac-positioning">${m.positioning||''}</div>`, '对定位有什么修改意见？')}
-    ${macBlock('愿景目标','🌟','vision', `<div class="editable" contenteditable="true" id="mac-vision" style="font-size:15px;font-weight:600;color:var(--accent);">${m.vision||''}</div>`, '对愿景有什么修改意见？')}
-    ${macBlock('项目必要性','📌','necessity', necessity.map((n,i)=>`<div class="editable" contenteditable="true" id="mac-necessity-${i}">• ${n}</div>`).join(''), '对必要性有什么修改意见？')}
-    ${macBlock('项目意义','✨','significance', significance.map((s,i)=>`<div class="editable" contenteditable="true" id="mac-significance-${i}">• ${s}</div>`).join(''), '对意义有什么修改意见？')}
-    ${macBlock('设计原则','🧭','principles', '<div class="principles-row">'+(m.principles||[]).map((p,i)=>'<div class="principle-tag" contenteditable="true" id="mac-principle-'+i+'" style="background:'+p.color+'18;color:'+p.color+';border-color:'+p.color+'40;">'+p.name+'</div>').join('')+'</div>', '对设计原则有什么修改意见？')}
-  </div>`;
+  const significanceItems = significance.map((s,i) =>
+    '<div class="editable" contenteditable="true" id="mac-significance-'+i+'">• '+s+'</div>'
+  ).join('');
+
+  const principles = (m.principles||[]).map((p,i) =>
+    '<div class="principle-tag" contenteditable="true" id="mac-principle-'+i+'" style="background:'+p.color+'18;color:'+p.color+';border-color:'+p.color+'40;border:1px solid;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;outline:none;">'+p.name+'</div>'
+  ).join('');
+
+  const blocksHTML = '<div>'
+    + macBlock('项目定位','🎯','positioning',
+        '<div class="editable" contenteditable="true" id="mac-positioning">'+(m.positioning||'')+'</div>',
+        '对定位有什么修改意见？')
+    + macBlock('愿景目标','🌟','vision',
+        '<div class="editable" contenteditable="true" id="mac-vision" style="font-size:15px;font-weight:600;color:var(--accent);">'+(m.vision||'')+'</div>',
+        '对愿景有什么修改意见？')
+    + macBlock('项目必要性','📌','necessity', necessityItems, '对必要性有什么修改意见？')
+    + macBlock('项目意义','✨','significance', significanceItems, '对意义有什么修改意见？')
+    + macBlock('设计原则','🧭','principles',
+        '<div class="principles-row">'+principles+'</div>',
+        '对设计原则有什么修改意见？')
+    + '</div>';
 
   document.getElementById('panel-macro').innerHTML =
-    `<div class="macro-layout">${navHTML}${blocksHTML}</div>`;
+    '<div class="macro-layout">'+navHTML+blocksHTML+'</div>';
+}
+
+
+// ══════════════════════════════
+// RENDER ALL
+// ══════════════════════════════
+function renderAll() {
+  renderMacro();
+  renderMeso();
+  renderMicro();
+}
+
+// ══════════════════════════════
+// MACRO HELPERS  
+// ══════════════════════════════
+function macBlock(label, icon, key, bodyHTML, placeholder) {
+  var delays = {positioning:0, vision:0.07, necessity:0.14, significance:0.21, principles:0.28};
+  return '<div class="mac-block" id="macblock-'+key+'" style="animation-delay:'+(delays[key]||0)+'s;">'
+    + '<div class="mac-label" onclick="scrollToMacBlock(\''+key+'\')" style="cursor:default;">'+icon+' '+label
+    + '<button class="mac-del" onclick="this.closest(\'.mac-block\').remove()">×</button>'
+    + '</div>'
+    + bodyHTML
+    + '<div class="chat-area"><div class="chat-row">'
+    + '<textarea class="chat-inp" id="ci-'+key+'" placeholder="'+placeholder+'"></textarea>'
+    + '<button class="chat-btn" onclick="refineItem(\''+key+'\')">✨ 修改</button>'
+    + '</div></div>'
+    + '</div>';
 }
 
 function scrollToMacBlock(key) {
-  const block = document.getElementById('macblock-'+key);
-  if (block) block.scrollIntoView({behavior:'smooth', block:'start'});
-  document.querySelectorAll('.macro-nav-item').forEach(b => b.classList.remove('active'));
-  event.currentTarget.classList.add('active');
-}
-
-function macBlock(label, icon, key, bodyHTML, placeholder) {
-  return `<div class="mac-block" id="macblock-${key}" style="animation-delay:${['positioning','vision','necessity','significance','principles'].indexOf(key)*0.07}s;">
-    <div class="mac-label">${icon} ${label}
-      <button class="mac-del" onclick="this.closest('.mac-block').remove()">×</button>
-    </div>
-    ${bodyHTML}
-    <div class="chat-area">
-      <div class="chat-row">
-        <textarea class="chat-inp" id="ci-${key}" placeholder="${placeholder}"></textarea>
-        <button class="chat-btn" onclick="refineItem('${key}')">✨ 修改</button>
-      </div>
-    </div>
-  </div>`;
+  var el = document.getElementById('macblock-'+key);
+  if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 async function refineItem(key) {
-  const inp = document.getElementById('ci-'+key);
-  const btn = inp?.nextElementSibling;
-  if (!inp||!btn) return;
-  const fb = inp.value.trim();
-  if (!fb) { notify('请填写修改意见'); return; }
-  btn.disabled=true; btn.innerHTML='<div class="spin"></div>';
+  var inp = document.getElementById('ci-'+key);
+  var btn = inp ? inp.nextElementSibling : null;
+  if (!inp || !btn) return;
+  var fb = inp.value.trim();
+  if (!fb) { notify('请填写修改意见'); inp.focus(); return; }
+  btn.disabled = true; btn.innerHTML = '<div class="spin"></div>';
   try {
-    const cur = document.querySelectorAll(`[id^="mac-${key}"]`);
-    const curText = Array.from(cur).map(e=>e.innerText).join('\n');
-    const res = await callClaude(`当前内容：「${curText}」\n修改意见：「${fb}」\n请直接输出修改后的内容，格式与原来一致，不要解释。`);
-    const text = typeof res === 'string' ? res : JSON.stringify(res);
+    var cur = document.querySelectorAll('[id^="mac-'+key+'"]');
+    var curText = Array.from(cur).map(function(e){return e.innerText;}).join('\n');
+    var res = await callClaude('当前内容：「'+curText+'」\n修改意见：「'+fb+'」\n请直接输出修改后的内容，不要解释。');
+    var text = typeof res === 'string' ? res : JSON.stringify(res);
     if (cur.length === 1) { cur[0].innerText = text; }
-    else { const lines=text.split('\n').filter(l=>l.trim()); cur.forEach((el,i)=>{ if(lines[i]) el.innerText='• '+lines[i].replace(/^[•\-\d\.]+\s*/,''); }); }
-    inp.value=''; notify('✅ 已修改');
+    else {
+      var lines = text.split('\n').filter(function(l){return l.trim();});
+      cur.forEach(function(el,i){ if(lines[i]) el.innerText = '• '+lines[i].replace(/^[•\-\d\.]+\s*/,''); });
+    }
+    inp.value = ''; notify('✅ 已修改');
   } catch(e) { notify('⚠️ 修改失败'); }
-  btn.disabled=false; btn.innerHTML='✨ 修改';
+  btn.disabled = false; btn.innerHTML = '✨ 修改';
 }
 
 // ══════════════════════════════
 // MESO
 // ══════════════════════════════
 function renderMeso() {
-  const addedKeys = mesoActiveSystems.map(s=>s.key);
-  const available = MESO_EXTRA.filter(e=>!addedKeys.includes(e.key));
+  var addedKeys = mesoActiveSystems.map(function(s){return s.key;});
+  var available = MESO_EXTRA.filter(function(e){return !addedKeys.includes(e.key);});
 
-  console.log('mesoActiveSystems:', mesoActiveSystems.map(s=>s.name));
-  const cardsHTML = mesoActiveSystems.map((sys,i) =>
-    '<div class="fw-card" style="animation-delay:' + (i*0.06) + 's;" onclick="openMesoDetail(' + i + ')">'
-    + '<button class="fw-card-del" onclick="event.stopPropagation();deleteMesoSys(' + i + ')">×</button>'
-    + '<div class="fw-card-icon" style="background:' + sys.bg + '">' + sys.icon + '</div>'
-    + '<div class="fw-card-name" style="color:' + sys.color + '">' + sys.name + '</div>'
-    + '<div class="fw-card-sub">' + (sys.current||sys.strategy||'点击查看详情') + '</div>'
-    + '<div class="fw-card-arrow">→ 查看详情</div>'
-    + '</div>'
-  ).join('');
+  var cardsHTML = mesoActiveSystems.map(function(sys,i) {
+    return '<div class="fw-card" style="animation-delay:'+(i*0.06)+'s;" onclick="openMesoDetail('+i+')">'
+      + '<button class="fw-card-del" onclick="event.stopPropagation();deleteMesoSys('+i+')">×</button>'
+      + '<div class="fw-card-icon" style="background:'+sys.bg+'">'+sys.icon+'</div>'
+      + '<div class="fw-card-name" style="color:'+sys.color+'">'+sys.name+'</div>'
+      + '<div class="fw-card-sub">'+(sys.current||sys.strategy||'点击查看详情')+'</div>'
+      + '<div class="fw-card-arrow">→ 查看详情</div>'
+      + '</div>';
+  }).join('');
 
-  const addCard = available.length
+  var addCard = available.length
     ? '<div class="fw-card fw-card-add" onclick="showAddMeso()">'
       + '<div style="font-size:28px;margin-bottom:8px;">＋</div>'
       + '<div style="font-size:12px;color:var(--muted);">添加系统</div>'
-      + '<div style="font-size:11px;color:var(--muted);margin-top:4px;">' + available.map(e=>e.name).join('·') + '</div>'
+      + '<div style="font-size:11px;color:var(--muted);margin-top:4px;">'+available.map(function(e){return e.name;}).join('·')+'</div>'
       + '</div>'
     : '';
 
   document.getElementById('panel-meso').innerHTML =
-    '<div class="card-grid" id="mesoGrid">' + cardsHTML + addCard + '</div>';
+    '<div class="card-grid" id="mesoGrid">'+cardsHTML+addCard+'</div>';
 }
 
-
 function deleteMesoSys(i) {
-  if (!confirm(`删除「${mesoActiveSystems[i].name}」？`)) return;
-  mesoActiveSystems.splice(i,1);
-  renderMeso();
+  if (!confirm('删除「'+mesoActiveSystems[i].name+'」？')) return;
+  mesoActiveSystems.splice(i,1); renderMeso(); notify('已删除');
 }
 
 function showAddMeso() {
-  const added = mesoActiveSystems.map(s=>s.key);
-  const available = MESO_EXTRA.filter(e=>!added.includes(e.key));
+  var added = mesoActiveSystems.map(function(s){return s.key;});
+  var available = MESO_EXTRA.filter(function(e){return !added.includes(e.key);});
   if (!available.length) { notify('没有更多可添加的系统'); return; }
-  const choice = prompt(available.map((e,i)=>`${i+1}. ${e.icon} ${e.name}`).join('\n')+'\n\n输入序号：');
-  const idx = parseInt(choice)-1;
+  var names = available.map(function(e,i){return (i+1)+'. '+e.icon+' '+e.name;}).join('\n');
+  var choice = prompt(names+'\n\n输入序号：');
+  var idx = parseInt(choice)-1;
   if (idx>=0 && idx<available.length) {
-    mesoActiveSystems.push({...available[idx], current:'', strategy:''});
-    renderMeso();
-    notify(`✅ 已添加${available[idx].name}`);
+    mesoActiveSystems.push(Object.assign({}, available[idx], {current:'', strategy:''}));
+    renderMeso(); notify('✅ 已添加'+available[idx].name);
   }
 }
 
 function openMesoDetail(i) {
-  const sys = mesoActiveSystems[i];
+  var sys = mesoActiveSystems[i];
   document.getElementById('modalIcon').textContent = sys.icon;
   document.getElementById('modalIcon').style.background = sys.bg;
   document.getElementById('modalTitle').textContent = sys.name;
-
-  const subtabsEl = document.getElementById('modalSubtabs');
-  const bodyEl = document.getElementById('modalBody');
-
+  var subtabsEl = document.getElementById('modalSubtabs');
+  var bodyEl = document.getElementById('modalBody');
   if (sys.type === 'subtabs') {
     subtabsEl.style.display = 'flex';
-    subtabsEl.innerHTML = sys.subtabs.map((st,si)=>
-      `<div class="subtab ${si===0?'active':''}" id="stab-${si}" onclick="switchMesoSubtab(${i},${si})">${st.icon} ${st.label}</div>`
-    ).join('');
+    subtabsEl.innerHTML = sys.subtabs.map(function(st,si){
+      return '<div class="subtab '+(si===0?'active':'')+'" id="stab-'+si+'" onclick="switchMesoSubtab('+i+','+si+')">'+st.icon+' '+st.label+'</div>';
+    }).join('');
     renderMesoBody(sys.subtabs[0], bodyEl, sys, i, 0);
   } else {
     subtabsEl.style.display = 'none';
     renderMesoBody(sys, bodyEl, sys, i, -1);
   }
-
   document.getElementById('modal').classList.add('open');
 }
 
 function switchMesoSubtab(sysIdx, tabIdx) {
-  document.querySelectorAll('.subtab').forEach((t,i)=>t.classList.toggle('active',i===tabIdx));
-  const sys = mesoActiveSystems[sysIdx];
+  document.querySelectorAll('.subtab').forEach(function(t,i){t.classList.toggle('active',i===tabIdx);});
+  var sys = mesoActiveSystems[sysIdx];
   renderMesoBody(sys.subtabs[tabIdx], document.getElementById('modalBody'), sys, sysIdx, tabIdx);
 }
 
-function renderMesoBody(cfg, bodyEl, sys, sysIdx, tabIdx) {
-  const chatKey = 'meso-' + sysIdx + '-' + tabIdx;
-
-  if (cfg.type === 'nomap') {
-    bodyEl.innerHTML = (cfg.fields||[]).map(f =>
-      '<div class="mac-block"><div class="mac-label">' + f.label + '</div>'
-      + '<div class="editable" contenteditable="true" placeholder="' + f.ph + '">' + (sys[f.key]||'') + '</div></div>'
-    ).join('') + chatAreaHTML(chatKey, '对' + sys.name + '有什么修改意见？');
-    return;
-  }
-
-  const isSingle = cfg.type === 'single';
-
-  const curBox = !isSingle
-    ? '<div>'
-      + '<div class="d-label">' + (cfg.curLabel||'现状') + '</div>'
-      + '<div class="d-img" onclick="uploadImg(this)">'
-      + '<div style="text-align:center;color:var(--muted);"><div style="font-size:28px;margin-bottom:4px;">📷</div><div style="font-size:12px;">上传现状图</div><div style="font-size:10px;opacity:0.6;">后期接入生图</div></div>'
-      + '</div>'
-      + '<div class="d-desc" contenteditable="true" placeholder="' + (cfg.curDesc||'现状说明…') + '">' + (sys.current||'') + '</div>'
-      + '</div>'
-    : '';
-
-  const planBox = '<div>'
-    + '<div class="d-label">' + (cfg.planLabel||'规划') + '</div>'
-    + '<div class="d-img" onclick="uploadImg(this)">'
-    + '<div style="text-align:center;color:var(--muted);"><div style="font-size:28px;margin-bottom:4px;">🗺</div><div style="font-size:12px;">上传规划图</div><div style="font-size:10px;opacity:0.6;">后期接入生图</div></div>'
-    + '</div>'
-    + '<div class="d-desc" contenteditable="true" placeholder="' + (cfg.planDesc||'规划说明…') + '">' + (sys.strategy||'') + '</div>'
-    + '</div>';
-
-  const dataChips = (cfg.data && cfg.data.length)
-    ? '<div class="data-chips">' + cfg.data.map(d =>
-        '<div class="data-chip"><div class="dc-label">' + d.label + '</div>'
-        + '<div class="dc-val" contenteditable="true">-</div>'
-        + '<div class="dc-unit">' + d.unit + '</div></div>'
-      ).join('') + '</div>'
-    : '';
-
-  bodyEl.innerHTML =
-    '<div class="diagram-pair' + (isSingle ? ' single' : '') + '">'
-    + curBox + planBox + '</div>'
-    + dataChips
-    + chatAreaHTML(chatKey, '对' + sys.name + '有什么修改意见？');
+function chatAreaHTML(key, placeholder) {
+  return '<div class="chat-area"><div class="chat-row">'
+    + '<textarea class="chat-inp" id="ci-'+key+'" placeholder="'+placeholder+'"></textarea>'
+    + '<button class="chat-btn" onclick="refineMeso(\''+key+'\')">✨ 修改</button>'
+    + '</div></div>';
 }
 
-
-function chatAreaHTML(key, placeholder) {
-  return `<div class="chat-area">
-    <div class="chat-row">
-      <textarea class="chat-inp" id="ci-${key}" placeholder="${placeholder}"></textarea>
-      <button class="chat-btn" onclick="refineMeso('${key}')">✨ 修改</button>
-    </div>
-  </div>`;
+function renderMesoBody(cfg, bodyEl, sys, sysIdx, tabIdx) {
+  var chatKey = 'meso-'+sysIdx+'-'+tabIdx;
+  if (cfg.type === 'nomap') {
+    bodyEl.innerHTML = (cfg.fields||[]).map(function(f){
+      return '<div class="mac-block"><div class="mac-label">'+f.label+'</div>'
+        + '<div class="editable" contenteditable="true" placeholder="'+f.ph+'">'+(sys[f.key]||'')+'</div></div>';
+    }).join('') + chatAreaHTML(chatKey, '对'+sys.name+'有什么修改意见？');
+    return;
+  }
+  var isSingle = cfg.type === 'single';
+  var curBox = !isSingle
+    ? '<div><div class="d-label">'+(cfg.curLabel||'现状')+'</div>'
+      + '<div class="d-img" onclick="uploadImg(this)"><div style="text-align:center;color:var(--muted);"><div style="font-size:28px;margin-bottom:4px;">📷</div><div style="font-size:12px;">上传现状图</div></div></div>'
+      + '<div class="d-desc" contenteditable="true" placeholder="'+(cfg.curDesc||'现状说明…')+'">'+(sys.current||'')+'</div></div>'
+    : '';
+  var planBox = '<div><div class="d-label">'+(cfg.planLabel||'规划')+'</div>'
+    + '<div class="d-img" onclick="uploadImg(this)"><div style="text-align:center;color:var(--muted);"><div style="font-size:28px;margin-bottom:4px;">🗺</div><div style="font-size:12px;">上传规划图</div></div></div>'
+    + '<div class="d-desc" contenteditable="true" placeholder="'+(cfg.planDesc||'规划说明…')+'">'+(sys.strategy||'')+'</div></div>';
+  var dataChips = (cfg.data&&cfg.data.length)
+    ? '<div class="data-chips">'+cfg.data.map(function(d){
+        return '<div class="data-chip"><div class="dc-label">'+d.label+'</div><div class="dc-val" contenteditable="true">-</div><div class="dc-unit">'+d.unit+'</div></div>';
+      }).join('')+'</div>'
+    : '';
+  bodyEl.innerHTML = '<div class="diagram-pair'+(isSingle?' single':'')+'">'+curBox+planBox+'</div>'
+    + dataChips + chatAreaHTML(chatKey, '对'+sys.name+'有什么修改意见？');
 }
 
 async function refineMeso(key) {
-  const inp = document.getElementById('ci-'+key);
-  const btn = inp?.nextElementSibling;
+  var inp = document.getElementById('ci-'+key);
+  var btn = inp ? inp.nextElementSibling : null;
   if (!inp||!btn) return;
-  const fb = inp.value.trim();
+  var fb = inp.value.trim();
   if (!fb) { notify('请填写修改意见'); return; }
   btn.disabled=true; btn.innerHTML='<div class="spin"></div>';
   try {
-    const parts = key.split('-');
-    const sysIdx = parseInt(parts[1]);
-    const sys = mesoActiveSystems[sysIdx];
-    const res = await callClaude(`当前${sys.name}：现状「${sys.current}」，策略「${sys.strategy}」\n意见：「${fb}」\n只返回JSON：{"current":"修改后","strategy":"修改后"}`);
+    var parts = key.split('-');
+    var sysIdx = parseInt(parts[1]);
+    var sys = mesoActiveSystems[sysIdx];
+    var res = await callClaude('当前'+sys.name+'：现状「'+sys.current+'」，策略「'+sys.strategy+'」\n意见：「'+fb+'」\n只返回JSON：{"current":"修改后","strategy":"修改后"}');
     if (res.current) sys.current=res.current;
     if (res.strategy) sys.strategy=res.strategy;
-    openMesoDetail(sysIdx);
-    notify('✅ 已修改');
+    openMesoDetail(sysIdx); notify('✅ 已修改');
   } catch(e) { notify('⚠️ 修改失败'); }
   btn.disabled=false; btn.innerHTML='✨ 修改';
 }
 
 function uploadImg(el) {
-  const inp = document.createElement('input');
+  var inp = document.createElement('input');
   inp.type='file'; inp.accept='image/*';
-  inp.onchange = e => {
-    const f = e.target.files[0];
-    if (!f) return;
-    el.innerHTML = `<img src="${URL.createObjectURL(f)}">`;
+  inp.onchange = function(e) {
+    var f = e.target.files[0]; if(!f) return;
+    el.innerHTML = '<img src="'+URL.createObjectURL(f)+'" style="width:100%;aspect-ratio:4/3;object-fit:cover;">';
   };
   inp.click();
 }
@@ -1070,114 +1176,97 @@ function uploadImg(el) {
 // MICRO
 // ══════════════════════════════
 function renderMicro() {
-  document.getElementById('panel-micro').innerHTML = `
-    <div class="card-grid" id="microGrid" style="margin-bottom:20px;">
-      ${MICRO_CATS.map((cat,i) => {
-        const tasks = microTasks.filter(t=>t.cat===cat.key);
-        return `<div class="fw-card" style="animation-delay:${i*0.06}s;" onclick="openMicroCat('${cat.key}')">
-          <div class="fw-card-icon" style="background:${cat.color}18">${cat.icon}</div>
-          <div class="fw-card-name" style="color:${cat.color}">${cat.label}</div>
-          <div class="fw-card-sub">${tasks.length} 个点位${tasks.filter(t=>t.lat||t.address).length?' · '+tasks.filter(t=>t.lat||t.address).length+'已标注':''}</div>
-          <div class="fw-card-arrow">→ 查看 / 添加</div>
-        </div>`;
-      }).join('')}
-    </div>
-    <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;">
-      <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-        <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;">📍 点位标注地图</div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <label style="padding:5px 12px;border-radius:7px;background:var(--bg);border:1px solid var(--border);font-size:11px;cursor:pointer;color:var(--muted);">
-            🖼 上传总平图替代地图
-            <input type="file" accept="image/*" onchange="uploadPlanMap(this)" style="display:none;">
-          </label>
-          <select id="markCat" style="padding:5px 8px;border:1px solid var(--border);border-radius:7px;font-size:11px;outline:none;font-family:'Noto Sans SC',sans-serif;">
-            ${MICRO_CATS.map(c=>'<option value="'+c.key+'">'+c.icon+' '+c.label+'</option>').join('')}
-          </select>
-          <button onclick="setMarkMode(true)" id="markBtn" style="padding:5px 14px;border-radius:7px;background:var(--accent);color:#fff;border:none;font-size:11px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;">✚ 点击标注</button>
-        </div>
-      </div>
-      <!-- Distribution stats bar -->
-      <div id="microDistStats" style="display:none;padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
-        <div style="font-size:11px;font-weight:600;color:var(--muted);margin-right:4px;">点位分布：</div>
-        <div id="distStatChips"></div>
-        <button onclick="fitMapToMarkers()" style="margin-left:auto;padding:4px 12px;border-radius:7px;background:var(--accent);color:#fff;border:none;font-size:11px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;">🗺 显示全部点位</button>
-        <button onclick="exportMapView()" style="padding:4px 12px;border-radius:7px;background:var(--bg);border:1px solid var(--border);font-size:11px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;">📷 截图导出</button>
-      </div>
-      <div id="microMapWrap" style="position:relative;">
-        <div id="microMap" style="height:340px;"></div>
-        <img id="planMapImg" style="display:none;width:100%;max-height:340px;object-fit:contain;cursor:crosshair;" onclick="planMapClick(event)">
-      </div>
-    </div>`;
+  document.getElementById('panel-micro').innerHTML =
+    '<div class="card-grid" id="microGrid" style="margin-bottom:20px;">'
+    + MICRO_CATS.map(function(cat,i) {
+        var tasks = microTasks.filter(function(t){return t.cat===cat.key;});
+        return '<div class="fw-card" style="animation-delay:'+(i*0.06)+'s;" onclick="openMicroCat(\''+cat.key+'\')">'
+          + '<div class="fw-card-icon" style="background:'+cat.color+'18">'+cat.icon+'</div>'
+          + '<div class="fw-card-name" style="color:'+cat.color+'">'+cat.label+'</div>'
+          + '<div class="fw-card-sub">'+tasks.length+' 个点位'+(tasks.filter(function(t){return t.lat;}).length?' · '+tasks.filter(function(t){return t.lat;}).length+'已标注':'')+'</div>'
+          + '<div class="fw-card-arrow">→ 查看 / 添加</div>'
+          + '</div>';
+      }).join('')
+    + '</div>'
+    + '<div style="background:var(--white);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;">'
+    + '<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">'
+    + '<div style="font-family:\'Syne\',sans-serif;font-size:13px;font-weight:700;">📍 点位标注地图</div>'
+    + '<div style="display:flex;gap:8px;align-items:center;">'
+    + '<label style="padding:5px 12px;border-radius:7px;background:var(--bg);border:1px solid var(--border);font-size:11px;cursor:pointer;color:var(--muted);">🖼 上传总平图<input type="file" accept="image/*" onchange="uploadPlanMap(this)" style="display:none;"></label>'
+    + '<select id="markCat" style="padding:5px 8px;border:1px solid var(--border);border-radius:7px;font-size:11px;outline:none;">'
+    + MICRO_CATS.map(function(c){return '<option value="'+c.key+'">'+c.icon+' '+c.label+'</option>';}).join('')
+    + '</select>'
+    + '<button onclick="setMarkMode(true)" id="markBtn" style="padding:5px 14px;border-radius:7px;background:var(--accent);color:#fff;border:none;font-size:11px;cursor:pointer;">✚ 点击标注</button>'
+    + '</div></div>'
+    + '<div id="microDistStats" style="display:none;padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:8px;align-items:center;">'
+    + '<div style="font-size:11px;font-weight:600;color:var(--muted);">点位分布：</div>'
+    + '<div id="distStatChips"></div>'
+    + '<button onclick="fitMapToMarkers()" style="margin-left:auto;padding:4px 12px;border-radius:7px;background:var(--accent);color:#fff;border:none;font-size:11px;cursor:pointer;">🗺 显示全部点位</button>'
+    + '</div>'
+    + '<div id="microMapWrap" style="position:relative;">'
+    + '<div id="microMap" style="height:320px;"></div>'
+    + '<img id="planMapImg" style="display:none;width:100%;max-height:320px;object-fit:contain;cursor:crosshair;" onclick="planMapClick(event)">'
+    + '</div></div>';
+  setTimeout(updateDistStats, 50);
 }
 
 function openMicroCat(catKey) {
-  const cat = MICRO_CATS.find(c=>c.key===catKey);
-  const tasks = microTasks.filter(t=>t.cat===catKey);
-
+  var cat = MICRO_CATS.find(function(c){return c.key===catKey;});
+  var tasks = microTasks.filter(function(t){return t.cat===catKey;});
   document.getElementById('modalIcon').textContent = cat.icon;
   document.getElementById('modalIcon').style.background = cat.color+'18';
   document.getElementById('modalTitle').textContent = cat.label;
   document.getElementById('modalSubtabs').style.display = 'none';
-
-  const addBtnStyle = 'padding:7px 16px;border-radius:8px;background:'+cat.color+'18;color:'+cat.color+';border:1px solid '+cat.color+'40;font-size:12px;cursor:pointer;font-weight:500;';
-  const addBtn = '<div style="display:flex;justify-content:flex-end;margin-bottom:14px;"><button onclick="addMicroTask(\'' + catKey + '\')" style="' + addBtnStyle + '">＋ 添加' + cat.label + '</button></div>';
-
-  const bodyHTML = tasks.length === 0
+  var addBtnStyle = 'padding:7px 16px;border-radius:8px;background:'+cat.color+'18;color:'+cat.color+';border:1px solid '+cat.color+'40;font-size:12px;cursor:pointer;font-weight:500;';
+  var addBtn = '<div style="display:flex;justify-content:flex-end;margin-bottom:14px;">'
+    + '<button onclick="addMicroTask(\''+catKey+'\');openMicroCat(\''+catKey+'\')" style="'+addBtnStyle+'">＋ 添加'+cat.label+'</button></div>';
+  var bodyHTML = tasks.length===0
     ? '<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">暂无点位，点击上方按钮添加</div>'
-    : tasks.map((t,i) => microItemHTML(t, i, cat)).join('');
-
+    : tasks.map(function(t,i){return microItemHTML(t,i,cat);}).join('');
   document.getElementById('modalBody').innerHTML = addBtn + bodyHTML;
   document.getElementById('modal').classList.add('open');
 }
 
 function microItemHTML(t, i, cat) {
-  const locBadge = (t.lat || t.address)
-    ? '<span style="font-size:10px;padding:2px 7px;border-radius:8px;background:' + cat.color + '15;color:' + cat.color + ';font-weight:500;">📍 已标注</span>'
+  var locBadge = (t.lat||t.address)
+    ? '<span style="font-size:10px;padding:2px 7px;border-radius:8px;background:'+cat.color+'15;color:'+cat.color+';font-weight:500;">📍 已标注</span>'
     : '<span style="font-size:10px;color:var(--muted);">未标注</span>';
-
-  const addrContent = t.lat
-    ? '<div style="font-size:12px;color:var(--green);padding:4px 0;">📍 ' + (t.address||'已标注坐标') + '</div>'
+  var addrContent = t.lat
+    ? '<div style="font-size:12px;color:var(--green);padding:4px 0;">📍 '+(t.address||'已标注坐标')+'</div>'
     : '<div style="display:flex;gap:8px;">'
-      + '<input class="mf-input" style="flex:1;" type="text" value="' + (t.address||'') + '" placeholder="文字描述位置…" oninput="updateMicro(\'' + t.id + '\',\'address\',this.value)">'
-      + '<button onclick="setMarkModeFor(\'' + t.id + '\',\'' + cat.key + '\')" style="padding:5px 10px;border-radius:7px;background:var(--al);color:var(--accent);border:1px solid rgba(29,78,216,0.2);font-size:11px;cursor:pointer;white-space:nowrap;">📍 地图标注</button>'
+      + '<input class="mf-input" style="flex:1;" type="text" value="'+(t.address||'')+'" placeholder="文字描述位置…" oninput="updateMicro(\''+t.id+'\',\'address\',this.value)">'
+      + '<button onclick="setMarkModeFor(\''+t.id+'\',\''+cat.key+'\')" style="padding:5px 10px;border-radius:7px;background:var(--al);color:var(--accent);border:1px solid rgba(29,78,216,0.2);font-size:11px;cursor:pointer;">📍 地图标注</button>'
       + '</div>';
-
-  return '<div class="micro-item" id="mi-' + t.id + '" style="margin-bottom:14px;">'
-    + '<div style="padding:10px 14px;display:flex;align-items:center;gap:9px;background:' + cat.color + '08;border-bottom:1px solid var(--border);">'
-    + '<div class="micro-num" style="background:' + cat.color + '">' + (i+1) + '</div>'
-    + '<div contenteditable="true" style="flex:1;font-size:13px;font-weight:600;outline:none;" oninput="updateMicro(\'' + t.id + '\',\'name\',this.innerText)">' + (t.name||'') + '</div>'
+  return '<div class="micro-item" id="mi-'+t.id+'" style="margin-bottom:14px;">'
+    + '<div style="padding:10px 14px;display:flex;align-items:center;gap:9px;background:'+cat.color+'08;border-bottom:1px solid var(--border);">'
+    + '<div class="micro-num" style="background:'+cat.color+'">'+(i+1)+'</div>'
+    + '<div contenteditable="true" style="flex:1;font-size:13px;font-weight:600;outline:none;" oninput="updateMicro(\''+t.id+'\',\'name\',this.innerText)">'+t.name+'</div>'
     + locBadge
-    + '<button class="micro-del" onclick="deleteMicroTask(\'' + t.id + '\',\'' + cat.key + '\')">×</button>'
+    + '<button class="micro-del" onclick="deleteMicroTask(\''+t.id+'\',\''+cat.key+'\')">×</button>'
     + '</div>'
     + '<div style="padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
-    + '<div><div class="mf-label">主题</div><div class="mf-val" contenteditable="true" placeholder="主题定位…" oninput="updateMicro(\'' + t.id + '\',\'theme\',this.innerText)">' + (t.theme||'') + '</div></div>'
-    + '<div><div class="mf-label">功能</div><div class="mf-val" contenteditable="true" placeholder="主要功能…" oninput="updateMicro(\'' + t.id + '\',\'func\',this.innerText)">' + (t.func||'') + '</div></div>'
-    + '<div style="grid-column:1/-1;"><div class="mf-label">注意事项</div><div class="mf-val" contenteditable="true" placeholder="设计约束条件…" oninput="updateMicro(\'' + t.id + '\',\'notes\',this.innerText)">' + (t.notes||'') + '</div></div>'
-    + '<div style="grid-column:1/-1;"><div class="mf-label">位置标注</div>' + addrContent + '</div>'
+    + '<div><div class="mf-label">主题</div><div class="mf-val" contenteditable="true" placeholder="主题定位…" oninput="updateMicro(\''+t.id+'\',\'theme\',this.innerText)">'+(t.theme||'')+'</div></div>'
+    + '<div><div class="mf-label">功能</div><div class="mf-val" contenteditable="true" placeholder="主要功能…" oninput="updateMicro(\''+t.id+'\',\'func\',this.innerText)">'+(t.func||'')+'</div></div>'
+    + '<div style="grid-column:1/-1;"><div class="mf-label">注意事项</div><div class="mf-val" contenteditable="true" placeholder="设计约束条件…" oninput="updateMicro(\''+t.id+'\',\'notes\',this.innerText)">'+(t.notes||'')+'</div></div>'
+    + '<div style="grid-column:1/-1;"><div class="mf-label">位置标注</div>'+addrContent+'</div>'
     + '</div></div>';
 }
 
-
 function addMicroTask(catKey) {
-  const cat = MICRO_CATS.find(c=>c.key===catKey);
-  const num = microTasks.filter(t=>t.cat===catKey).length+1;
-  const t = {id:Date.now(),cat:catKey,name:`${cat.label}${num}`,theme:'',func:'',notes:'',lat:null,lng:null,address:''};
-  microTasks.push(t);
-  openMicroCat(catKey);
-  renderMicro();
-  notify(`✅ 已添加${cat.label}${num}`);
+  var cat = MICRO_CATS.find(function(c){return c.key===catKey;});
+  var num = microTasks.filter(function(t){return t.cat===catKey;}).length+1;
+  microTasks.push({id:Date.now(),cat:catKey,name:cat.label+num,theme:'',func:'',notes:'',lat:null,lng:null,address:''});
 }
 
 function deleteMicroTask(id, catKey) {
-  microTasks = microTasks.filter(t=>String(t.id)!==String(id));
-  const m = mapMarkers.find(m=>String(m.id)===String(id));
-  if (m) { microMap?.removeLayer(m.marker); mapMarkers=mapMarkers.filter(x=>String(x.id)!==String(id)); }
-  openMicroCat(catKey);
-  renderMicro();
+  microTasks = microTasks.filter(function(t){return String(t.id)!==String(id);});
+  var m = mapMarkers.find(function(m){return String(m.id)===String(id);});
+  if (m) { microMap && microMap.removeLayer(m.marker); mapMarkers=mapMarkers.filter(function(x){return String(x.id)!==String(id);}); }
+  openMicroCat(catKey); renderMicro();
 }
 
 function updateMicro(id, field, val) {
-  const t = microTasks.find(t=>String(t.id)===String(id));
+  var t = microTasks.find(function(t){return String(t.id)===String(id);});
   if (t) t[field]=val;
 }
 
@@ -1186,318 +1275,148 @@ function updateMicro(id, field, val) {
 // ══════════════════════════════
 function initMicroMap() {
   if (microMap) { microMap.invalidateSize(); return; }
-  const el = document.getElementById('microMap');
+  var el = document.getElementById('microMap');
   if (!el||typeof L==='undefined') return;
   microMap = L.map('microMap').setView([39.9042,116.4074],16);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM',maxZoom:19}).addTo(microMap);
-  microMap.on('click', e => {
+  microMap.on('click', function(e) {
     if (!markMode) return;
-    const catKey = document.getElementById('markCat')?.value||'node';
-    const cat = MICRO_CATS.find(c=>c.key===catKey);
-    const num = microTasks.filter(t=>t.cat===catKey).length+1;
-    const name = prompt('标注名称：', cat.label + num);
+    var catKey = document.getElementById('markCat') ? document.getElementById('markCat').value : 'node';
+    var cat = MICRO_CATS.find(function(c){return c.key===catKey;});
+    var num = microTasks.filter(function(t){return t.cat===catKey;}).length+1;
+    var name = prompt('标注名称：', cat.label+num);
     if (!name) return;
-    const t = {id:Date.now(),cat:catKey,name,theme:'',func:'',notes:'',lat:e.latlng.lat,lng:e.latlng.lng,address:`${e.latlng.lat.toFixed(5)},${e.latlng.lng.toFixed(5)}`};
+    var t = {id:Date.now(),cat:catKey,name:name,theme:'',func:'',notes:'',lat:e.latlng.lat,lng:e.latlng.lng,address:e.latlng.lat.toFixed(5)+','+e.latlng.lng.toFixed(5)};
     microTasks.push(t);
     addMapPin(t);
     renderMicro();
     setMarkMode(false);
-    // Force map redraw
-    setTimeout(() => { if(microMap) microMap.invalidateSize(); }, 100);
     notify('✅ 已标注：'+name);
   });
-  microTasks.filter(t=>t.lat).forEach(t=>addMapPin(t));
+  microTasks.filter(function(t){return t.lat;}).forEach(function(t){addMapPin(t);});
 }
 
 function addMapPin(t) {
-  const cat = MICRO_CATS.find(c=>c.key===t.cat);
-  const icon = L.divIcon({
-    html:`<div style="background:${cat?.color||'#666'};color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,0.3);border:2px solid #fff;">${cat?.icon||'📍'}</div>`,
+  if (!microMap) return;
+  var cat = MICRO_CATS.find(function(c){return c.key===t.cat;});
+  var icon = L.divIcon({
+    html:'<div style="background:'+(cat?cat.color:'#666')+';color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,0.3);border:2px solid #fff;">'+(cat?cat.icon:'📍')+'</div>',
     className:'',iconSize:[28,28],iconAnchor:[14,14]
   });
-  const marker = L.marker([t.lat,t.lng],{icon}).addTo(microMap).bindPopup(`<b>${t.name}</b>`);
-  mapMarkers.push({id:t.id,marker});
-}
-
-
-
-
-function updateMicroCardCounts() {
-  MICRO_CATS.forEach(cat => {
-    const tasks = microTasks.filter(t=>t.cat===cat.key);
-    const cards = document.querySelectorAll('#microGrid .fw-card');
-    cards.forEach(card => {
-      const nameEl = card.querySelector('.fw-card-name');
-      if (nameEl && nameEl.textContent.trim() === cat.label) {
-        const sub = card.querySelector('.fw-card-sub');
-        if (sub) sub.textContent = tasks.length + ' 个点位' + (tasks.filter(t=>t.lat).length ? ' · '+tasks.filter(t=>t.lat).length+'已标注' : '');
-      }
-    });
-  });
-}
-
-function uploadPlanMap(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const url = URL.createObjectURL(file);
-  const img = document.getElementById('planMapImg');
-  const map = document.getElementById('microMap');
-  if (img && map) {
-    img.src = url;
-    img.style.display = 'block';
-    map.style.display = 'none';
-  }
-  notify('✅ 总平图已上传，点击图片标注点位');
-}
-
-function planMapClick(e) {
-  if (!markMode) return;
-  const img = e.currentTarget;
-  const rect = img.getBoundingClientRect();
-  const x = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
-  const y = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
-  const catKey = document.getElementById('markCat')?.value || 'node';
-  const cat = MICRO_CATS.find(c=>c.key===catKey);
-  const num = microTasks.filter(t=>t.cat===catKey).length+1;
-  const name = prompt('标注名称：', cat.label+num);
-  if (!name) return;
-  const t = {id:Date.now(),cat:catKey,name,theme:'',func:'',notes:'',lat:null,lng:null,address:`平面图坐标(${x}%,${y}%)`};
-  microTasks.push(t);
-
-  // Add dot on plan map
-  const dot = document.createElement('div');
-  dot.style.cssText = `position:absolute;left:${x}%;top:${y}%;transform:translate(-50%,-50%);width:24px;height:24px;border-radius:50%;background:${cat.color};color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,0.3);border:2px solid #fff;pointer-events:none;`;
-  dot.textContent = cat.icon;
-  document.getElementById('microMapWrap').appendChild(dot);
-
-  renderMicro();
-  setMarkMode(false);
-  notify('✅ 已标注：'+name);
-}
-
-function setMarkModeFor(taskId, catKey) {
-  closeModal();
-  setTimeout(() => {
-    switchTab('micro');
-    setTimeout(() => {
-      const sel = document.getElementById('markCat');
-      if (sel) sel.value = catKey;
-      setMarkMode(true);
-      notify('📍 在地图上点击标注位置，标注后回到任务书查看');
-    }, 300);
-  }, 200);
+  var marker = L.marker([t.lat,t.lng],{icon:icon}).addTo(microMap).bindPopup('<b>'+t.name+'</b>');
+  mapMarkers.push({id:t.id,marker:marker});
+  updateDistStats();
+  if (mapMarkers.length===1) { setTimeout(function(){if(microMap)microMap.setView([t.lat,t.lng],17);},200); }
+  else { setTimeout(fitMapToMarkers, 200); }
 }
 
 function setMarkMode(on) {
   markMode=on;
-  const btn=document.getElementById('markBtn');
+  var btn=document.getElementById('markBtn');
   if (btn) { btn.textContent=on?'🎯 点击地图标注…':'✚ 点击标注'; btn.style.background=on?'#dc2626':'var(--accent)'; }
   if (microMap) microMap.getContainer().style.cursor=on?'crosshair':'';
 }
 
+function setMarkModeFor(taskId, catKey) {
+  closeModal();
+  setTimeout(function(){
+    switchTab('micro');
+    setTimeout(function(){
+      var sel=document.getElementById('markCat');
+      if(sel) sel.value=catKey;
+      setMarkMode(true);
+      notify('📍 在地图上点击标注位置');
+    },300);
+  },200);
+}
+
+function uploadPlanMap(input) {
+  var file=input.files[0]; if(!file) return;
+  var url=URL.createObjectURL(file);
+  var img=document.getElementById('planMapImg');
+  var map=document.getElementById('microMap');
+  if(img&&map){img.src=url;img.style.display='block';map.style.display='none';}
+  notify('✅ 总平图已上传，点击图片标注点位');
+}
+
+function planMapClick(e) {
+  if(!markMode) return;
+  var img=e.currentTarget;
+  var rect=img.getBoundingClientRect();
+  var x=((e.clientX-rect.left)/rect.width*100).toFixed(1);
+  var y=((e.clientY-rect.top)/rect.height*100).toFixed(1);
+  var catKey=document.getElementById('markCat')?document.getElementById('markCat').value:'node';
+  var cat=MICRO_CATS.find(function(c){return c.key===catKey;});
+  var num=microTasks.filter(function(t){return t.cat===catKey;}).length+1;
+  var name=prompt('标注名称：',cat.label+num);
+  if(!name) return;
+  microTasks.push({id:Date.now(),cat:catKey,name:name,theme:'',func:'',notes:'',lat:null,lng:null,address:'平面图坐标('+x+'%,'+y+'%)'});
+  renderMicro(); setMarkMode(false); notify('✅ 已标注：'+name);
+}
+
+function updateDistStats() {
+  var statsBar=document.getElementById('microDistStats');
+  var chips=document.getElementById('distStatChips');
+  if(!statsBar||!chips) return;
+  if(microTasks.length===0){statsBar.style.display='none';return;}
+  statsBar.style.display='flex';
+  chips.innerHTML=MICRO_CATS.filter(function(cat){return microTasks.filter(function(t){return t.cat===cat.key;}).length>0;}).map(function(cat){
+    var cnt=microTasks.filter(function(t){return t.cat===cat.key;}).length;
+    var loc=microTasks.filter(function(t){return t.cat===cat.key&&t.lat;}).length;
+    return '<span style="font-size:11px;padding:3px 9px;border-radius:12px;background:'+cat.color+'18;color:'+cat.color+';font-weight:500;">'+cat.icon+' '+cat.label+' '+cnt+(loc>0?' ('+loc+'已标注)':'')+'</span>';
+  }).join('');
+}
+
+function fitMapToMarkers() {
+  if(!microMap||mapMarkers.length===0){notify('暂无已标注点位');return;}
+  var group=L.featureGroup(mapMarkers.map(function(m){return m.marker;}));
+  microMap.fitBounds(group.getBounds().pad(0.2));
+}
+
 // ══════════════════════════════
-// TAB / MODAL / MISC
+// TAB / MODAL
 // ══════════════════════════════
 function switchTab(tab) {
   currentTab=tab;
-  ['macro','meso','micro'].forEach(t=>{
-    document.getElementById('tab-'+t)?.classList.toggle('active',t===tab);
-    document.getElementById('panel-'+t).style.display=t===tab?'block':'none';
+  ['macro','meso','micro'].forEach(function(t){
+    var tabEl=document.getElementById('tab-'+t);
+    var panelEl=document.getElementById('panel-'+t);
+    if(tabEl) tabEl.classList.toggle('active',t===tab);
+    if(panelEl) panelEl.style.display=t===tab?'block':'none';
   });
-  if (tab==='micro') setTimeout(()=>{ initMicroMap(); if(microMap)microMap.invalidateSize(); },150);
+  if(tab==='micro') setTimeout(function(){initMicroMap(); if(microMap)microMap.invalidateSize();},150);
 }
 
 function closeModal() { document.getElementById('modal').classList.remove('open'); }
 
-function showProgress() {
-  document.getElementById('emptyState').style.display='none';
-  ['macro','meso','micro'].forEach(t=>{ document.getElementById('panel-'+t).style.display='none'; });
-  document.getElementById('rightScroll').innerHTML = `
-    <div class="prog-wrap">
-      <div class="prog-title"><div class="spin-b" style="width:16px;height:16px;border-width:2.5px;"></div> AI 正在生成策略框架…</div>
-      <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
-      <div class="prog-step" id="progStep">初始化…</div>
-    </div>`;
-}
-
-function setProg(txt, pct) {
-  const f=document.getElementById('progFill'); if(f) f.style.width=pct+'%';
-  const s=document.getElementById('progStep'); if(s) s.textContent=txt;
-}
-
-function restorePanels() {
-  const scroll = document.getElementById('rightScroll');
-  scroll.innerHTML = `
-    <div id="emptyState" class="empty" style="display:none;"></div>
-    <div id="panel-macro" style="display:none;"></div>
-    <div id="panel-meso" style="display:none;"></div>
-    <div id="panel-micro" style="display:none;"></div>`;
-}
-
-function resetAll() {
-  if (!confirm('确认重置所有内容？')) return;
-  fwData=null; mesoActiveSystems=[]; microTasks=[]; microMap=null; mapMarkers=[];
-  document.getElementById('tabBar').style.display='none';
-  document.getElementById('pdfBtn2').style.display='none';
-  document.getElementById('fwStatus').innerHTML='<span style="width:7px;height:7px;border-radius:50%;background:var(--border);display:inline-block;"></span> 等待生成';
-  restorePanels();
-  document.getElementById('emptyState').style.display='flex';
-  document.getElementById('genBtn').innerHTML='🤖 生成策略框架';
-  document.getElementById('genBtn').disabled=false;
-}
-
-
-// Mobile: collapsible macro blocks
+// ══════════════════════════════
+// MOBILE COLLAPSE
+// ══════════════════════════════
 function initMobileCollapse() {
-  if (window.innerWidth > 768) return;
-  document.querySelectorAll('.mac-block').forEach((block, i) => {
-    // Wrap body content
-    const label = block.querySelector('.mac-label');
-    if (!label || block.dataset.collapseInit) return;
-    block.dataset.collapseInit = '1';
-
-    // Wrap everything after label in a collapsible div
-    const children = Array.from(block.children).filter(c => c !== label);
-    const wrapper = document.createElement('div');
-    wrapper.className = 'mac-block-body';
-    children.forEach(c => wrapper.appendChild(c));
+  if(window.innerWidth>768) return;
+  document.querySelectorAll('.mac-block').forEach(function(block,i){
+    var label=block.querySelector('.mac-label');
+    if(!label||block.dataset.collapseInit) return;
+    block.dataset.collapseInit='1';
+    var children=Array.from(block.children).filter(function(c){return c!==label;});
+    var wrapper=document.createElement('div');
+    wrapper.className='mac-block-body';
+    children.forEach(function(c){wrapper.appendChild(c);});
     block.appendChild(wrapper);
-
-    // First block open, rest collapsed
-    if (i > 0) block.classList.add('collapsed');
-
-    label.addEventListener('click', () => {
-      block.classList.toggle('collapsed');
-    });
+    if(i>0) block.classList.add('collapsed');
+    label.addEventListener('click',function(){block.classList.toggle('collapsed');});
   });
 }
-// Call after renderMacro
-const _origRenderMacro = renderMacro;
-function renderMacro() {
-  _origRenderMacro();
-  setTimeout(initMobileCollapse, 50);
+
+function notify(msg){
+  var el=document.getElementById('notif');
+  if(!el) return;
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(el._t); el._t=setTimeout(function(){el.classList.remove('show');},2800);
 }
 
-
-// ── MICRO MAP DISTRIBUTION ──
-function updateDistStats() {
-  const located = microTasks.filter(t => t.lat || t.address);
-  const total = microTasks.length;
-
-  const statsBar = document.getElementById('microDistStats');
-  const chips = document.getElementById('distStatChips');
-  if (!statsBar || !chips) return;
-
-  if (total === 0) { statsBar.style.display = 'none'; return; }
-  statsBar.style.display = 'flex';
-
-  // Count by category
-  const counts = {};
-  MICRO_CATS.forEach(c => { counts[c.key] = microTasks.filter(t=>t.cat===c.key).length; });
-
-  chips.innerHTML = MICRO_CATS
-    .filter(cat => counts[cat.key] > 0)
-    .map(cat => {
-      const locatedCount = microTasks.filter(t=>t.cat===cat.key&&t.lat).length;
-      return '<span style="font-size:11px;padding:3px 9px;border-radius:12px;background:'+cat.color+'18;color:'+cat.color+';font-weight:500;">'
-        + cat.icon + ' ' + cat.label + ' ' + counts[cat.key]
-        + (locatedCount > 0 ? ' <span style="opacity:0.6;">('+locatedCount+'已标注)</span>' : '')
-        + '</span>';
-    }).join('');
-}
-
-function fitMapToMarkers() {
-  if (!microMap || mapMarkers.length === 0) {
-    notify('暂无已标注点位');
-    return;
-  }
-  const group = L.featureGroup(mapMarkers.map(m => m.marker));
-  microMap.fitBounds(group.getBounds().pad(0.2));
-  notify('✅ 已显示全部标注点位');
-}
-
-function exportMapView() {
-  notify('📷 请使用截图工具截取地图区域（手机：截屏；电脑：Shift+Cmd+4）');
-}
-
-// Override renderMicro to also update stats
-const _origRenderMicro = renderMicro;
-function renderMicro() {
-  _origRenderMicro();
-  setTimeout(updateDistStats, 100);
-}
-
-// Also update stats after each map pin added
-const _origAddMapPin = addMapPin;
-function addMapPin(t) {
-  _origAddMapPin(t);
-  updateDistStats();
-  // Auto fit map when first pin added
-  if (mapMarkers.length === 1) {
-    setTimeout(() => {
-      if (microMap) microMap.setView([t.lat, t.lng], 17);
-    }, 300);
-  } else if (mapMarkers.length > 1) {
-    setTimeout(fitMapToMarkers, 300);
-  }
-}
-
-function delay(ms){return new Promise(r=>setTimeout(r,ms));}
-function notify(msg){const el=document.getElementById('notif');el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2800);}
-
-// ── NAV SCREEN ──
-function showNavScreen() {
-  document.getElementById('navScreen').style.display = 'flex';
-  document.getElementById('mainApp').style.display = 'none';
-  document.getElementById('backToNav').classList.remove('visible');
-}
-
-function enterAll() {
-  document.getElementById('navScreen').style.display = 'none';
-  document.getElementById('mainApp').style.display = 'flex';
-  document.getElementById('backToNav').classList.add('visible');
-}
-
-function navGoTo(id) {
-  enterAll();
-  setTimeout(() => {
-    // Try clicking the element or scrolling to it
-    const el = document.getElementById(id);
-    if (!el) return;
-    // For tabs
-    if (el.classList.contains('tab') || el.classList.contains('nav-item') || el.classList.contains('phase-card')) {
-      el.click();
-    } else {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    // Switch tab if it's a panel
-    const tabId = id.replace('mod-','').replace('panel-','');
-    if (typeof switchTab === 'function' && ['macro','meso','micro'].includes(tabId)) {
-      switchTab(tabId);
-    }
-    if (typeof switchModule === 'function') {
-      switchModule(tabId, null);
-    }
-    if (typeof selectPhase === 'function' && ['concept','deepen','final'].includes(tabId)) {
-      selectPhase(tabId);
-    }
-  }, 100);
-}
-
-// Show on mobile only - or always show
-(function() {
-  // On mobile always show nav first; on desktop skip
-  if (window.innerWidth <= 768) {
-    document.getElementById('navScreen').style.display = 'flex';
-    document.getElementById('mainApp').style.display = 'none';
-  } else {
-    document.getElementById('navScreen').style.display = 'none';
-    document.getElementById('mainApp').style.display = 'flex';
-  }
-})();
+function delay(ms){return new Promise(function(r){setTimeout(r,ms);});}
 
 </script>
-
-</div>
 </body>
 </html>
