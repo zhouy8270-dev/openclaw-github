@@ -663,23 +663,92 @@ async function generate() {
 }
 
 async function generateSlideContents(templates, projectName, audience, emphasis) {
-  // Generate brief AI content for each slide
-  let basic = {}, macro = {};
-  try { basic = JSON.parse(localStorage.getItem('nm_basic') || '{}'); } catch(e){}
+  let basic = {}, culture = {}, a02 = {}, a03 = {}, a04 = {};
+  try { basic   = JSON.parse(localStorage.getItem('nm_basic')   || '{}'); } catch(e){}
+  try { culture = JSON.parse(localStorage.getItem('nm_culture') || '{}'); } catch(e){}
+  try { a02     = JSON.parse(localStorage.getItem('nm_agent02') || '{}'); } catch(e){}
+  try { a03     = JSON.parse(localStorage.getItem('nm_agent03') || '{}'); } catch(e){}
+  try { a04     = JSON.parse(localStorage.getItem('nm_agent04') || '{}'); } catch(e){}
 
-  const context = '项目：' + projectName + '，户数：' + (basic.households||'') + '，人口：' + (basic.population||'') + '，背景：' + (basic.bg||'') + '，汇报对象：' + audience + '，强调：' + emphasis;
   const isGov = currentVersion === 'gov';
   const phase = currentPhase;
 
-  const prompt = '你是城市规划汇报专家。为以下项目的' + PHASE_NAMES[phase] + '（' + (isGov?'政府版：详细专业，含规范指标':'居民版：简洁通俗，重效果图') + '）生成每张幻灯片的内容要点，只返回JSON数组：\n'
-    + '[{"type":"slide_type","keyPoints":["要点1","要点2","要点3"],"speakerNotes":"演讲备注（30字）"}]\n'
-    + '幻灯片列表：' + templates.map(t=>t.type+':'+t.title).join('、') + '\n'
-    + context;
+  // 01 基本信息
+  const basicSummary = '【项目基本信息】'
+    + '项目名称：' + (basic.name||projectName)
+    + '，位置：' + (basic.city||'-')
+    + '，建成年代：' + (basic.year||'-')
+    + '，用地面积：' + (basic.area||'-') + '㎡'
+    + '，总户数：' + (basic.households||'-')
+    + '，总人口：' + (basic.population||'-')
+    + '，老龄化：' + (basic.elderly||'-')
+    + '，总预算：' + (basic.budget||'-') + '万元'
+    + '，改造周期：' + (basic.period||'-')
+    + '，背景：' + (basic.bg||'-')
+    + '，居民诉求：' + (basic.needs||'-');
+
+  // 01 历史文化
+  const cultureSummary = culture.history
+    ? '【历史文化】历史：' + (culture.history||'').slice(0,100)
+      + '，文化特色：' + (culture.character||'').slice(0,80)
+      + '，文化资产：' + (culture.assets||'').slice(0,80)
+    : '';
+
+  // 02 问题诊断
+  const diagSummary = a02.total
+    ? '【问题诊断结果】共发现' + a02.total + '处问题'
+      + '，高严重度' + (a02.severity&&a02.severity['高']||0) + '处'
+      + '，中' + (a02.severity&&a02.severity['中']||0) + '处'
+      + '，低' + (a02.severity&&a02.severity['低']||0) + '处'
+      + '。问题分类：' + (a02.categories||[]).map(function(cat){return cat.icon+cat.name+cat.count+'处';}).join('、')
+      + '。主要问题：' + (a02.topIssues||[]).slice(0,5).map(function(i){return i.description;}).join('；')
+      + '。诊断报告摘要：' + (a02.report||'').slice(0,200)
+    : '【问题诊断】暂未完成';
+
+  // 03 策略框架
+  const macro = a03.macro || {};
+  const strategySummary = a03.microTasks
+    ? '【策略框架】'
+      + '定位：' + (macro.positioning||'-')
+      + '，愿景：' + (macro.vision||'-')
+      + '，原则：' + (macro.principles||[]).map(function(p){return p.name;}).join('、')
+      + '。中观系统策略：' + (a03.mesoSystems||[]).map(function(s){return s.name+'（'+s.strategy.slice(0,30)+'）';}).join('；')
+      + '。微观节点共' + a03.microTasks.length + '个：' + a03.microTasks.map(function(t){return t.name+'（'+t.theme+'）';}).join('、')
+    : '【策略框架】暂未生成';
+
+  // 04 设计方案
+  const designSummary = a04.concept
+    ? '【设计方案】'
+      + '设计理念：' + (a04.concept.idea||'-')
+      + '，风格定位：' + (a04.concept.style||'-')
+      + '，色彩方案：' + (a04.concept.colors||[]).map(function(c){return c.name;}).join('、')
+      + '。节点设计：' + (a04.nodes||[]).map(function(n){return n.name+'（'+n.theme+'）';}).join('、')
+    : '【设计方案】暂未完成';
+
+  // 汇总context
+  const context = basicSummary
+    + '\n' + cultureSummary
+    + '\n' + diagSummary
+    + '\n' + strategySummary
+    + '\n' + designSummary
+    + '\n汇报对象：' + audience
+    + '，本次特别强调：' + emphasis;
+
+  const prompt = '你是城市规划汇报专家。根据以下完整项目数据，为'
+    + PHASE_NAMES[phase] + '（'
+    + (isGov
+      ? '政府版：详细专业，引用规范依据，包含具体数据和指标，语言正式'
+      : '居民版：简洁通俗，重点展示效果图和改造成果，避免专业术语，不引争议')
+    + '）生成每张幻灯片内容要点，只返回JSON数组，不要其他内容：\n'
+    + '[{"type":"slide_type","keyPoints":["具体要点1","具体要点2","具体要点3"],"speakerNotes":"演讲备注30字"}]\n'
+    + '幻灯片列表：' + templates.map(function(t){return t.type+':'+t.title;}).join('、') + '\n'
+    + '完整项目数据：\n' + context;
+
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch(window.location.origin + '/api/claude', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:2000, messages:[{role:'user',content:prompt}] })
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:2000, agent_id:'agent05', messages:[{role:'user',content:prompt}] })
     });
     const d = await res.json();
     const txt = (d.content?.[0]?.text || '').replace(/```json|```/g,'').trim();
@@ -821,18 +890,32 @@ async function genSlideContent(idx) {
   const slide = reportSlides[idx];
   if (!slide) return;
   const isGov = currentVersion === 'gov';
-  let basic = {};
-  try { basic = JSON.parse(localStorage.getItem('nm_basic') || '{}'); } catch(e){}
+
+  let basic = {}, culture = {}, a02 = {}, a03 = {}, a04 = {};
+  try { basic   = JSON.parse(localStorage.getItem('nm_basic')   || '{}'); } catch(e){}
+  try { culture = JSON.parse(localStorage.getItem('nm_culture') || '{}'); } catch(e){}
+  try { a02     = JSON.parse(localStorage.getItem('nm_agent02') || '{}'); } catch(e){}
+  try { a03     = JSON.parse(localStorage.getItem('nm_agent03') || '{}'); } catch(e){}
+  try { a04     = JSON.parse(localStorage.getItem('nm_agent04') || '{}'); } catch(e){}
+
+  const macro = a03.macro || {};
+  const context =
+    '项目：' + (basic.name||'社区项目') + '，背景：' + (basic.bg||'') + '，居民诉求：' + (basic.needs||'')
+    + '。问题诊断：' + (a02.total ? '共'+a02.total+'处，高严重度'+(a02.severity&&a02.severity['高']||0)+'处，主要问题：'+(a02.topIssues||[]).slice(0,3).map(function(i){return i.description;}).join('；') : '未完成')
+    + '。策略：定位「' + (macro.positioning||'') + '」，愿景「' + (macro.vision||'') + '」'
+    + '，中观系统：' + (a03.mesoSystems||[]).map(function(s){return s.name+'：'+s.strategy;}).join('；')
+    + '，节点：' + (a03.microTasks||[]).map(function(t){return t.name+'（'+t.theme+'）';}).join('、')
+    + '。设计理念：' + ((a04.concept&&a04.concept.idea)||'') + '，风格：' + ((a04.concept&&a04.concept.style)||'');
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch(window.location.origin + '/api/claude', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:600,
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:600, agent_id:'agent05',
         messages:[{role:'user',content:
-          '你是汇报专家。为社区微更新项目的「' + slide.title + '」幻灯片生成内容，'
-          + (isGov ? '政府版：专业详细，引用规范依据' : '居民版：通俗简洁，避免专业术语')
-          + '。只返回JSON：{"keyPoints":["要点1","要点2","要点3"],"speakerNotes":"30字备注"}\n'
-          + '项目：' + (basic.name||'社区项目') + '，背景：' + (basic.bg||'')
+          '你是城市规划汇报专家。基于以下完整项目数据，为「' + slide.title + '」幻灯片生成具体内容要点，'
+          + (isGov ? '政府版：专业详细，引用规范依据，包含具体数据' : '居民版：通俗简洁，重效果图，不引争议')
+          + '。只返回JSON：{"keyPoints":["具体要点1","具体要点2","具体要点3"],"speakerNotes":"30字备注"}\n'
+          + '完整项目数据：' + context
         }]
       })
     });
@@ -848,106 +931,49 @@ async function genSlideContent(idx) {
   }
 }
 
-function closeModal() { document.getElementById('slideModal').classList.remove('open'); }
-
-// ══════════════════════════════
-// EXPORT
-// ══════════════════════════════
-function exportPPT() {
-  notify('📥 PPT导出功能开发中，当前可截图或打印各幻灯片');
-}
-
-function exportZip() {
-  if (currentPhase === 'concept') notify('📦 概念阶段数据包：包含现状照片、问卷数据、策略框架，正在打包…');
-  else if (currentPhase === 'deepen') notify('📦 深化阶段数据包：包含AI生图提示词和现状照片，正在打包…');
-}
-
-// ══════════════════════════════
-// INIT
-// ══════════════════════════════
 function init() {
   try {
-    // Try agent04 data first, fallback to agent01
-    const a04 = JSON.parse(localStorage.getItem('nm_agent04') || 'null');
-    const basic = JSON.parse(localStorage.getItem('nm_basic') || '{}');
+    const basic   = JSON.parse(localStorage.getItem('nm_basic')   || '{}');
+    const culture = JSON.parse(localStorage.getItem('nm_culture') || '{}');
+    const a02     = JSON.parse(localStorage.getItem('nm_agent02') || 'null');
+    const a03     = JSON.parse(localStorage.getItem('nm_agent03') || 'null');
+    const a04     = JSON.parse(localStorage.getItem('nm_agent04') || 'null');
 
-    const name = (a04 && a04.projectName) || basic.name || '';
+    const name = (a04&&a04.projectName) || (a03&&a03.projectName) || basic.name || '';
     if (name) document.getElementById('f-name').value = name;
 
-    // Show data source indicator
-    if (a04) {
-      const badge = document.createElement('div');
-      badge.style.cssText = 'font-size:11px;color:var(--green);background:var(--gl);padding:4px 10px;border-radius:6px;margin-top:6px;';
-      badge.textContent = '✅ 已读取智能体04设计方案';
-      document.getElementById('f-name').parentNode.appendChild(badge);
-    }
-  } catch(e) {}
+    // 全链路数据状态面板
+    const container = document.getElementById('f-name').parentNode;
+    const existing = document.getElementById('data-chain-status');
+    if (existing) existing.remove();
+
+    const badge = document.createElement('div');
+    badge.id = 'data-chain-status';
+    badge.style.cssText = 'font-size:11px;padding:8px 10px;border-radius:8px;margin-top:8px;border:1px solid var(--border);background:var(--bg);line-height:2;';
+
+    const rows = [
+      { label:'01 基本信息', ok: !!basic.name,      detail: basic.name ? basic.name : '未录入' },
+      { label:'01 历史文化', ok: !!culture.history, detail: culture.history ? '已录入' : '未录入' },
+      { label:'02 问题诊断', ok: !!a02,             detail: a02 ? '共'+a02.total+'处问题' : '未完成' },
+      { label:'03 策略框架', ok: !!a03,             detail: a03 ? (a03.microTasks&&a03.microTasks.length||0)+'个节点' : '未生成' },
+      { label:'04 设计方案', ok: !!a04,             detail: a04 ? ((a04.concept&&a04.concept.style)||'已完成') : '未完成' },
+    ];
+
+    badge.innerHTML = '<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">📊 汇报数据来源（01→02→03→04→05）</div>'
+      + rows.map(function(r) {
+          return '<div style="display:flex;align-items:center;gap:6px;">'
+            + '<span>' + (r.ok ? '✅' : '⬜') + '</span>'
+            + '<span style="color:' + (r.ok ? 'var(--text)' : 'var(--muted)') + ';font-weight:' + (r.ok ? '600' : '400') + ';">' + r.label + '</span>'
+            + '<span style="color:var(--muted);margin-left:auto;font-size:10px;">' + r.detail + '</span>'
+            + '</div>';
+        }).join('');
+
+    container.appendChild(badge);
+
+  } catch(e) { console.error('init:', e); }
 
   document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
   selectPhase('concept');
 }
 
-function notify(msg) {
-  const el = document.getElementById('notif');
-  el.textContent = msg; el.classList.add('show');
-  clearTimeout(el._t); el._t = setTimeout(()=>el.classList.remove('show'), 3000);
-}
 
-init();
-
-// ── NAV SCREEN ──
-function showNavScreen() {
-  document.getElementById('navScreen').style.display = 'flex';
-  document.getElementById('mainApp').style.display = 'none';
-  document.getElementById('backToNav').classList.remove('visible');
-}
-
-function enterAll() {
-  document.getElementById('navScreen').style.display = 'none';
-  document.getElementById('mainApp').style.display = 'flex';
-  document.getElementById('backToNav').classList.add('visible');
-}
-
-function navGoTo(id) {
-  enterAll();
-  setTimeout(() => {
-    // Try clicking the element or scrolling to it
-    const el = document.getElementById(id);
-    if (!el) return;
-    // For tabs
-    if (el.classList.contains('tab') || el.classList.contains('nav-item') || el.classList.contains('phase-card')) {
-      el.click();
-    } else {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    // Switch tab if it's a panel
-    const tabId = id.replace('mod-','').replace('panel-','');
-    if (typeof switchTab === 'function' && ['macro','meso','micro'].includes(tabId)) {
-      switchTab(tabId);
-    }
-    if (typeof switchModule === 'function') {
-      switchModule(tabId, null);
-    }
-    if (typeof selectPhase === 'function' && ['concept','deepen','final'].includes(tabId)) {
-      selectPhase(tabId);
-    }
-  }, 100);
-}
-
-// Show on mobile only - or always show
-(function() {
-  // On mobile always show nav first; on desktop skip
-  if (window.innerWidth <= 768) {
-    document.getElementById('navScreen').style.display = 'flex';
-    document.getElementById('mainApp').style.display = 'none';
-  } else {
-    document.getElementById('navScreen').style.display = 'none';
-    document.getElementById('mainApp').style.display = 'flex';
-  }
-})();
-
-</script>
-
-</div>
-</body>
-</html>
