@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeighborMind · 社区微更新AI平台</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f6fb;--white:#fff;--border:#e4e9f2;--text:#1a2235;--muted:#7a8aa0;
+  --accent:#1d4ed8;--al:#eff4ff;
+  --green:#059669;--gl:#ecfdf5;
+  --orange:#d97706;--ol:#fffbeb;
+  --purple:#7c3aed;--pl:#f5f3ff;
+  --red:#dc2626;
+  --shadow:0 2px 12px rgba(0,0,0,0.07);
+  --shadow-lg:0 8px 32px rgba(0,0,0,0.12);
+  --r:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* HERO */
+.hero{
+  background:linear-gradient(135deg,#0f172a 0%,#1d4ed8 50%,#4f46e5 100%);
+  padding:48px 24px 56px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.hero-logo{
+  font-family:'Syne',sans-serif;font-size:15px;font-weight:800;
+  color:rgba(255,255,255,0.7);margin-bottom:24px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.hero-logo em{color:#fff;font-style:normal;}
+.hero-title{
+  font-family:'Syne',sans-serif;font-size:clamp(28px,6vw,48px);
+  font-weight:800;color:#fff;line-height:1.15;margin-bottom:14px;
+}
+.hero-title span{color:#93c5fd;}
+.hero-sub{
+  font-size:clamp(13px,2.5vw,16px);color:rgba(255,255,255,0.65);
+  max-width:480px;margin:0 auto 32px;line-height:1.7;
+}
+.hero-badges{
+  display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:36px;
+}
+.badge{
+  font-size:12px;padding:5px 12px;border-radius:20px;font-weight:500;
+  background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.85);
+  border:1px solid rgba(255,255,255,0.15);
+}
+
+
+/* STATUS BAR */
+.status-bar{
+  background:var(--white);border-bottom:1px solid var(--border);
+  padding:10px 24px;display:flex;align-items:center;gap:16px;
+  flex-wrap:wrap;
+}
+.status-item{
+  display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);
+}
+.status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.status-item.done .status-dot{background:var(--green);}
+.status-item.pending .status-dot{background:var(--border);}
+.status-project{margin-left:auto;font-size:12px;font-weight:600;color:var(--accent);}
+
+/* MAIN */
+.main{max-width:960px;margin:0 auto;padding:32px 20px 60px;}
+
+/* SECTION TITLE */
+.section-title{
+  font-family:'Syne',sans-serif;font-size:18px;font-weight:800;
+  margin-bottom:16px;display:flex;align-items:center;gap:8px;
+}
+.section-title::after{
+  content:'';flex:1;height:1px;background:var(--border);margin-left:8px;
+}
+
+/* AGENT CARDS */
+.agents-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:16px;
+  margin-bottom:40px;
+}
+.agent-card{
+  background:var(--white);border:1px solid var(--border);border-radius:var(--r);
+  overflow:hidden;transition:all 0.25s;cursor:pointer;
+  text-decoration:none;color:var(--text);
+  display:block;
+  animation:up 0.4s ease forwards;opacity:0;
+}
+.agent-card:hover{
+  box-shadow:var(--shadow-lg);transform:translateY(-3px);
+  border-color:var(--card-color,var(--accent));
+}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.agent-card-top{
+  padding:20px 20px 16px;
+  background:linear-gradient(135deg,var(--card-bg,#eff4ff),transparent);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:flex-start;gap:14px;
+}
+.agent-num{
+  width:40px;height:40px;border-radius:11px;
+  background:var(--card-color,var(--accent));
+  color:#fff;font-family:'Syne',sans-serif;font-size:16px;font-weight:800;
+  display:grid;place-items:center;flex-shrink:0;
+}
+.agent-info{flex:1;}
+.agent-name{
+  font-family:'Syne',sans-serif;font-size:15px;font-weight:800;
+  color:var(--card-color,var(--accent));margin-bottom:3px;
+}
+.agent-desc{font-size:12px;color:var(--muted);line-height:1.5;}
+.agent-card-body{padding:14px 20px;}
+.agent-features{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.agent-feature{
+  display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);
+}
+.agent-feature::before{content:'·';color:var(--card-color,var(--accent));font-size:16px;line-height:1;}
+.agent-status{
+  display:flex;align-items:center;justify-content:space-between;
+  padding-top:10px;border-top:1px solid var(--border);
+}
+.agent-status-badge{
+  font-size:10px;font-weight:600;padding:3px 8px;border-radius:6px;
+}
+.agent-enter{
+  font-size:12px;font-weight:600;color:var(--card-color,var(--accent));
+  display:flex;align-items:center;gap:4px;
+}
+.agent-enter::after{content:'→';font-size:14px;}
+
+/* MOBILE CAPTURE CARD */
+.capture-card{
+  background:linear-gradient(135deg,#dc2626,#d97706);
+  border-radius:var(--r);padding:20px 24px;
+  display:flex;align-items:center;gap:16px;
+  color:#fff;cursor:pointer;text-decoration:none;
+  transition:all 0.2s;margin-bottom:40px;
+}
+.capture-card:hover{opacity:0.92;transform:translateY(-1px);}
+.capture-icon{font-size:36px;}
+.capture-info{flex:1;}
+.capture-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;margin-bottom:4px;}
+.capture-sub{font-size:12px;opacity:0.8;line-height:1.5;}
+.capture-arrow{font-size:24px;opacity:0.7;}
+
+/* WORKFLOW */
+.workflow{
+  background:var(--white);border:1px solid var(--border);border-radius:var(--r);
+  padding:24px;margin-bottom:32px;
+}
+.workflow-steps{
+  display:flex;align-items:center;gap:0;flex-wrap:wrap;
+  justify-content:center;
+}
+.wf-step{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:12px 16px;
+}
+.wf-icon{
+  width:44px;height:44px;border-radius:12px;
+  display:grid;place-items:center;font-size:20px;
+}
+.wf-name{font-size:11px;font-weight:600;color:var(--text);}
+a.wf-step{cursor:pointer;border-radius:10px;transition:all 0.2s;}
+a.wf-step:hover{background:var(--bg);transform:translateY(-2px);}
+.wf-arrow{
+  font-size:20px;color:var(--muted);padding:0 4px;
+  flex-shrink:0;align-self:center;
+}
+
+/* DATA STATUS */
+.data-status{
+  background:var(--white);border:1px solid var(--border);border-radius:var(--r);
+  padding:20px 24px;margin-bottom:32px;
+}
+.data-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:14px;}
+.data-item{
+  background:var(--bg);border-radius:10px;padding:12px 14px;
+  display:flex;align-items:center;gap:10px;
+}
+.data-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.data-dot.filled{background:var(--green);}
+.data-dot.empty{background:var(--border);}
+.data-label{font-size:12px;font-weight:500;}
+.data-val{font-size:11px;color:var(--muted);margin-top:1px;}
+
+/* FOOTER */
+.footer{
+  text-align:center;padding:24px;
+  font-size:12px;color:var(--muted);border-top:1px solid var(--border);
+  background:var(--white);
+}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+  .hero{padding:32px 16px 40px;}
+  .agents-grid{grid-template-columns:1fr;}
+  .workflow-steps{gap:0;}
+  .wf-arrow{display:none;}
+  
+  
+  .main{padding:20px 14px 40px;}
+}
+
+/* ── PROJECT BAR ── */
+.project-bar {
+  background: linear-gradient(135deg,#1e3a5f,#2d5a8e);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+.project-bar-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.project-bar-icon { font-size: 20px; flex-shrink: 0; }
+.project-bar-info { min-width: 0; }
+.project-bar-label { font-size: 10px; color: rgba(255,255,255,0.55); letter-spacing: 1px; text-transform: uppercase; }
+.project-bar-name { font-size: 15px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+.project-bar-date { font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 1px; }
+.project-bar-right { display: flex; gap: 8px; flex-shrink: 0; }
+.pb-btn { padding: 7px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; border: none; cursor: pointer; font-family: inherit; white-space: nowrap; }
+.pb-btn-new { background: #fff; color: #1e3a5f; }
+.pb-btn-switch { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); }
+
+/* ── PROJECT MODAL ── */
+.pm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; }
+.pm-overlay.open { display: flex; }
+.pm-box { background: #fff; border-radius: 20px; padding: 24px; width: 100%; max-width: 400px; }
+.pm-title { font-size: 18px; font-weight: 700; color: #1a1a2e; margin-bottom: 20px; }
+.pm-input { width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 15px; font-family: inherit; outline: none; }
+.pm-input:focus { border-color: #2d5a8e; }
+.pm-actions { display: flex; gap: 10px; margin-top: 16px; }
+.pm-cancel { flex: 1; padding: 12px; border-radius: 12px; background: #f3f4f6; border: none; font-size: 14px; cursor: pointer; font-family: inherit; color: #6b7280; }
+.pm-ok { flex: 2; padding: 12px; border-radius: 12px; background: linear-gradient(135deg,#1e3a5f,#2d5a8e); border: none; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; color: #fff; }
+
+/* ── PROJECT LIST MODAL ── */
+.pl-item { padding: 14px; border-radius: 12px; border: 2px solid #e5e7eb; margin-bottom: 8px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.pl-item:hover { border-color: #2d5a8e; background: #f0f6ff; }
+.pl-item.active { border-color: #2d5a8e; background: #f0f6ff; }
+.pl-item-name { font-size: 14px; font-weight: 600; color: #1a1a2e; }
+.pl-item-date { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+.pl-item-del { width: 28px; height: 28px; border-radius: 8px; background: #fee2e2; border: none; color: #ef4444; font-size: 14px; cursor: pointer; flex-shrink: 0; }
+.pl-empty { text-align: center; padding: 30px; color: #9ca3af; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<!-- PROJECT BAR -->
+<div class="project-bar">
+  <div class="project-bar-left">
+    <div class="project-bar-icon">📁</div>
+    <div class="project-bar-info">
+      <div class="project-bar-label">当前项目</div>
+      <div class="project-bar-name" id="pbName">未选择项目</div>
+      <div class="project-bar-date" id="pbDate">请新建或选择项目</div>
+    </div>
+  </div>
+  <div class="project-bar-right">
+    <button class="pb-btn pb-btn-switch" onclick="openProjectList()">切换</button>
+    <button class="pb-btn pb-btn-new" onclick="openNewProject()">＋ 新建</button>
+  </div>
+</div>
+
+<!-- NEW PROJECT MODAL -->
+<div class="pm-overlay" id="newProjectModal">
+  <div class="pm-box">
+    <div class="pm-title">📁 新建项目</div>
+    <input class="pm-input" id="newProjectName" placeholder="请输入项目名称，如：劲松一区微更新" maxlength="30">
+    <div style="font-size:11px;color:#9ca3af;margin-top:6px;">日期：<span id="newProjectDate"></span>，自动记录</div>
+    <div class="pm-actions">
+      <button class="pm-cancel" onclick="closeNewProject()">取消</button>
+      <button class="pm-ok" onclick="createProject()">创建项目</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROJECT LIST MODAL -->
+<div class="pm-overlay" id="projectListModal">
+  <div class="pm-box">
+    <div class="pm-title">📋 选择项目</div>
+    <div id="projectListItems" style="max-height:300px;overflow-y:auto;"></div>
+    <div class="pm-actions">
+      <button class="pm-cancel" onclick="closeProjectList()">关闭</button>
+      <button class="pm-ok" onclick="openNewProject()">＋ 新建项目</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-logo">🏘 Neighbor<em>Mind</em></div>
+  <div class="hero-title">社区微更新<br><span>AI咨询平台</span></div>
+  <div class="hero-sub">多智能体协同工作，从数据采集到汇报生成，全流程AI辅助</div>
+  <div class="hero-badges">
+    <span class="badge">🏘 老旧社区</span>
+    <span class="badge">🤖 AI驱动</span>
+    <span class="badge">📱 手机+电脑</span>
+    <span class="badge">🔗 多智能体联动</span>
+  </div>
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div class="status-bar" id="statusBar">
+  <div class="status-item pending" id="st-basic">
+    <div class="status-dot"></div>基本信息
+  </div>
+  <div class="status-item pending" id="st-diag">
+    <div class="status-dot"></div>问题诊断
+  </div>
+  <div class="status-item pending" id="st-strategy">
+    <div class="status-dot"></div>策略框架
+  </div>
+  <div class="status-item pending" id="st-design">
+    <div class="status-dot"></div>设计方案
+  </div>
+  <div class="status-item pending" id="st-report">
+    <div class="status-dot"></div>汇报生成
+  </div>
+  <div class="status-project" id="projectName">未开始项目</div>
+</div>
+
+<div class="main">
+
+  <!-- MOBILE CAPTURE -->
+  <a class="capture-card" href="capture.html">
+    <div class="capture-icon">📷</div>
+    <div class="capture-info">
+      <div class="capture-title">手机现场采集端</div>
+      <div class="capture-sub">拍照员 · 摄像员 · GPS定位 · 现场录音<br>建议手机端使用</div>
+    </div>
+    <div class="capture-arrow">›</div>
+  </a>
+
+  <!-- WORKFLOW -->
+  <div class="section-title">工作流程</div>
+  <div class="workflow" style="margin-bottom:24px;">
+    <div class="workflow-steps">
+      <a class="wf-step" href="agent01-desktop.html" style="text-decoration:none;">
+        <div class="wf-icon" style="background:#f5f3ff;">📋</div>
+        <div class="wf-name" style="color:#7c3aed;">01 数据采集</div>
+      </a>
+      <div class="wf-arrow">→</div>
+      <a class="wf-step" href="agent02.html" style="text-decoration:none;">
+        <div class="wf-icon" style="background:#fef2f2;">🔍</div>
+        <div class="wf-name" style="color:#dc2626;">02 问题诊断</div>
+      </a>
+      <div class="wf-arrow">→</div>
+      <a class="wf-step" href="agent03.html" style="text-decoration:none;">
+        <div class="wf-icon" style="background:#eff4ff;">🧭</div>
+        <div class="wf-name" style="color:#1d4ed8;">03 策略框架</div>
+      </a>
+      <div class="wf-arrow">→</div>
+      <a class="wf-step" href="agent04.html" style="text-decoration:none;">
+        <div class="wf-icon" style="background:#ecfdf5;">🎨</div>
+        <div class="wf-name" style="color:#059669;">04 设计方案</div>
+      </a>
+      <div class="wf-arrow">→</div>
+      <a class="wf-step" href="agent05.html" style="text-decoration:none;">
+        <div class="wf-icon" style="background:#fffbeb;">📊</div>
+        <div class="wf-name" style="color:#d97706;">05 汇报生成</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- AGENTS -->
+  <div class="section-title">五个智能体</div>
+  <div class="agents-grid">
+
+    <a class="agent-card" href="agent01-desktop.html" style="--card-color:#7c3aed;--card-bg:#f5f3ff;animation-delay:0s;">
+      <div class="agent-card-top">
+        <div class="agent-num">01</div>
+        <div class="agent-info">
+          <div class="agent-name">数据采集管理端</div>
+          <div class="agent-desc">录入基本信息，汇总现场素材与调研资料</div>
+        </div>
+      </div>
+      <div class="agent-card-body">
+        <div class="agent-features">
+          <div class="agent-feature">基本信息 · 历史文化（第一阶段必填）</div>
+          <div class="agent-feature">问卷数据 · 会议纪要 · 录音文件</div>
+          <div class="agent-feature">监控素材 · 新闻政策 · 现场照片</div>
+        </div>
+        <div class="agent-status">
+          <span class="agent-status-badge" id="badge-01" style="background:#f5f3ff;color:#7c3aed;">待录入</span>
+          <span class="agent-enter">进入</span>
+        </div>
+      </div>
+    </a>
+
+    <a class="agent-card" href="agent02.html" style="--card-color:#dc2626;--card-bg:#fef2f2;animation-delay:0.07s;">
+      <div class="agent-card-top">
+        <div class="agent-num" style="background:#dc2626;">02</div>
+        <div class="agent-info">
+          <div class="agent-name">社区问题诊断</div>
+          <div class="agent-desc">上传现场照片，AI识别问题并生成诊断报告</div>
+        </div>
+      </div>
+      <div class="agent-card-body">
+        <div class="agent-features">
+          <div class="agent-feature">最多上传20张照片逐图分析</div>
+          <div class="agent-feature">问题分类 · 严重度评级 · 标签提取</div>
+          <div class="agent-feature">生成诊断报告 → 传入智能体03</div>
+        </div>
+        <div class="agent-status">
+          <span class="agent-status-badge" id="badge-02" style="background:#fef2f2;color:#dc2626;">待诊断</span>
+          <span class="agent-enter" style="color:#dc2626;">进入</span>
+        </div>
+      </div>
+    </a>
+
+    <a class="agent-card" href="agent03.html" style="--card-color:#1d4ed8;--card-bg:#eff4ff;animation-delay:0.14s;">
+      <div class="agent-card-top">
+        <div class="agent-num" style="background:#1d4ed8;">03</div>
+        <div class="agent-info">
+          <div class="agent-name">策略框架生成</div>
+          <div class="agent-desc">上传规划政策文件，AI生成三层策略框架</div>
+        </div>
+      </div>
+      <div class="agent-card-body">
+        <div class="agent-features">
+          <div class="agent-feature">宏观战略：定位·愿景·原则</div>
+          <div class="agent-feature">中观系统：六大系统分析策略</div>
+          <div class="agent-feature">微观任务书：景观节点地图标注</div>
+        </div>
+        <div class="agent-status">
+          <span class="agent-status-badge" id="badge-03" style="background:#eff4ff;color:#1d4ed8;">待生成</span>
+          <span class="agent-enter" style="color:#1d4ed8;">进入</span>
+        </div>
+      </div>
+    </a>
+
+    <a class="agent-card" href="agent04.html" style="--card-color:#059669;--card-bg:#ecfdf5;animation-delay:0.21s;">
+      <div class="agent-card-top">
+        <div class="agent-num" style="background:#059669;">04</div>
+        <div class="agent-info">
+          <div class="agent-name">设计方案生成</div>
+          <div class="agent-desc">AI辅助生成总体构思、案例意向与专项设计</div>
+        </div>
+      </div>
+      <div class="agent-card-body">
+        <div class="agent-features">
+          <div class="agent-feature">总体构思：理念·风格·色彩方案</div>
+          <div class="agent-feature">效果图节点：现状对比·AI生图提示词</div>
+          <div class="agent-feature">专项设计：种植·铺装·小品·照明</div>
+        </div>
+        <div class="agent-status">
+          <span class="agent-status-badge" id="badge-04" style="background:#ecfdf5;color:#059669;">待设计</span>
+          <span class="agent-enter" style="color:#059669;">进入</span>
+        </div>
+      </div>
+    </a>
+
+    <a class="agent-card" href="agent05.html" style="--card-color:#d97706;--card-bg:#fffbeb;animation-delay:0.28s;">
+      <div class="agent-card-top">
+        <div class="agent-num" style="background:#d97706;">05</div>
+        <div class="agent-info">
+          <div class="agent-name">汇报生成</div>
+          <div class="agent-desc">三阶段×两版本汇报，导出PPT</div>
+        </div>
+      </div>
+      <div class="agent-card-body">
+        <div class="agent-features">
+          <div class="agent-feature">概念汇报·深化汇报·定案汇报</div>
+          <div class="agent-feature">政府版（详细专业）· 居民版（简洁通俗）</div>
+          <div class="agent-feature">造价估算·数据包·PPT导出</div>
+        </div>
+        <div class="agent-status">
+          <span class="agent-status-badge" id="badge-05" style="background:#fffbeb;color:#d97706;">待汇报</span>
+          <span class="agent-enter" style="color:#d97706;">进入</span>
+        </div>
+      </div>
+    </a>
+
+  </div>
+
+  <!-- DATA STATUS -->
+  <div class="section-title">项目数据状态</div>
+  <div class="data-status">
+    <div style="font-size:12px;color:var(--muted);">各智能体之间通过浏览器本地存储传递数据，以下为当前存储状态：</div>
+    <div class="data-items" id="dataItems">
+      <div class="data-item"><div class="data-dot empty" id="d-basic"></div><div><div class="data-label">基本信息</div><div class="data-val" id="dv-basic">未录入</div></div></div>
+      <div class="data-item"><div class="data-dot empty" id="d-culture"></div><div><div class="data-label">历史文化</div><div class="data-val" id="dv-culture">未录入</div></div></div>
+      <div class="data-item"><div class="data-dot empty" id="d-a02"></div><div><div class="data-label">问题诊断</div><div class="data-val" id="dv-a02">未完成</div></div></div>
+      <div class="data-item"><div class="data-dot empty" id="d-a03"></div><div><div class="data-label">策略框架</div><div class="data-val" id="dv-a03">未生成</div></div></div>
+      <div class="data-item"><div class="data-dot empty" id="d-a04"></div><div><div class="data-label">设计方案</div><div class="data-val" id="dv-a04">未完成</div></div></div>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px;">
+      <button onclick="refreshStatus()" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;">🔄 刷新状态</button>
+      <button onclick="clearAll()" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--red);font-family:'Noto Sans SC',sans-serif;">🗑 清空所有数据</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  🏘 NeighborMind · 社区微更新AI咨询平台 · Powered by Claude
+</div>
+
+<script>
+function refreshStatus() {
+  try {
+    const basic   = JSON.parse(localStorage.getItem('nm_basic')   || 'null');
+    const culture = JSON.parse(localStorage.getItem('nm_culture') || 'null');
+    const a02     = JSON.parse(localStorage.getItem('nm_agent02') || 'null');
+    const a03     = JSON.parse(localStorage.getItem('nm_agent03') || 'null');
+    const a04     = JSON.parse(localStorage.getItem('nm_agent04') || 'null');
+
+    function setStatus(dotId, valId, filled, label) {
+      const dot = document.getElementById(dotId);
+      const val = document.getElementById(valId);
+      if (dot) dot.className = 'data-dot ' + (filled ? 'filled' : 'empty');
+      if (val) val.textContent = label;
+    }
+
+    setStatus('d-basic',   'dv-basic',   !!basic,   basic   ? (basic.name||'已录入')                     : '未录入');
+    setStatus('d-culture', 'dv-culture', !!culture, culture ? '已录入'                                   : '未录入');
+    setStatus('d-a02',     'dv-a02',     !!a02,     a02     ? '发现'+a02.total+'处问题'                   : '未完成');
+    setStatus('d-a03',     'dv-a03',     !!a03,     a03     ? a03.microTasks.length+'个节点'              : '未生成');
+    setStatus('d-a04',     'dv-a04',     !!a04,     a04     ? (a04.projectName||'已完成')                 : '未完成');
+
+    // Status bar
+    const stMap = {
+      'st-basic':    !!basic,
+      'st-diag':     !!a02,
+      'st-strategy': !!a03,
+      'st-design':   !!a04,
+      'st-report':   false,
+    };
+    Object.entries(stMap).forEach(function(e) {
+      const el = document.getElementById(e[0]);
+      if (el) el.className = 'status-item ' + (e[1] ? 'done' : 'pending');
+    });
+
+    // Project name
+    const pname = (a03&&a03.projectName) || (basic&&basic.name) || '未开始项目';
+    const el = document.getElementById('projectName');
+    if (el) el.textContent = pname;
+
+    // Badge updates
+    if (basic)   { const b=document.getElementById('badge-01'); if(b){b.textContent='已录入';b.style.background='var(--gl)';b.style.color='var(--green)';}}
+    if (a02)     { const b=document.getElementById('badge-02'); if(b){b.textContent='已诊断';b.style.background='var(--gl)';b.style.color='var(--green)';}}
+    if (a03)     { const b=document.getElementById('badge-03'); if(b){b.textContent='已生成';b.style.background='var(--gl)';b.style.color='var(--green)';}}
+    if (a04)     { const b=document.getElementById('badge-04'); if(b){b.textContent='已完成';b.style.background='var(--gl)';b.style.color='var(--green)';}}
+
+  } catch(e) { console.error('refreshStatus:', e); }
+}
+
+function clearAll() {
+  if (!confirm('确认清空所有项目数据？此操作不可撤销。')) return;
+  ['nm_basic','nm_culture','nm_agent02','nm_agent03','nm_agent04'].forEach(function(k) {
+    localStorage.removeItem(k);
+  });
+  refreshStatus();
+  alert('已清空所有项目数据');
+}
+
+// Auto refresh on load
+refreshStatus();
+
+// ── PROJECT MANAGEMENT ──
+var NM_PROJECTS_KEY = 'nm_projects';
+var NM_CURRENT_KEY  = 'nm_current_project';
+
+function getProjects() {
+  try { return JSON.parse(localStorage.getItem(NM_PROJECTS_KEY) || '[]'); } catch(e) { return []; }
+}
+function saveProjects(projects) {
+  localStorage.setItem(NM_PROJECTS_KEY, JSON.stringify(projects));
+}
+function getCurrentProject() {
+  try { return JSON.parse(localStorage.getItem(NM_CURRENT_KEY) || 'null'); } catch(e) { return null; }
+}
+function setCurrentProject(project) {
+  localStorage.setItem(NM_CURRENT_KEY, JSON.stringify(project));
+  // Load project data into active slots
+  var dataKeys = ['nm_basic','nm_culture','nm_agent02','nm_agent03','nm_agent04'];
+  dataKeys.forEach(function(key) {
+    var val = project.data && project.data[key];
+    if (val) localStorage.setItem(key, val);
+    else localStorage.removeItem(key);
+  });
+  refreshProjectBar();
+  refreshStatus();
+}
+
+function refreshProjectBar() {
+  var p = getCurrentProject();
+  if (p) {
+    document.getElementById('pbName').textContent = p.name;
+    document.getElementById('pbDate').textContent = '创建于 ' + p.date;
+  } else {
+    document.getElementById('pbName').textContent = '未选择项目';
+    document.getElementById('pbDate').textContent = '请新建或选择项目';
+  }
+}
+
+function openNewProject() {
+  closeProjectList();
+  var today = new Date().toLocaleDateString('zh-CN');
+  document.getElementById('newProjectDate').textContent = today;
+  document.getElementById('newProjectName').value = '';
+  document.getElementById('newProjectModal').classList.add('open');
+  setTimeout(function(){ document.getElementById('newProjectName').focus(); }, 100);
+}
+function closeNewProject() {
+  document.getElementById('newProjectModal').classList.remove('open');
+}
+function createProject() {
+  var name = document.getElementById('newProjectName').value.trim();
+  if (!name) { document.getElementById('newProjectName').focus(); return; }
+  var today = new Date().toLocaleDateString('zh-CN');
+  var project = {
+    id: Date.now(),
+    name: name,
+    date: today,
+    data: {}
+  };
+  // Save current data into new project
+  var dataKeys = ['nm_basic','nm_culture','nm_agent02','nm_agent03','nm_agent04'];
+  dataKeys.forEach(function(key) {
+    var val = localStorage.getItem(key);
+    if (val) project.data[key] = val;
+  });
+  // Clear current data for fresh start
+  dataKeys.forEach(function(key) { localStorage.removeItem(key); });
+  var projects = getProjects();
+  projects.unshift(project);
+  saveProjects(projects);
+  setCurrentProject(project);
+  closeNewProject();
+  refreshStatus();
+}
+
+function openProjectList() {
+  renderProjectList();
+  document.getElementById('projectListModal').classList.add('open');
+}
+function closeProjectList() {
+  document.getElementById('projectListModal').classList.remove('open');
+}
+function renderProjectList() {
+  var projects = getProjects();
+  var current = getCurrentProject();
+  var el = document.getElementById('projectListItems');
+  if (projects.length === 0) {
+    el.innerHTML = '<div class="pl-empty">还没有项目<br>点击「新建项目」开始</div>';
+    return;
+  }
+  el.innerHTML = projects.map(function(p) {
+    var isActive = current && current.id === p.id;
+    return '<div class="pl-item' + (isActive?' active':'') + '" data-id="' + p.id + '">'
+      + '<div><div class="pl-item-name">' + (isActive?'✅ ':'') + p.name + '</div>'
+      + '<div class="pl-item-date">' + p.date + '</div></div>'
+      + '<button class="pl-item-del" data-del="' + p.id + '">🗑</button>'
+      + '</div>';
+  }).join('');
+  el.querySelectorAll('.pl-item').forEach(function(item) {
+    item.addEventListener('click', function(e) {
+      if (e.target.getAttribute('data-del')) return;
+      var id = parseInt(item.getAttribute('data-id'));
+      var p = getProjects().find(function(x){return x.id===id;});
+      if (p) { saveCurrentBeforeSwitch(); setCurrentProject(p); closeProjectList(); }
+    });
+  });
+  el.querySelectorAll('[data-del]').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var id = parseInt(btn.getAttribute('data-del'));
+      if (!confirm('确认删除该项目？')) return;
+      var projects = getProjects().filter(function(p){return p.id!==id;});
+      saveProjects(projects);
+      var current = getCurrentProject();
+      if (current && current.id === id) {
+        localStorage.removeItem(NM_CURRENT_KEY);
+        refreshProjectBar();
+      }
+      renderProjectList();
+    });
+  });
+}
+
+function saveCurrentBeforeSwitch() {
+  // Save current localStorage data back to current project
+  var current = getCurrentProject();
+  if (!current) return;
+  var dataKeys = ['nm_basic','nm_culture','nm_agent02','nm_agent03','nm_agent04'];
+  if (!current.data) current.data = {};
+  dataKeys.forEach(function(key) {
+    var val = localStorage.getItem(key);
+    if (val) current.data[key] = val;
+    else delete current.data[key];
+  });
+  var projects = getProjects();
+  var idx = projects.findIndex(function(p){return p.id===current.id;});
+  if (idx >= 0) projects[idx] = current;
+  saveProjects(projects);
+  localStorage.setItem(NM_CURRENT_KEY, JSON.stringify(current));
+}
+
+// Init
+refreshProjectBar();
+
+</script>
+</body>
+</html>
