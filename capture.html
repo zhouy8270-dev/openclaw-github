@@ -3,720 +3,434 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
 <title>NeighborMind · 现场采集</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'PingFang SC','Noto Sans SC',sans-serif;}
-
-/* ── PERMISSION SCREEN ── */
 #permScreen{position:fixed;inset:0;background:#0f172a;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;z-index:200;}
-.perm-logo{font-size:48px;margin-bottom:16px;}
-.perm-title{font-size:22px;font-weight:700;color:#fff;margin-bottom:8px;}
-.perm-sub{font-size:13px;color:rgba(255,255,255,0.5);text-align:center;line-height:1.6;margin-bottom:32px;}
-.perm-items{width:100%;max-width:320px;display:flex;flex-direction:column;gap:12px;margin-bottom:32px;}
-.perm-item{background:rgba(255,255,255,0.06);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;}
-.perm-item-icon{font-size:22px;}
-.perm-item-name{font-size:14px;font-weight:600;color:#fff;}
-.perm-item-desc{font-size:11px;color:rgba(255,255,255,0.45);}
-.perm-status{margin-left:auto;font-size:11px;padding:3px 9px;border-radius:8px;font-weight:600;}
-.perm-status.pending{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);}
-.perm-status.ok{background:rgba(5,150,105,0.2);color:#34d399;}
-.perm-status.skip{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.3);}
-.perm-btn{width:100%;max-width:320px;padding:14px;border-radius:14px;background:linear-gradient(135deg,#1d4ed8,#4f46e5);color:#fff;border:none;font-size:16px;font-weight:700;cursor:pointer;}
-
-/* ── MAIN APP ── */
 #app{position:fixed;inset:0;display:none;}
 #video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
-#flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity 0.05s;z-index:5;}
-
-/* ── HUD TOP ── */
-.hud-top{position:absolute;top:0;left:0;right:0;z-index:20;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(rgba(0,0,0,0.5),transparent);}
-.hud-pill{background:rgba(0,0,0,0.45);border-radius:20px;padding:5px 12px;font-size:12px;color:#fff;display:flex;align-items:center;gap:5px;}
-.gps-dot{width:7px;height:7px;border-radius:50%;background:#ef4444;animation:blink 1.5s infinite;}
+#flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:5;}
+.hud-top{position:absolute;top:0;left:0;right:0;z-index:20;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(rgba(0,0,0,0.5),transparent);}
+.gps-pill{background:rgba(0,0,0,0.45);border-radius:20px;padding:5px 10px;font-size:11px;color:#fff;display:flex;align-items:center;gap:5px;}
+.gps-dot{width:6px;height:6px;border-radius:50%;background:#ef4444;animation:blink 1.5s infinite;}
 .gps-dot.ok{background:#22c55e;animation:none;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
-.count-display{font-family:monospace;font-size:15px;font-weight:700;color:#fff;background:rgba(0,0,0,0.5);padding:5px 12px;border-radius:20px;}
-.count-display span{color:#fbbf24;}
-
-/* ── TYPE LEGEND (small, orientation-aware) ── */
+.count-pill{font-size:14px;font-weight:700;color:#fff;background:rgba(0,0,0,0.5);padding:5px 12px;border-radius:20px;}
+.count-pill span{color:#fbbf24;}
 #typeLegend{position:absolute;z-index:20;}
-#typeLegend.portrait{
-  top:56px;left:0;right:0;
-  display:grid;grid-template-columns:repeat(5,1fr);gap:0;
-  background:rgba(0,0,0,0.55);
-  padding:6px 8px 8px;
-}
-#typeLegend.landscape{
-  top:50%;right:0;
-  transform:translateY(-50%);
-  display:grid;grid-template-columns:1fr;gap:0;
-  background:rgba(0,0,0,0.55);
-  border-radius:10px 0 0 10px;
-  padding:6px 8px;
-}
-.legend-item{
-  display:flex;align-items:center;justify-content:flex-start;
-  gap:5px;padding:4px 6px;
-  font-size:12px;font-weight:600;
-  color:rgba(255,255,255,0.9);
-  white-space:nowrap;
-}
-.legend-item .li-icon{font-size:15px;flex-shrink:0;}
-.legend-item .li-key{flex:1;}
-.legend-item .li-count{color:#fbbf24;font-weight:700;font-size:12px;min-width:16px;text-align:right;}set="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<title>NeighborMind · 现场采集</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'PingFang SC','Noto Sans SC',sans-serif;}
-
-/* ── PERMISSION SCREEN ── */
-#permScreen{position:fixed;inset:0;background:#0f172a;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;z-index:200;}
-.perm-logo{font-size:48px;margin-bottom:16px;}
-.perm-title{font-size:22px;font-weight:700;color:#fff;margin-bottom:8px;}
-.perm-sub{font-size:13px;color:rgba(255,255,255,0.5);text-align:center;line-height:1.6;margin-bottom:32px;}
-.perm-items{width:100%;max-width:320px;display:flex;flex-direction:column;gap:12px;margin-bottom:32px;}
-.perm-item{background:rgba(255,255,255,0.06);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;}
-.perm-item-icon{font-size:22px;}
-.perm-item-name{font-size:14px;font-weight:600;color:#fff;}
-.perm-item-desc{font-size:11px;color:rgba(255,255,255,0.45);}
-.perm-status{margin-left:auto;font-size:11px;padding:3px 9px;border-radius:8px;font-weight:600;}
-.perm-status.pending{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);}
-.perm-status.ok{background:rgba(5,150,105,0.2);color:#34d399;}
-.perm-status.skip{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.3);}
-.perm-btn{width:100%;max-width:320px;padding:14px;border-radius:14px;background:linear-gradient(135deg,#1d4ed8,#4f46e5);color:#fff;border:none;font-size:16px;font-weight:700;cursor:pointer;}
-
-/* ── MAIN APP ── */
-#app{position:fixed;inset:0;display:none;}
-#video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
-#flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity 0.05s;z-index:5;}
-
-/* ── HUD TOP ── */
-.hud-top{position:absolute;top:0;left:0;right:0;z-index:20;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(rgba(0,0,0,0.5),transparent);}
-.hud-pill{background:rgba(0,0,0,0.45);border-radius:20px;padding:5px 12px;font-size:12px;color:#fff;display:flex;align-items:center;gap:5px;}
-.gps-dot{width:7px;height:7px;border-radius:50%;background:#ef4444;animation:blink 1.5s infinite;}
-.gps-dot.ok{background:#22c55e;animation:none;}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
-.count-display{font-family:monospace;font-size:15px;font-weight:700;color:#fff;background:rgba(0,0,0,0.5);padding:5px 12px;border-radius:20px;}
-.count-display span{color:#fbbf24;}
-
-/* ── TYPE LEGEND (small, orientation-aware) ── */
-#typeLegend{position:absolute;z-index:20;}
-#typeLegend.portrait{
-  top:58px;left:0;right:0;padding:6px 10px 4px;
-  display:grid;grid-template-columns:repeat(5,1fr);gap:4px 6px;
-  background:linear-gradient(rgba(0,0,0,0.5),transparent);
-}
-#typeLegend.landscape{
-  top:50%;right:0;transform:translateY(-50%);
-  display:flex;flex-direction:column;gap:2px;
-  padding:8px 6px;background:rgba(0,0,0,0.5);border-radius:12px 0 0 12px;
-}
-.legend-item{display:flex;align-items:center;justify-content:center;gap:3px;font-size:12px;color:rgba(255,255,255,0.9);white-space:nowrap;padding:2px 0;}
-.legend-item .li-icon{font-size:14px;}
-.legend-item .li-count{color:#fbbf24;font-weight:700;font-size:12px;}
-
-/* ── BOTTOM CONTROLS ── */
-.hud-bottom{position:absolute;bottom:0;left:0;right:0;z-index:20;padding:16px 20px 28px;background:linear-gradient(transparent,rgba(0,0,0,0.65));display:flex;flex-direction:column;align-items:center;gap:12px;}
-.quality-tip{font-size:11px;color:rgba(255,255,255,0.6);text-align:center;letter-spacing:0.3px;}
-.shutter-row{display:flex;align-items:center;justify-content:center;gap:32px;width:100%;}
-.gallery-corner{position:fixed;bottom:28px;left:16px;z-index:25;width:52px;height:52px;border-radius:10px;overflow:hidden;border:2px solid rgba(255,255,255,0.4);background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;}
-.gallery-corner img{width:100%;height:100%;object-fit:cover;display:none;}
-.gallery-btn{width:52px;height:52px;border-radius:12px;overflow:hidden;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;}
+#typeLegend.portrait{top:50px;left:0;right:0;display:grid;grid-template-columns:repeat(5,1fr);background:rgba(0,0,0,0.55);padding:5px 8px;}
+#typeLegend.landscape{top:50%;right:0;transform:translateY(-50%);display:flex;flex-direction:column;background:rgba(0,0,0,0.55);border-radius:10px 0 0 10px;padding:5px 6px;}
+.li{display:flex;align-items:center;gap:4px;padding:3px 4px;font-size:11px;color:rgba(255,255,255,0.85);}
+.li-cnt{color:#fbbf24;font-weight:700;margin-left:auto;}
+.hud-bottom{position:absolute;bottom:0;left:0;right:0;z-index:20;padding:12px 20px 24px;background:linear-gradient(transparent,rgba(0,0,0,0.65));display:flex;flex-direction:column;align-items:center;gap:10px;}
+.quality-tip{font-size:11px;color:rgba(255,255,255,0.6);text-align:center;}
+.shutter-row{display:flex;align-items:center;justify-content:center;gap:28px;width:100%;}
+.gallery-btn{width:50px;height:50px;border-radius:10px;overflow:hidden;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;}
 #galleryThumb{width:100%;height:100%;object-fit:cover;display:none;}
-
-/* Shutter button */
-.shutter-wrap{position:relative;display:flex;align-items:center;justify-content:center;}
-.shutter-btn{width:76px;height:76px;border-radius:50%;background:#fff;border:4px solid rgba(255,255,255,0.4);cursor:pointer;position:relative;transition:transform 0.1s;display:flex;align-items:center;justify-content:center;}
-.shutter-btn:active{transform:scale(0.92);}
-.shutter-inner{width:62px;height:62px;border-radius:50%;background:#fff;transition:all 0.15s;}
-.shutter-btn.recording .shutter-inner{border-radius:8px;width:28px;height:28px;background:#ef4444;}
-.rec-ring{position:absolute;inset:-6px;border-radius:50%;border:3px solid #ef4444;opacity:0;animation:none;}
-.shutter-btn.recording .rec-ring{opacity:1;animation:pulse-ring 1s infinite;}
-@keyframes pulse-ring{0%{transform:scale(1);opacity:0.8}100%{transform:scale(1.15);opacity:0}}
-.rec-timer{position:absolute;top:-28px;left:50%;transform:translateX(-50%);font-size:13px;font-weight:700;color:#ef4444;background:rgba(0,0,0,0.6);padding:3px 10px;border-radius:10px;display:none;white-space:nowrap;}
-.shutter-btn.recording ~ .rec-timer, .shutter-btn.recording + .rec-timer{display:block;}
-.voice-btn{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:20px;}
-.voice-btn-label{font-size:9px;color:rgba(255,255,255,0.7);}
-
-/* ── TYPE SELECT MODAL ── */
-#typeModal{position:fixed;inset:0;z-index:100;display:none;align-items:flex-end;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);}
-#typeModal.open{display:flex;}
-.type-modal-box{width:100%;background:#16213e;border-radius:22px 22px 0 0;padding:16px 14px 32px;animation:slideUp 0.22s ease;}
+.shutter-wrap{position:relative;}
+.rec-ring{position:absolute;inset:-6px;border-radius:50%;border:3px solid #ef4444;opacity:0;}
+.shutter-btn.recording .rec-ring{opacity:1;animation:pulse 1s infinite;}
+@keyframes pulse{0%{transform:scale(1);opacity:0.8}100%{transform:scale(1.15);opacity:0}}
+.shutter-btn{width:72px;height:72px;border-radius:50%;background:#fff;border:4px solid rgba(255,255,255,0.4);cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;user-select:none;}
+.shutter-inner{width:58px;height:58px;border-radius:50%;background:#fff;transition:all 0.15s;}
+.shutter-btn.recording .shutter-inner{border-radius:8px;width:26px;height:26px;background:#ef4444;}
+.rec-timer{position:absolute;top:-26px;left:50%;transform:translateX(-50%);font-size:12px;font-weight:700;color:#ef4444;background:rgba(0,0,0,0.6);padding:2px 8px;border-radius:8px;display:none;white-space:nowrap;}
+.voice-btn{width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,0.12);border:2px solid rgba(255,255,255,0.25);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:18px;color:#fff;user-select:none;}
+.voice-lbl{font-size:9px;color:rgba(255,255,255,0.6);}
+#typeModal{position:fixed;inset:0;z-index:100;display:none;background:rgba(0,0,0,0.6);}
+#typeModal.open{display:flex;align-items:flex-end;}
+.tm-box{width:100%;background:#1a1a2e;border-radius:22px 22px 0 0;padding:16px 14px 32px;animation:slideUp 0.25s ease;}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-
-/* Header: thumb + title */
-.type-modal-hd{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
-.pending-thumb{width:56px;height:56px;border-radius:10px;object-fit:cover;background:rgba(255,255,255,0.08);flex-shrink:0;}
-.type-modal-title{font-size:16px;font-weight:700;color:#fff;margin-bottom:3px;}
-.type-modal-sub{font-size:12px;color:rgba(255,255,255,0.45);}
-
-/* Type grid */
-.type-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:16px;}
-.type-cell{padding:10px 4px 8px;border-radius:12px;background:rgba(255,255,255,0.07);border:2px solid transparent;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:all 0.15s;-webkit-tap-highlight-color:transparent;active:scale(0.95);}
-.type-cell.selected{border-color:currentColor;background:rgba(255,255,255,0.15);}
-.tc-icon{font-size:26px;}
-.tc-label{font-size:12px;font-weight:700;color:#fff;}
-.tc-count{font-size:10px;color:rgba(255,255,255,0.45);}
-
-/* Footer: skip | voice | confirm */
-.type-modal-footer{display:flex;align-items:center;gap:10px;}
-.type-skip-btn{padding:12px 14px;border-radius:12px;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.5);border:none;font-size:13px;cursor:pointer;font-family:inherit;flex:1;}
-.type-voice-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;}
-.type-voice-circle{width:64px;height:64px;border-radius:50%;background:rgba(239,68,68,0.15);border:3px solid rgba(239,68,68,0.5);color:#fff;font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:all 0.15s;}
-.type-voice-circle.recording{background:rgba(239,68,68,0.4);border-color:#ef4444;transform:scale(1.05);}
-.type-voice-label{font-size:10px;color:rgba(255,255,255,0.4);}
-.type-confirm-btn{padding:12px 14px;border-radius:12px;background:linear-gradient(135deg,#1d4ed8,#4f46e5);color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;flex:1.5;transition:opacity 0.15s;}
-.type-confirm-btn:disabled{opacity:0.3;}
-.type-voice-btn{display:none;}/* hide old */
-
-/* ── GALLERY PANEL
-/* ── GALLERY PANEL ── */
+.tm-hd{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+#pendingThumb{width:60px;height:60px;border-radius:8px;object-fit:cover;background:rgba(255,255,255,0.08);flex-shrink:0;}
+.type-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:14px;}
+.tc{padding:8px 4px;border-radius:10px;background:rgba(255,255,255,0.08);border:2px solid transparent;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;}
+.tc.sel{background:rgba(255,255,255,0.18);border-color:currentColor;}
+.tc-i{font-size:24px;}.tc-l{font-size:11px;font-weight:700;color:#fff;}.tc-c{font-size:9px;color:rgba(255,255,255,0.4);}
+.tm-foot{display:flex;align-items:center;gap:8px;}
+.tm-skip{padding:12px;border-radius:10px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);border:none;font-size:13px;cursor:pointer;font-family:inherit;}
+.tm-voice{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;flex-shrink:0;font-size:24px;color:#fff;user-select:none;}
+.tm-voice.rec{background:rgba(239,68,68,0.3);border-color:#ef4444;}
+.tm-voice-lbl{font-size:9px;color:rgba(255,255,255,0.5);}
+.tm-confirm{flex:1;padding:14px;border-radius:12px;background:linear-gradient(135deg,#1d4ed8,#4f46e5);color:#fff;border:none;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;}
+.tm-confirm:disabled{opacity:0.3;}
+#vcModal{position:fixed;inset:0;z-index:110;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);}
+#vcModal.open{display:flex;}
+.vc-box{background:#1a1a2e;border-radius:18px;padding:24px 20px;margin:20px;text-align:center;max-width:320px;width:100%;}
 #galleryPanel{position:fixed;inset:0;z-index:90;background:#0a0a14;display:none;flex-direction:column;}
 #galleryPanel.open{display:flex;}
-.gp-head{padding:16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.08);}
-.gp-title{font-size:16px;font-weight:700;color:#fff;}
-.gp-close{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,0.08);border:none;color:#fff;font-size:16px;cursor:pointer;}
-.gp-grid{flex:1;overflow-y:auto;padding:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
-.gp-item{aspect-ratio:1;border-radius:8px;overflow:hidden;position:relative;background:rgba(255,255,255,0.05);}
+.gp-hd{padding:14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.08);}
+.gp-grid{flex:1;overflow-y:auto;padding:10px;display:grid;grid-template-columns:repeat(3,1fr);gap:5px;}
+.gp-item{aspect-ratio:1;border-radius:6px;overflow:hidden;position:relative;background:rgba(255,255,255,0.05);}
 .gp-item img,.gp-item video{width:100%;height:100%;object-fit:cover;}
-.gp-item-tags{position:absolute;bottom:0;left:0;right:0;padding:3px 5px;background:linear-gradient(transparent,rgba(0,0,0,0.7));font-size:9px;color:rgba(255,255,255,0.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.gp-item-del{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.6);border:none;color:#fff;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.gp-footer{padding:16px;border-top:1px solid rgba(255,255,255,0.08);}
-.gp-sync-btn{width:100%;padding:13px;border-radius:12px;background:linear-gradient(135deg,#059669,#0284c7);color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
-
-/* notif */
-.notif{position:fixed;bottom:120px;left:50%;transform:translateX(-50%) translateY(6px);background:rgba(30,30,50,0.95);color:#fff;padding:9px 18px;border-radius:12px;font-size:13px;font-weight:500;opacity:0;transition:all 0.2s;z-index:300;white-space:nowrap;}
+.gp-tags{position:absolute;bottom:0;left:0;right:0;padding:2px 4px;background:linear-gradient(transparent,rgba(0,0,0,0.7));font-size:9px;color:rgba(255,255,255,0.8);}
+.gp-del{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,0.6);border:none;color:#fff;font-size:11px;cursor:pointer;}
+.gp-foot{padding:14px;border-top:1px solid rgba(255,255,255,0.08);}
+.gp-sync{width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,#059669,#0284c7);color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+.notif{position:fixed;bottom:110px;left:50%;transform:translateX(-50%) translateY(6px);background:rgba(20,20,40,0.95);color:#fff;padding:8px 16px;border-radius:10px;font-size:12px;opacity:0;transition:all 0.2s;z-index:300;white-space:nowrap;}
 .notif.show{opacity:1;transform:translateX(-50%) translateY(0);}
-
-@media (orientation:landscape){
-  #typeLegend{flex-direction:column!important;top:50%!important;right:6px!important;left:auto!important;transform:translateY(-50%)!important;width:auto!important;}
-  .hud-bottom{padding:10px 20px 16px;}
-  .shutter-btn{width:64px;height:64px;}
-  .shutter-inner{width:52px;height:52px;}
-}
-#videoConfirmModal.open{display:flex!important;}
-#videoConfirmModal.open{display:flex!important;}
 </style>
 </head>
 <body>
 
-<!-- ── SPLASH ── -->
-<div id="permScreen" style="position:fixed;inset:0;background:#0f172a;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;z-index:200;">
-  <div style="font-size:56px;margin-bottom:16px;">📷</div>
-  <div style="font-size:22px;font-weight:700;color:#fff;margin-bottom:8px;">NeighborMind 现场采集</div>
-  <div style="font-size:13px;color:rgba(255,255,255,0.5);text-align:center;line-height:1.7;margin-bottom:36px;">
-    启动后浏览器会请求摄像头权限<br>请点击「允许」
-  </div>
-  <button id="startBtn" onclick="window.startApp && window.startApp()" style="width:100%;max-width:300px;padding:16px;border-radius:16px;background:linear-gradient(135deg,#1d4ed8,#4f46e5);color:#fff;border:none;font-size:17px;font-weight:700;cursor:pointer;font-family:inherit;">
-    开始采集
-  </button>
-  <div id="httpsWarn" style="display:none;margin-top:16px;max-width:300px;background:rgba(220,38,38,0.15);border:1px solid rgba(220,38,38,0.3);border-radius:12px;padding:12px 14px;font-size:11px;color:rgba(255,165,0,0.9);text-align:center;line-height:1.8;">
-    ⚠️ 当前为本地文件模式<br>摄像头可能无法使用<br>建议访问：<b>http://localhost:3001/capture.html</b>
-  </div>
+<div id="permScreen">
+  <div style="font-size:52px;margin-bottom:16px;">📷</div>
+  <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px;">NeighborMind 现场采集</div>
+  <div style="font-size:13px;color:rgba(255,255,255,0.5);text-align:center;line-height:1.7;margin-bottom:32px;">启动后浏览器会请求摄像头权限<br>请点击「允许」</div>
+  <button id="startBtn" style="width:100%;max-width:300px;padding:16px;border-radius:14px;background:linear-gradient(135deg,#1d4ed8,#4f46e5);color:#fff;border:none;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;">开始采集</button>
 </div>
 
-<!-- ── MAIN APP ── -->
 <div id="app">
   <video id="video" autoplay muted playsinline></video>
   <div id="flash"></div>
-
-  <!-- HUD TOP -->
   <div class="hud-top">
-    <div class="hud-pill">
-      <div class="gps-dot" id="gpsDot"></div>
-      <span id="gpsText">定位中…</span>
-    </div>
-    <div class="count-display" id="countDisplay">
-      <span id="countNum">0</span>/<span id="countMax">60</span>
-    </div>
+    <div class="gps-pill"><div class="gps-dot" id="gpsDot"></div><span id="gpsText">定位中</span></div>
+    <div class="count-pill"><span id="countNum">0</span>/<span id="countMax">60</span></div>
   </div>
-
-  <!-- TYPE LEGEND -->
   <div id="typeLegend" class="portrait"></div>
-
-  <!-- HUD BOTTOM -->
   <div class="hud-bottom">
     <div class="quality-tip">📸 请注意拍摄质量，用于效果图及汇报材料</div>
     <div class="shutter-row">
+      <div class="gallery-btn" id="galleryBtn"><span id="galleryIcon">🖼</span><img id="galleryThumb"></div>
       <div class="shutter-wrap">
         <div class="rec-ring"></div>
-        <div class="shutter-btn" id="shutterBtn"
-          ontouchstart="onShutterDown(event)" ontouchend="onShutterUp(event)"
-          onmousedown="onShutterDown(event)" onmouseup="onShutterUp(event)">
-          <div class="shutter-inner"></div>
-        </div>
+        <div class="shutter-btn" id="shutterBtn"><div class="shutter-inner"></div></div>
         <div class="rec-timer" id="recTimer">⏺ 0s</div>
       </div>
+      <button class="voice-btn" id="voiceBtn">🎙<span class="voice-lbl">备注</span></button>
     </div>
-  </div>
-  <!-- Gallery shortcut bottom-left -->
-  <div class="gallery-corner" id="galleryBtn" onclick="openGallery()">
-    <span id="galleryIcon">🖼</span>
-    <img id="galleryThumb" style="display:none;width:100%;height:100%;object-fit:cover;">
-  </div>
-  <!-- Gallery shortcut bottom-left -->
-  <div class="gallery-corner" id="galleryBtn" onclick="openGallery()">
-    <span id="galleryIcon">🖼</span>
-    <img id="galleryThumb">
   </div>
 </div>
 
-<!-- ── TYPE SELECT MODAL ── -->
 <div id="typeModal">
-  <div class="type-modal-box">
-    <!-- Photo preview + title row -->
-    <div class="type-modal-hd">
-      <img id="pendingThumb" class="pending-thumb">
-      <div class="type-modal-info">
-        <div class="type-modal-title">选择照片类型</div>
-        <div class="type-modal-sub">必选一个，可多选 · <span id="typeCountdown">10</span>s后跳过</div>
-      </div>
+  <div class="tm-box">
+    <div class="tm-hd">
+      <img id="pendingThumb">
+      <div><div style="font-size:15px;font-weight:700;color:#fff;">选择照片类型</div><div style="font-size:11px;color:rgba(255,255,255,0.45);margin-top:3px;">必选一个，可多选</div></div>
     </div>
-    <!-- Type grid 5×2 -->
     <div class="type-grid" id="typeGrid"></div>
-    <!-- Bottom row: skip | voice(big) | confirm -->
-    <div class="type-modal-footer">
-      <button class="type-skip-btn" onclick="skipType()">跳过</button>
-      <div class="type-voice-wrap">
-        <button class="type-voice-circle" id="typeVoiceBtn"
-          ontouchstart="startVoiceModal(event)" ontouchend="stopVoiceModal(event)"
-          onmousedown="startVoiceModal(event)" onmouseup="stopVoiceModal(event)">
-          🎙
-        </button>
-        <div class="type-voice-label">长按备注</div>
-      </div>
-      <button class="type-confirm-btn" id="typeConfirmBtn" onclick="confirmType()" disabled>✓ 确认</button>
+    <div class="tm-foot">
+      <button class="tm-skip" id="tmSkip">跳过</button>
+      <button class="tm-voice" id="tmVoice">🎙<div class="tm-voice-lbl">长按录音</div></button>
+      <button class="tm-confirm" id="tmConfirm" disabled>✓ 确认</button>
     </div>
   </div>
 </div>
 
-
-<!-- ── VIDEO CONFIRM ── -->
-<div id="videoConfirm" style="display:none;position:fixed;inset:0;z-index:95;background:rgba(0,0,0,0.85);display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;">
-  <video id="vcPreview" style="width:100%;max-width:400px;max-height:50vh;border-radius:14px;background:#000;margin-bottom:20px;" controls playsinline></video>
-  <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:6px;">保留这段录像？</div>
-  <div id="vcDuration" style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:24px;"></div>
-  <div style="display:flex;gap:14px;width:100%;max-width:400px;">
-    <button onclick="discardVideo()" style="flex:1;padding:14px;border-radius:14px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);border:none;font-size:15px;cursor:pointer;font-family:inherit;">🗑 删除</button>
-    <button onclick="keepVideo()" style="flex:2;padding:14px;border-radius:14px;background:linear-gradient(135deg,#059669,#0284c7);color:#fff;border:none;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">✓ 保留</button>
-  </div>
-</div>
-
-<!-- ── VIDEO CONFIRM MODAL ── -->
-<div id="videoConfirmModal" style="position:fixed;inset:0;z-index:110;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);">
-  <div style="background:#1a1a2e;border-radius:20px;padding:24px;margin:24px;width:calc(100%-48px);max-width:360px;text-align:center;">
-    <div style="font-size:40px;margin-bottom:12px;">🎥</div>
-    <div style="font-size:17px;font-weight:700;color:#fff;margin-bottom:6px;">录像完成</div>
-    <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:24px;">时长 <span id="vcDuration" style="color:#fbbf24;font-weight:700;"></span>，是否保留？</div>
-    <div style="display:flex;gap:12px;">
-      <button onclick="discardVideo()" style="flex:1;padding:13px;border-radius:12px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);border:none;font-size:14px;cursor:pointer;font-family:inherit;">🗑 丢弃</button>
-      <button onclick="saveVideo()" style="flex:2;padding:13px;border-radius:12px;background:linear-gradient(135deg,#059669,#0284c7);color:#fff;border:none;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">✓ 保留录像</button>
+<div id="vcModal">
+  <div class="vc-box">
+    <div style="font-size:40px;margin-bottom:10px;">🎥</div>
+    <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:6px;">录像完成</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:20px;">时长 <span id="vcDur" style="color:#fbbf24;font-weight:700;"></span>，是否保留？</div>
+    <div style="display:flex;gap:10px;">
+      <button id="vcDiscard" style="flex:1;padding:12px;border-radius:10px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);border:none;font-size:13px;cursor:pointer;font-family:inherit;">🗑 丢弃</button>
+      <button id="vcSave" style="flex:2;padding:12px;border-radius:10px;background:linear-gradient(135deg,#059669,#0284c7);color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">✓ 保留</button>
     </div>
   </div>
 </div>
 
-<!-- ── VIDEO CONFIRM MODAL ── -->
-<div id="videoConfirmModal" style="position:fixed;inset:0;z-index:110;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);">
-  <div style="background:#1a1a2e;border-radius:20px;padding:24px 20px;margin:20px;width:calc(100% - 40px);max-width:360px;text-align:center;">
-    <div style="font-size:44px;margin-bottom:12px;">🎥</div>
-    <div style="font-size:17px;font-weight:700;color:#fff;margin-bottom:6px;">录像完成</div>
-    <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:24px;">时长 <span id="vcDuration" style="color:#fbbf24;font-weight:700;"></span>，是否保留？</div>
-    <div style="display:flex;gap:12px;">
-      <button onclick="discardVideo()" style="flex:1;padding:13px;border-radius:12px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);border:none;font-size:14px;cursor:pointer;font-family:inherit;">🗑 丢弃</button>
-      <button onclick="saveVideo()" style="flex:2;padding:13px;border-radius:12px;background:linear-gradient(135deg,#059669,#0284c7);color:#fff;border:none;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">✓ 保留录像</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── GALLERY PANEL ── -->
 <div id="galleryPanel">
-  <div class="gp-head">
-    <div class="gp-title">已拍摄 <span id="gpCount">0</span> 张</div>
-    <button class="gp-close" onclick="closeGallery()">✕</button>
+  <div class="gp-hd">
+    <div style="font-size:15px;font-weight:700;color:#fff;">已拍 <span id="gpCount">0</span> 张</div>
+    <button id="gpClose" style="width:30px;height:30px;border-radius:7px;background:rgba(255,255,255,0.08);border:none;color:#fff;font-size:14px;cursor:pointer;">✕</button>
   </div>
   <div class="gp-grid" id="gpGrid"></div>
-  <div class="gp-footer">
-    <button class="gp-sync-btn" onclick="syncItems()">📤 同步到管理端</button>
-  </div>
+  <div class="gp-foot"><button class="gp-sync" id="gpSync">📤 同步到管理端</button></div>
 </div>
 
 <div class="notif" id="notif"></div>
 
 <script>
-// Attach button after DOM ready
-document.addEventListener('DOMContentLoaded', function() {
-  var btn = document.getElementById('startBtn');
-  if (btn) btn.addEventListener('click', function() { startApp(); });
-});
-
-// ══════════════════════
-// CONFIG
-// ══════════════════════
-const PHOTO_TOTAL_MAX = 60;
-const VIDEO_MAX_SECS  = 20;
-const TYPE_TIMEOUT    = 10000;
-
-const PHOTO_CATS = [
-  { key:'道路', icon:'🛣',  color:'#f59e0b' },
-  { key:'宅间', icon:'🏠',  color:'#10b981' },
-  { key:'停车', icon:'🚗',  color:'#ef4444' },
-  { key:'场地', icon:'⛺',  color:'#8b5cf6' },
-  { key:'绿化', icon:'🌿',  color:'#059669' },
-  { key:'建筑', icon:'🏘',  color:'#7c3aed' },
-  { key:'全景', icon:'🌅',  color:'#0284c7' },
-  { key:'设施', icon:'🔧',  color:'#dc2626' },
-  { key:'活动', icon:'🎭',  color:'#db2777' },
-  { key:'其他', icon:'📌',  color:'#64748b' },
+var PHOTO_TOTAL_MAX = 60;
+var VIDEO_MAX_SECS = 20;
+var PHOTO_CATS = [
+  {key:'道路',icon:'🛣',color:'#f59e0b'},
+  {key:'宅间',icon:'🏠',color:'#10b981'},
+  {key:'停车',icon:'🚗',color:'#ef4444'},
+  {key:'场地',icon:'⛺',color:'#8b5cf6'},
+  {key:'绿化',icon:'🌿',color:'#059669'},
+  {key:'建筑',icon:'🏘',color:'#7c3aed'},
+  {key:'全景',icon:'🌅',color:'#0284c7'},
+  {key:'设施',icon:'🔧',color:'#dc2626'},
+  {key:'活动',icon:'🎭',color:'#db2777'},
+  {key:'其他',icon:'📌',color:'#64748b'}
 ];
 
-// ══════════════════════
-// STATE
-// ══════════════════════
-let items = [];
-let gpsCoord = null;
-let gpsAddr = '';
-let camStream = null;
-let mediaRecorder = null;
-let recChunks = [];
-let recTimer = null;
-let recSecs = 0;
-let isRecording = false;
-let shutterTimer = null;
-let shutterDown = false;
-let pendingPhotoItem = null;
-let typeCountdownTimer = null;
-let selectedTypes = [];
-let voiceChunks = [];
-let voiceRecorder = null;
+var items=[], gpsCoord=null, gpsAddr='', camStream=null;
+var mediaRecorder=null, recChunks=[], recTimer=null, recSecs=0, isRecording=false;
+var shutterTimer=null, shutterDown=false;
+var pendingPhotoItem=null, pendingVideoItem=null;
+var selectedTypes=[];
+var voiceRecorder=null, voiceChunks=[];
+var _recAvStream=null;
 
-// ══════════════════════
-// PERMISSION + INIT
-// ══════════════════════
-async function requestPerms() {
-  startApp();
-}
-
-window.startApp = async function startApp() {
-  // Show warning if on file:// protocol
-  if (location.protocol === 'file:') {
-    document.getElementById('httpsWarn').style.display = 'block';
-    // Still try to proceed
-  }
+function startApp() {
   document.getElementById('permScreen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  // Camera will trigger browser permission dialog automatically
-  await startCamera();
-  startGPSWatch();
+  startCamera();
+  startGPS();
   renderLegend();
-  updateCountUI();
+  updateCount();
   checkOrientation();
 }
 
-async function startCamera() {
-  try {
-    // Request both video and audio for synchronized recording
-    camStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width: {ideal:1920}, height: {ideal:1080} },
-      audio: true
+function startCamera() {
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:true})
+    .then(function(s){ camStream=s; var v=document.getElementById('video'); v.srcObject=s; v.muted=true; })
+    .catch(function(){
+      navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false})
+        .then(function(s){ camStream=s; document.getElementById('video').srcObject=s; notify('麦克风不可用'); })
+        .catch(function(e){ notify('摄像头失败:'+e.message); });
     });
-    const videoEl = document.getElementById('video');
-    videoEl.srcObject = camStream;
-    videoEl.muted = true; // Mute playback to avoid echo, audio still captured in stream
-  } catch(e) {
-    // Fallback: try without audio
-    try {
-      camStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: {ideal:1920}, height: {ideal:1080} },
-        audio: false
-      });
-      document.getElementById('video').srcObject = camStream;
-      notify('提示：麦克风不可用，录像无声音');
-    } catch(e2) {
-      // Check if it's HTTPS issue
-      if (location.protocol === 'file:' || location.protocol === 'http:') {
-        var tip = document.createElement('div');
-        tip.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:rgba(220,38,38,0.9);color:#fff;padding:12px 16px;font-size:12px;text-align:center;z-index:999;line-height:1.7;';
-        tip.innerHTML = '⚠️ 需通过 HTTPS 或 localhost 访问才能使用摄像头<br>建议将文件部署到服务器后访问<br><small>测试地址：http://localhost:3001/capture.html</small>';
-        document.body.appendChild(tip);
-      } else {
-        notify('摄像头启动失败：' + e2.message);
-      }
-    }
-  }
 }
 
-// ══════════════════════
-// ORIENTATION
-// ══════════════════════
+function startGPS() {
+  if (!navigator.geolocation) return;
+  navigator.geolocation.watchPosition(function(pos){
+    gpsCoord={lat:pos.coords.latitude,lng:pos.coords.longitude,acc:Math.round(pos.coords.accuracy)};
+    document.getElementById('gpsDot').className='gps-dot ok';
+    document.getElementById('gpsText').textContent='已定位';
+    fetch('https://nominatim.openstreetmap.org/reverse?lat='+pos.coords.latitude+'&lon='+pos.coords.longitude+'&format=json&accept-language=zh')
+      .then(function(r){return r.json();}).then(function(d){
+        var a=d.address||{};
+        gpsAddr=(a.road||a.pedestrian||a.suburb||'')+(a.city_district||a.district||'');
+        document.getElementById('gpsText').textContent=gpsAddr.slice(0,10)||'已定位';
+      }).catch(function(){});
+  },null,{enableHighAccuracy:true,maximumAge:8000});
+}
+
 function checkOrientation() {
-  const legend = document.getElementById('typeLegend');
-  const isLandscape = window.innerWidth > window.innerHeight;
-  legend.className = isLandscape ? 'landscape' : 'portrait';
+  document.getElementById('typeLegend').className = window.innerWidth>window.innerHeight ? 'landscape' : 'portrait';
 }
-window.addEventListener('resize', checkOrientation);
 
-// ══════════════════════
-// TYPE LEGEND (small)
-// ══════════════════════
 function renderLegend() {
-  var el = document.getElementById('typeLegend');
-  el.innerHTML = PHOTO_CATS.map(function(cat) {
-    var cnt = items.filter(function(i){return i.cats && i.cats.includes(cat.key);}).length;
-    return '<div class="legend-item">'
-      + '<span class="li-icon">' + cat.icon + '</span>'
-      + '<span class="li-key">' + cat.key + '</span>'
-      + '<span class="li-count">' + cnt + '</span>'
-      + '</div>';
+  document.getElementById('typeLegend').innerHTML = PHOTO_CATS.map(function(cat){
+    var cnt=items.filter(function(i){return i.cats&&i.cats.indexOf(cat.key)>=0;}).length;
+    return '<div class="li"><span>'+cat.icon+'</span><span>'+cat.key+'</span><span class="li-cnt">'+cnt+'</span></div>';
   }).join('');
 }
 
-// ══════════════════════
-// COUNT UI
-// ══════════════════════
-function updateCountUI() {
-  const total = items.filter(i => i.type === 'photo').length;
-  document.getElementById('countNum').textContent = total;
-  // Update gallery thumb
-  const photos = items.filter(i => i.type === 'photo');
-  const thumb = document.getElementById('galleryThumb');
-  const icon = document.getElementById('galleryIcon');
-  if (photos.length > 0) {
-    thumb.src = photos[0].url;
-    thumb.style.display = 'block';
-    icon.style.display = 'none';
-  }
-  document.getElementById('gpCount').textContent = total;
+function updateCount() {
+  var total=items.filter(function(i){return i.type==='photo';}).length;
+  document.getElementById('countNum').textContent=total;
+  document.getElementById('gpCount').textContent=total;
+  var photos=items.filter(function(i){return i.type==='photo';});
+  if(photos.length>0){var th=document.getElementById('galleryThumb');th.src=photos[0].url;th.style.display='block';document.getElementById('galleryIcon').style.display='none';}
   renderLegend();
 }
 
-// ══════════════════════
-// SHUTTER (short=photo, long=video)
-// ══════════════════════
 function onShutterDown(e) {
   e.preventDefault();
-  shutterDown = true;
-  shutterTimer = setTimeout(() => {
-    if (shutterDown) toggleRecord();
-  }, 500);
+  shutterDown=true;
+  shutterTimer=setTimeout(function(){if(shutterDown&&!isRecording)toggleRecord();},500);
 }
-
 function onShutterUp(e) {
   e.preventDefault();
   clearTimeout(shutterTimer);
-  if (shutterDown && !isRecording) {
-    shutterDown = false;
-    takePhoto();
-  } else {
-    shutterDown = false;
-    if (isRecording) stopRecord();
-  }
+  if(!isRecording&&shutterDown){shutterDown=false;takePhoto();}
+  else{shutterDown=false;if(isRecording)stopRecord();}
 }
 
-// ══════════════════════
-// TAKE PHOTO
-// ══════════════════════
 function takePhoto() {
-  const video = document.getElementById('video');
-  if (!video.srcObject) { notify('摄像头未启动'); return; }
-  if (items.filter(i=>i.type==='photo').length >= PHOTO_TOTAL_MAX) {
-    notify('⚠️ 已达 ' + PHOTO_TOTAL_MAX + ' 张上限'); return;
-  }
-
-  // Flash
-  const f = document.getElementById('flash');
-  f.style.opacity = 1;
-  setTimeout(() => f.style.opacity = 0, 80);
-
-  const canvas = document.createElement('canvas');
-  canvas.width = video.videoWidth || 1280;
-  canvas.height = video.videoHeight || 720;
-  canvas.getContext('2d').drawImage(video, 0, 0);
-
-  canvas.toBlob(blob => {
-    const url = URL.createObjectURL(blob);
-    const item = {
-      id: Date.now() + Math.random(),
-      url, mime: 'image/jpeg', type: 'photo',
-      ts: new Date(),
-      gps: gpsCoord ? {...gpsCoord} : null,
-      addr: gpsAddr,
-      cats: [],
-    };
-    pendingPhotoItem = item;
+  var video=document.getElementById('video');
+  if(!video.srcObject){notify('摄像头未启动');return;}
+  if(items.filter(function(i){return i.type==='photo';}).length>=PHOTO_TOTAL_MAX){notify('已达上限');return;}
+  var f=document.getElementById('flash');f.style.opacity=1;setTimeout(function(){f.style.opacity=0;},80);
+  var canvas=document.createElement('canvas');
+  canvas.width=video.videoWidth||1280;canvas.height=video.videoHeight||720;
+  canvas.getContext('2d').drawImage(video,0,0);
+  canvas.toBlob(function(blob){
+    pendingPhotoItem={id:Date.now()+Math.random(),url:URL.createObjectURL(blob),mime:'image/jpeg',type:'photo',ts:new Date(),gps:gpsCoord?Object.assign({},gpsCoord):null,addr:gpsAddr,cats:[]};
     openTypeModal();
-  }, 'image/jpeg', 0.93);
+  },'image/jpeg',0.93);
 }
 
-// ══════════════════════
-// TYPE MODAL
-// ══════════════════════
 function openTypeModal() {
-  selectedTypes = [];
+  selectedTypes=[];
   renderTypeGrid();
-  document.getElementById('typeConfirmBtn').disabled = true;
-  // Show thumbnail of pending photo
-  var thumb = document.getElementById('pendingThumb');
-  if (thumb && pendingPhotoItem) thumb.src = pendingPhotoItem.url;
+  document.getElementById('tmConfirm').disabled=true;
+  var th=document.getElementById('pendingThumb');
+  if(th&&pendingPhotoItem)th.src=pendingPhotoItem.url;
   document.getElementById('typeModal').classList.add('open');
 }
 
 function renderTypeGrid() {
-  var el = document.getElementById('typeGrid');
-  el.innerHTML = PHOTO_CATS.map(function(cat) {
-    var cnt = items.filter(function(i){return i.cats && i.cats.includes(cat.key);}).length;
-    var sel = selectedTypes.includes(cat.key);
-    return '<div class="type-cell' + (sel ? ' selected' : '') + '" data-key="' + cat.key + '" style="color:' + cat.color + ';">'
-      + '<div class="tc-icon">' + cat.icon + '</div>'
-      + '<div class="tc-label">' + cat.key + '</div>'
-      + '<div class="tc-count">' + cnt + '张</div>'
-      + '</div>';
+  var el=document.getElementById('typeGrid');
+  el.innerHTML=PHOTO_CATS.map(function(cat){
+    var cnt=items.filter(function(i){return i.cats&&i.cats.indexOf(cat.key)>=0;}).length;
+    var sel=selectedTypes.indexOf(cat.key)>=0;
+    return '<div class="tc'+(sel?' sel':'')+'" data-key="'+cat.key+'" style="color:'+cat.color+';">'
+      +'<div class="tc-i">'+cat.icon+'</div><div class="tc-l">'+cat.key+'</div><div class="tc-c">'+cnt+'张</div></div>';
   }).join('');
-  el.querySelectorAll('.type-cell').forEach(function(cell) {
-    cell.addEventListener('click', function() { toggleTypeSel(cell.getAttribute('data-key')); });
+  el.querySelectorAll('.tc').forEach(function(cell){
+    cell.addEventListener('click',function(){
+      var key=cell.getAttribute('data-key');
+      var idx=selectedTypes.indexOf(key);
+      if(idx>=0)selectedTypes.splice(idx,1);else selectedTypes.push(key);
+      renderTypeGrid();
+      document.getElementById('tmConfirm').disabled=selectedTypes.length===0;
+    });
   });
 }
 
-
-function toggleTypeSel(key) {
-  if (selectedTypes.includes(key)) {
-    selectedTypes = selectedTypes.filter(k => k !== key);
-  } else {
-    selectedTypes.push(key);
-  }
-  renderTypeGrid();
-  document.getElementById('typeConfirmBtn').disabled = selectedTypes.length === 0;
-}
-
-
 function confirmType() {
-  if (pendingPhotoItem) {
-    pendingPhotoItem.cats = [...selectedTypes];
-    items.unshift(pendingPhotoItem);
-    pendingPhotoItem = null;
-    updateCountUI();
-    var total = items.filter(function(i){return i.type==='photo';}).length;
-    var typeStr = selectedTypes.map(function(k) {
-      var c = PHOTO_CATS.find(function(x){return x.key===k;});
-      return (c ? c.icon : '') + k;
-    }).join(' ');
-    notify('✅ ' + typeStr + '  已拍' + total + '张 · 继续拍下一张');
+  if(pendingPhotoItem){
+    pendingPhotoItem.cats=selectedTypes.slice();
+    items.unshift(pendingPhotoItem);pendingPhotoItem=null;updateCount();
+    notify('✅ 已拍'+items.filter(function(i){return i.type==='photo';}).length+'张');
   }
-  closeTypeModal();
+  document.getElementById('typeModal').classList.remove('open');
 }
-
-
 function skipType() {
-  if (pendingPhotoItem) {
-    pendingPhotoItem.cats = ['其他'];
-    items.unshift(pendingPhotoItem);
-    pendingPhotoItem = null;
-    updateCountUI();
-    notify('已保存（未标注类型）');
-  }
-  closeTypeModal();
-}
-
-function closeTypeModal() {
+  if(pendingPhotoItem){pendingPhotoItem.cats=['其他'];items.unshift(pendingPhotoItem);pendingPhotoItem=null;updateCount();notify('已保存');}
   document.getElementById('typeModal').classList.remove('open');
 }
 
-// ══════════════════════
-// VIDEO RECORD
-// ══════════════════════
-function toggleRecord() {
-  if (isRecording) stopRecord();
-  else startRecord();
+function toggleRecord(){if(isRecording)stopRecord();else startRecord();}
+function startRecord() {
+  if(!camStream){notify('摄像头未启动');return;}
+  var mime=getSupportedMime();if(!mime){notify('不支持录像');return;}
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:true})
+    .then(function(av){doRecord(av,mime,true);}).catch(function(){doRecord(camStream,mime,false);});
+}
+function doRecord(stream,mime,hasAudio) {
+  _recAvStream=stream;recChunks=[];
+  mediaRecorder=new MediaRecorder(stream,{mimeType:mime});
+  mediaRecorder.ondataavailable=function(e){if(e.data.size>0)recChunks.push(e.data);};
+  mediaRecorder.onstop=function(){
+    if(_recAvStream&&_recAvStream!==camStream)_recAvStream.getTracks().forEach(function(t){t.stop();});
+    _recAvStream=null;
+    var blob=new Blob(recChunks,{type:mime});
+    pendingVideoItem={id:Date.now(),url:URL.createObjectURL(blob),mime:mime,type:'video',ts:new Date(),gps:gpsCoord?Object.assign({},gpsCoord):null,addr:gpsAddr,cats:['录像'],duration:recSecs,hasAudio:hasAudio};
+    document.getElementById('vcDur').textContent=recSecs+'秒';
+    document.getElementById('vcModal').classList.add('open');
+  };
+  mediaRecorder.start(500);isRecording=true;recSecs=0;
+  document.getElementById('shutterBtn').classList.add('recording');
+  document.getElementById('recTimer').style.display='block';
+  recTimer=setInterval(function(){
+    recSecs++;
+    document.getElementById('recTimer').textContent='⏺ '+recSecs+'s'+(hasAudio?' 🎙':'');
+    if(recSecs>=VIDEO_MAX_SECS)stopRecord();
+  },1000);
+}
+function stopRecord() {
+  if(!isRecording)return;
+  clearInterval(recTimer);isRecording=false;
+  if(mediaRecorder)mediaRecorder.stop();
+  document.getElementById('shutterBtn').classList.remove('recording');
+  document.getElementById('recTimer').style.display='none';
 }
 
-function startRecord() {
-  if (!camStream) { notify('摄像头未启动'); return; }
-  var mime = getSupportedMime();
-  if (!mime) { notify('浏览器不支持录像'); return; }
+function startVoice(e) {
+  e.preventDefault();
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+    voiceChunks=[];
+    voiceRecorder=new MediaRecorder(stream);
+    voiceRecorder.ondataavailable=function(ev){voiceChunks.push(ev.data);};
+    voiceRecorder.onstop=function(){
+      items.unshift({id:Date.now(),url:URL.createObjectURL(new Blob(voiceChunks,{type:'audio/webm'})),mime:'audio/webm',type:'voice',ts:new Date(),gps:gpsCoord?Object.assign({},gpsCoord):null,addr:gpsAddr,cats:['备注']});
+      notify('🎙 语音已保存');stream.getTracks().forEach(function(t){t.stop();});
+    };
+    voiceRecorder.start();notify('🎙 录音中…松开停止');
+  }).catch(function(){notify('麦克风被拒绝');});
+}
+function stopVoice(e) {
+  if(e) e.preventDefault();
+  if(voiceRecorder&&voiceRecorder.state==='recording')voiceRecorder.stop();
+}
 
-  // Try to get audio+video stream
-  navigator.mediaDevices.getUserMedia({
-    video: { facingMode: 'environment' },
-    audio: true
-  }).then(function(avStream) {
-    _doRecord(avStream, mime, true);
-  }).catch(function() {
-    // Fallback: video only
-    _doRecord(camStream, mime, false);
+var _voiceActive = false;
+function toggleVoice() {
+  if(_voiceActive) {
+    _voiceActive = false;
+    stopVoice(null);
+    document.getElementById('voiceBtn') && (document.getElementById('voiceBtn').style.background='');
+    document.getElementById('tmVoice') && document.getElementById('tmVoice').classList.remove('rec');
+  } else {
+    _voiceActive = true;
+    document.getElementById('voiceBtn') && (document.getElementById('voiceBtn').style.background='rgba(239,68,68,0.4)');
+    document.getElementById('tmVoice') && document.getElementById('tmVoice').classList.add('rec');
+    navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+      voiceChunks=[];
+      voiceRecorder=new MediaRecorder(stream);
+      voiceRecorder.ondataavailable=function(ev){voiceChunks.push(ev.data);};
+      voiceRecorder.onstop=function(){
+        _voiceActive=false;
+        document.getElementById('voiceBtn') && (document.getElementById('voiceBtn').style.background='');
+        document.getElementById('tmVoice') && document.getElementById('tmVoice').classList.remove('rec');
+        items.unshift({id:Date.now(),url:URL.createObjectURL(new Blob(voiceChunks,{type:'audio/webm'})),mime:'audio/webm',type:'voice',ts:new Date(),gps:gpsCoord?Object.assign({},gpsCoord):null,addr:gpsAddr,cats:['备注']});
+        notify('🎙 语音已保存');
+        stream.getTracks().forEach(function(t){t.stop();});
+      };
+      voiceRecorder.start();
+      notify('🎙 录音中…再按停止');
+    }).catch(function(){_voiceActive=false;notify('麦克风被拒绝');});
+  }
+}
+
+function openGallery(){renderGallery();document.getElementById('galleryPanel').classList.add('open');}
+function closeGallery(){document.getElementById('galleryPanel').classList.remove('open');}
+function renderGallery() {
+  var grid=document.getElementById('gpGrid');
+  if(items.length===0){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,0.3);">还没有内容</div>';return;}
+  grid.innerHTML=items.map(function(item,i){
+    var tags=(item.cats||[]).join('·');
+    var media=item.type==='video'?'<video src="'+item.url+'" muted playsinline></video>':item.type==='voice'?'<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:28px;">🎙</div>':'<img src="'+item.url+'">';
+    return '<div class="gp-item">'+media+'<div class="gp-tags">'+tags+'</div><button class="gp-del" data-i="'+i+'">×</button></div>';
+  }).join('');
+  grid.querySelectorAll('.gp-del').forEach(function(btn){
+    btn.addEventListener('click',function(){items.splice(parseInt(btn.getAttribute('data-i')),1);updateCount();renderGallery();});
   });
 }
-
-var _recAvStream = null;
-var pendingVideoItem = null;
-
-function _doRecord(stream, mime, hasAudio) {
-  _recAvStream = stream;
-  recChunks = [];
-  mediaRecorder = new MediaRecorder(stream, {mimeType: mime});
-  mediaRecorder.ondataavailable = function(e) { if(e.data.size>0) recChunks.push(e.data); };
-  mediaRecorder.onstop = function() {
-    if (_recAvStream && _recAvStream !== camStream) {
-      _recAvStream.getTracks().forEach(function(t){ t.stop(); });
-    }
-    _recAvStream = null;
-    var blob = new Blob(recChunks, {type: mime});
-    var url = URL.createObjectURL(blob);
-    pendingVideoItem = {
-      id: Date.now(), url: url, mime: mime, type: 'video',
-      ts: new Date(), gps: gpsCoord ? Object.assign({}, gpsCoord) : null,
-      addr: gpsAddr, cats: ['录像'], duration: recSecs,
-      hasAudio: hasAudio,
-    };
-    showVideoConfirm();
-  };
-  mediaRecorder.start(500);
-  isRecording = true;
-  recSecs = 0;
-  document.getElementById('shutterBtn').classList.add('recording');
-  document.getElementById('recTimer').style.display = 'block';
-  recTimer = setInterval(function() {
-    recSecs++;
-    document.getElementById('recTimer').textContent = '⏺ ' + recSecs + 's' + (hasAudio ? ' 🎙' : '');
-    if (recSecs >= VIDEO_MAX_SECS) stopRecord();
-  }, 1000);
+function syncItems() {
+  try{localStorage.setItem('nm_capture_items',JSON.stringify(items.map(function(i){return {id:i.id,type:i.type,cats:i.cats,ts:i.ts,gps:i.gps,addr:i.addr};})));notify('✅ 已同步'+items.length+'条');}
+  catch(e){notify('同步失败');}
 }
 
-
-function stopRecord() {
-  if (!isRecording) return;
-  clearInterval(recTimer);
-  isRecording = false;
-  mediaRecorder && mediaRecorder.stop();
-  document.getElementById('shutterBtn').classList.remove('recording');
-  document.getElementById('recTimer').style.display = 'none';
+function getSupportedMime() {
+  var types=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4'];
+  for(var i=0;i<types.length;i++)if(MediaRecorder.isTypeSupported(types[i]))return types[i];
+  return '';
+}
+function notify(msg) {
+  var el=document.getElementById('notif');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(el._t);el._t=setTimeout(function(){el.classList.remove('show');},2500);
 }
 
-function showVideoConfirm() {
-  var dur = document.getElementById('vcDuration');
-  var modal = document.getElementById('videoConfirmModal');
-  if (dur) dur.textContent = pendingVideoItem.duration + '秒';
-  if (modal) modal.classList.add('open');
-}
+window.addEventListener('resize',checkOrientation);
 
-function saveVideo() {
-  if (pendingVideoItem) {
-    items.unshift(pendingVideoItem);
-    updateCountUI();
-    notify('🎥 录像已保存 ' + pendingVideoItem.duration + 's' + (pendingVideoItem.hasAudio ? ' 含语音' : ''));
-    pendingVideoItem = null;
-  }
-  var modal = document.getElementById('videoConfirmModal');
-  if (modal) modal.classList.remove('open');
-}
+document.addEventListener('DOMContentLoaded',function(){
+  document.getElementById('startBtn').addEventListener('click',startApp);
 
-function discardVideo() {
-  pendingVideoItem = null;
-  var modal = document.getElementById('videoConfirmModal');
-  if (modal) modal.classList.remove('open');
-  notify('录像已丢弃');
-}
+  var sb=document.getElementById('shutterBtn');
+  var _touchUsed=false;
+  sb.addEventListener('touchstart',function(e){_touchUsed=true;onShutterDown(e);},{passive:false});
+  sb.addEventListener('touchend',function(e){onShutterUp(e);},{passive:false});
+  sb.addEventListener('mousedown',function(e){if(!_touchUsed)onShutterDown(e);});
+  sb.addEventListener('mouseup',function(e){if(!_touchUsed)onShutterUp(e);else _touchUsed=false;});
+
+  document.getElementById('galleryBtn').addEventListener('click',openGallery);
+  document.getElementById('gpClose').addEventListener('click',closeGallery);
+  document.getElementById('gpSync').addEventListener('click',syncItems);
+
+  document.getElementById('voiceBtn').addEventListener('click', toggleVoice);
+
+  document.getElementById('tmConfirm').addEventListener('click',confirmType);
+  document.getElementById('tmSkip').addEventListener('click',skipType);
+
+  document.getElementById('tmVoice').addEventListener('click', toggleVoice);
+
+  document.getElementById('vcSave').addEventListener('click',function(){
+    if(pendingVideoItem){items.unshift(pendingVideoItem);updateCount();notify('🎥 已保存');pendingVideoItem=null;}
+    document.getElementById('vcModal').classList.remove('open');
+  });
+  document.getElementById('vcDiscard').addEventListener('click',function(){
+    pendingVideoItem=null;document.getElementById('vcModal').classList.remove('open');notify('录像已丢弃');
+  });
+});
 </script>
 </body>
 </html>
